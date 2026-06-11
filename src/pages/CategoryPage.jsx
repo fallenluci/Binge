@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { getCategories, addFilm, deleteFilm, updateFilm } from '../store';
 import RatingPicker from '../components/RatingPicker';
 
@@ -11,8 +11,7 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
   const [isExiting, setIsExiting] = useState(false);
 
   const refresh = () => {
-    const cats = getCategories();
-    const cat = cats.find(c => c.id === categoryId);
+    const cat = getCategories().find(c => c.id === categoryId);
     setCategory(cat);
   };
 
@@ -20,15 +19,12 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
 
   const handleBack = () => {
     setIsExiting(true);
-    setTimeout(() => { onBack(); onRefresh(); }, 260);
+    setTimeout(() => { onBack(); onRefresh(); }, 280);
   };
 
   const handleAddFilm = () => {
     const name = prompt('Название фильма:');
-    if (name?.trim()) {
-      addFilm(categoryId, name.trim());
-      refresh();
-    }
+    if (name?.trim()) { addFilm(categoryId, name.trim()); refresh(); }
   };
 
   const handleDelete = (filmId) => {
@@ -47,7 +43,7 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
     if (editName.trim()) {
       updateFilm(categoryId, editingFilm.id, { name: editName.trim() });
       setEditingFilm(null);
-      setMenuFilm(null);
+      setMenuFilm(prev => prev ? { ...prev, name: editName.trim() } : null);
       refresh();
     }
   };
@@ -56,152 +52,63 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
 
   return (
     <div
-      className={isExiting ? 'screen-exit' : 'screen-enter'}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: category.color,
-        zIndex: 20,
-        display: 'flex',
-        flexDirection: 'column',
-        maxWidth: 430,
-        left: '50%',
-        transform: isExiting ? 'none' : 'none',
-        marginLeft: -215,
-      }}
+      className={`cat-page ${isExiting ? 'screen-exit' : 'screen-enter'}`}
+      style={{ background: category.color }}
     >
       {/* Top bar */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '56px 20px 16px',
-      }}>
-        <button
-          onClick={handleBack}
-          style={{
-            background: 'rgba(255,255,255,0.25)',
-            border: 'none',
-            borderRadius: 50,
-            width: 40,
-            height: 40,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            color: 'white',
-          }}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <div className="cat-topbar">
+        <button className="cat-back-btn" onClick={handleBack}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5M12 19l-7-7 7-7"/>
           </svg>
         </button>
         <div style={{ display: 'flex', gap: 10 }}>
           <button
             onClick={handleAddFilm}
-            style={{
-              background: 'rgba(255,255,255,0.25)',
-              border: 'none',
-              borderRadius: 50,
-              width: 44,
-              height: 44,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              color: 'white',
-              fontSize: 22,
-            }}
+            className="topbar-circle"
+            style={{ background: 'rgba(255,255,255,0.25)', color: 'white', fontSize: 24, fontWeight: 300 }}
           >+</button>
-          <div style={{
-            background: 'rgba(255,255,255,0.25)',
-            borderRadius: 50,
-            width: 44,
-            height: 44,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            fontSize: 13,
-            fontWeight: 700,
-          }}>AC</div>
+          <div className="topbar-circle" style={{ background: 'rgba(255,255,255,0.25)' }}>
+            <span style={{ fontSize: 20, fontWeight: 400, color: 'white' }}>AC</span>
+          </div>
         </div>
       </div>
 
       {/* Title */}
-      <div style={{ padding: '8px 24px 20px' }}>
-        <h1 style={{ fontSize: 36, fontWeight: 800, color: 'white', letterSpacing: '-0.5px' }}>
-          {category.name}
-        </h1>
-      </div>
+      <div className="cat-title">{category.name}</div>
 
       {/* Film list */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px 40px' }}>
+      <div className="cat-list">
         {category.films.length === 0 && (
-          <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 16, paddingTop: 20 }}>
+          <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 18, padding: '20px 31px' }}>
             Нажми + чтобы добавить первый фильм
           </div>
         )}
         {category.films.map((film, idx) => (
-          <div
-            key={film.id}
-            style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: 12,
-              paddingBottom: 20,
-              paddingTop: idx === 0 ? 0 : 0,
-            }}
-          >
-            <span style={{ color: 'white', fontSize: 17, fontWeight: 500, minWidth: 24, paddingTop: 1 }}>
-              {idx + 1}.
-            </span>
-            <span style={{ color: 'white', fontSize: 17, fontWeight: 500, flex: 1, lineHeight: 1.35 }}>
-              {film.name}
-            </span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-              {film.rating !== null && (
-                <span style={{
-                  background: 'rgba(0,0,0,0.75)',
-                  color: 'white',
-                  borderRadius: 20,
-                  padding: '3px 10px',
-                  fontSize: 14,
-                  fontWeight: 700,
-                  minWidth: 32,
-                  textAlign: 'center',
-                }}>
-                  {film.rating}
-                </span>
-              )}
-              <button
-                onClick={() => setMenuFilm(film)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'white',
-                  cursor: 'pointer',
-                  fontSize: 18,
-                  padding: '4px 2px',
-                  letterSpacing: 1,
-                  opacity: 0.8,
-                }}
-              >
-                •••
-              </button>
-            </div>
+          <div key={film.id} className="film-row">
+            <span className="film-num">{idx + 1}.</span>
+            <span className="film-name">{film.name}</span>
+            {film.rating !== null && (
+              <div className="film-rating-badge">{film.rating}</div>
+            )}
+            <button className="film-dots-btn" onClick={() => setMenuFilm(film)}>
+              <div className="film-dot" />
+              <div className="film-dot" />
+              <div className="film-dot" />
+            </button>
           </div>
         ))}
       </div>
 
-      {/* Film action sheet */}
+      {/* Action sheet */}
       {menuFilm && (
         <>
-          <div className="sheet-overlay" onClick={() => setMenuFilm(null)} />
-          <div className="sheet" style={{ maxWidth: 430, left: '50%', transform: 'translateX(-50%)' }}>
+          <div className="sheet-overlay" onClick={() => { setMenuFilm(null); setEditingFilm(null); }} />
+          <div className="sheet" style={{ background: `${category.color}f7` }}>
             <div className="sheet-handle" />
-            {/* Edit name inline */}
-            <div style={{ background: 'white', borderRadius: 12, padding: '12px 16px', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
+
+            {/* Film name / edit row */}
+            <div className="sheet-film-title-row">
               {editingFilm?.id === menuFilm.id ? (
                 <>
                   <input
@@ -209,17 +116,24 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
                     value={editName}
                     onChange={e => setEditName(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleEditSave()}
-                    style={{ flex: 1, border: 'none', outline: 'none', fontSize: 16, fontFamily: 'inherit' }}
+                    style={{
+                      flex: 1, background: 'transparent', border: 'none', outline: 'none',
+                      fontSize: 24, fontWeight: 590, color: 'white', fontFamily: 'inherit',
+                    }}
                   />
-                  <button onClick={handleEditSave} style={{ background: 'none', border: 'none', color: '#007AFF', fontWeight: 600, cursor: 'pointer', fontSize: 15 }}>
-                    Сохранить
-                  </button>
+                  <button
+                    onClick={handleEditSave}
+                    style={{ background: 'none', border: 'none', color: 'white', fontWeight: 700, cursor: 'pointer', fontSize: 16 }}
+                  >✓</button>
                 </>
               ) : (
                 <>
-                  <span style={{ flex: 1, fontSize: 16, fontWeight: 500 }}>{menuFilm.name}</span>
-                  <button onClick={() => { setEditingFilm(menuFilm); setEditName(menuFilm.name); }} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5 }}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <span className="sheet-film-name">{menuFilm.name}</span>
+                  <button
+                    className="sheet-edit-btn"
+                    onClick={() => { setEditingFilm(menuFilm); setEditName(menuFilm.name); }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                     </svg>
@@ -228,26 +142,27 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
               )}
             </div>
 
-            <div className="sheet-item">
-              <div className="sheet-row" onClick={() => { setShowRating(menuFilm); setMenuFilm(null); }}>
-                <div className="sheet-row-icon" style={{ background: '#FFD60A' }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                  </svg>
-                </div>
-                <span className="sheet-row-label">Оценить</span>
+            {/* Delete */}
+            <div className="sheet-action-row" onClick={() => handleDelete(menuFilm.id)}>
+              <div className="sheet-action-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                  <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+                </svg>
               </div>
-              <div className="sheet-row" onClick={() => handleDelete(menuFilm.id)}>
-                <div className="sheet-row-icon" style={{ background: '#FF3B30' }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                    <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
-                  </svg>
-                </div>
-                <span className="sheet-row-label danger">Удалить</span>
-              </div>
+              <span className="sheet-action-label">Delete</span>
             </div>
-            <button className="modal-btn secondary" onClick={() => setMenuFilm(null)}>Отмена</button>
+
+            {/* Rate */}
+            <div className="sheet-action-row" onClick={() => { setShowRating(menuFilm); setMenuFilm(null); }}>
+              <div className="sheet-action-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="black">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              </div>
+              <span className="sheet-action-label">Rate</span>
+            </div>
           </div>
         </>
       )}
