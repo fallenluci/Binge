@@ -6,48 +6,22 @@ import CategoryPage from './pages/CategoryPage';
 import Island from './components/Island';
 
 export default function App() {
-  const [activePage, setActivePage] = useState('home');
-  const [openCategoryId, setOpenCategoryId] = useState(null);
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const refresh = () => setRefreshKey(k => k + 1);
-
-  const handleOpenCategory = (id) => {
-    setOpenCategoryId(id);
-  };
-
-  const handleCloseCategory = () => {
-    setOpenCategoryId(null);
-  };
+  const [page, setPage] = useState('home');
+  const [catId, setCatId] = useState(null);
+  const [tick, setTick] = useState(0);
+  const refresh = () => setTick(t => t + 1);
 
   return (
     <div className="app">
-      {/* Pages */}
-      {activePage === 'home' && (
-        <HomePage
-          onOpenCategory={handleOpenCategory}
-          refreshKey={refreshKey}
-          onRefresh={refresh}
-        />
-      )}
-      {activePage === 'rand' && <RandPage key={refreshKey} />}
+      {page === 'home' && <HomePage onOpenCategory={id => setCatId(id)} refreshKey={tick} />}
+      {page === 'rand' && <RandPage key={tick} />}
 
-      {/* Category page overlay */}
-      {openCategoryId && (
-        <CategoryPage
-          categoryId={openCategoryId}
-          onBack={handleCloseCategory}
-          onRefresh={refresh}
-        />
+      {catId && (
+        <CategoryPage categoryId={catId} onBack={() => setCatId(null)} onRefresh={refresh} />
       )}
 
-      {/* Floating Island — hidden when category is open */}
-      {!openCategoryId && (
-        <Island
-          activePage={activePage}
-          onChangePage={setActivePage}
-          onRefresh={refresh}
-        />
+      {!catId && (
+        <Island activePage={page} onChangePage={setPage} onRefresh={refresh} />
       )}
     </div>
   );

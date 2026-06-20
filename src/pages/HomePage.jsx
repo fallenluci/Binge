@@ -2,59 +2,37 @@ import { useState, useEffect } from 'react';
 import { getCategories } from '../store';
 
 export default function HomePage({ onOpenCategory, refreshKey }) {
-  const [categories, setCategories] = useState([]);
-
-  useEffect(() => {
-    setCategories(getCategories());
-  }, [refreshKey]);
+  const [cats, setCats] = useState([]);
+  useEffect(() => { setCats(getCategories()); }, [refreshKey]);
 
   return (
     <div className="page" style={{ paddingBottom: 120 }}>
-      {/* Topbar */}
       <div className="topbar">
-        <div className="topbar-circle" style={{ fontSize: 20, fontWeight: 400 }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <line x1="4" y1="12" x2="20" y2="12" stroke="black" strokeWidth="3.43" strokeLinecap="round"/>
-            <line x1="4" y1="6" x2="20" y2="6" stroke="black" strokeWidth="3.43" strokeLinecap="round"/>
-          </svg>
-        </div>
-        <div className="topbar-circle">
-          <span style={{ fontSize: 20, fontWeight: 400 }}>AC</span>
-        </div>
+        <button className="topbar-btn" style={{ fontSize: 22, fontWeight: 300 }}>+</button>
+        <button className="topbar-btn" style={{ fontSize: 20, fontWeight: 400 }}>AC</button>
       </div>
-
-      {/* Tiles */}
       <div style={{ padding: '16px 31px 0', display: 'flex', flexDirection: 'column', gap: 15 }}>
-        {categories.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '80px 20px', color: 'rgba(0,0,0,0.35)', fontSize: 16 }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>🎬</div>
+        {cats.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '80px 0', color: 'rgba(0,0,0,0.35)' }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>🎬</div>
             <div style={{ fontWeight: 600, marginBottom: 8 }}>Нет категорий</div>
-            <div>Нажми + чтобы добавить первую категорию</div>
+            <div style={{ fontSize: 15 }}>Нажми + чтобы добавить первую</div>
           </div>
         )}
-        {categories.map(cat => (
-          <CategoryTile key={cat.id} category={cat} onClick={() => onOpenCategory(cat.id)} />
+        {cats.map(cat => (
+          <div key={cat.id} className="tile" style={{ background: cat.color }} onClick={() => onOpenCategory(cat.id)}
+            onTouchStart={e => e.currentTarget.style.transform='scale(0.97)'}
+            onTouchEnd={e => e.currentTarget.style.transform='scale(1)'}
+          >
+            <div className="tile-title">{cat.name}</div>
+            {cat.films.slice(0, 3).map((f, i) => (
+              <div key={f.id} className={`tile-film${i === 2 && cat.films.length >= 3 ? ' blurred' : ''}`}>
+                {f.name}
+              </div>
+            ))}
+            {cat.films.length === 0 && <div className="tile-film" style={{ opacity: 0.6 }}>Нет фильмов</div>}
+          </div>
         ))}
-      </div>
-    </div>
-  );
-}
-
-function CategoryTile({ category, onClick }) {
-  const { name, color, films } = category;
-  const preview = films.slice(0, 3);
-
-  return (
-    <div
-      className="tile"
-      style={{ background: color }}
-      onClick={onClick}
-      onTouchStart={e => e.currentTarget.style.transform = 'scale(0.97)'}
-      onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
-    >
-      <div className="tile-title">{name}</div>
-      <div className="tile-films">
-        {preview.map(f => f.name).join('\n') || 'Нет фильмов'}
       </div>
     </div>
   );

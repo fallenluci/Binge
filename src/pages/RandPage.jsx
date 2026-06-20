@@ -1,135 +1,111 @@
 import { useState, useEffect, useRef } from 'react';
 import { getCategories } from '../store';
 
-const PICKER_H = 45;
-
 export default function RandPage() {
-  const [categories, setCategories] = useState([]);
+  const [cats, setCats] = useState([]);
   const [bubbles, setBubbles] = useState([]);
-  const [isSpinning, setIsSpinning] = useState(false);
+  const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState(null);
-  const [selectedCatIdx, setSelectedCatIdx] = useState(0);
-  const [pickerOffset, setPickerOffset] = useState(0);
-  const curPickerOffset = useRef(0);
+  const [showCats, setShowCats] = useState(false);
+  const [selectedCat, setSelectedCat] = useState(null); // null = all
   const animRef = useRef([]);
-  const startY = useRef(0);
-  const dragging = useRef(false);
 
   useEffect(() => {
-    const cats = getCategories();
-    setCategories(cats);
-    setBubbles(makeBubbles(cats));
+    const c = getCategories();
+    setCats(c);
+    setBubbles(initBubbles(c));
   }, []);
 
-  const makeBubbles = (cats) => {
-    const maxF = Math.max(...cats.map(c => c.films.length), 1);
-    // Positions from Figma frame 9 (approx, scaled to % of container)
-    const positions = [
-      { x: 58, y: 43 },  // big green
-      { x: 78, y: 65 },  // small blue
-      { x: 77, y: 27 },  // red
-      { x: 28, y: 37 },  // purple
-      { x: 35, y: 61 },  // yellow
+  const initBubbles = (c) => {
+    const maxF = Math.max(...c.map(x => x.films.length), 1);
+    // Approximate positions from Figma screen 9
+    const pos = [
+      { x: 58, y: 42 }, { x: 77, y: 28 }, { x: 25, y: 38 },
+      { x: 33, y: 64 }, { x: 63, y: 65 },
     ];
-    return cats.map((cat, i) => {
-      const size = 46 + (cat.films.length / maxF) * 70;
-      const pos = positions[i % positions.length];
-      return {
-        id: cat.id, color: cat.color, name: cat.name, size,
-        x: pos.x + (Math.random() - 0.5) * 10,
-        y: pos.y + (Math.random() - 0.5) * 10,
-        vx: (Math.random() - 0.5) * 0.4,
-        vy: (Math.random() - 0.5) * 0.4,
-      };
-    });
+    return c.map((cat, i) => ({
+      id: cat.id, color: cat.color, name: cat.name,
+      size: 50 + (cat.films.length / maxF) * 80,
+      x: (pos[i % pos.length].x) + (Math.random() - 0.5) * 8,
+      y: (pos[i % pos.length].y) + (Math.random() - 0.5) * 8,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+    }));
   };
 
-  const handleBubblePress = () => {
-    if (isSpinning || bubbles.length === 0) return;
+  const handlePress = () => {
+    if (spinning) return;
     setResult(null);
-    setIsSpinning(true);
-    let bubs = bubbles.map(b => ({
-      ...b, vx: (Math.random()-0.5)*3, vy: (Math.random()-0.5)*3,
-    }));
+    setSpinning(true);
+    animRef.current.forEach(cancelAnimationFrame);
+    let bubs = bubbles.map(b => ({ ...b, vx: (Math.random()-0.5)*3.5, vy: (Math.random()-0.5)*3.5 }));
     let start = null;
-    const duration = 5000;
+    const dur = 5000;
     const animate = (ts) => {
       if (!start) start = ts;
       const elapsed = ts - start;
-      const speed = Math.max(0.05, 1 - (elapsed / duration) * 0.95);
+      const speed = Math.max(0.05, 1 - (elapsed / dur) * 0.95);
       bubs = bubs.map(b => {
-        let nx = b.x + b.vx * speed;
-        let ny = b.y + b.vy * speed;
+        let nx = b.x + b.vx * speed, ny = b.y + b.vy * speed;
         let nvx = b.vx, nvy = b.vy;
-        if (nx < 5 || nx > 92) { nvx = -nvx; nx = Math.max(5, Math.min(92, nx)); }
-        if (ny < 5 || ny > 85) { nvy = -nvy; ny = Math.max(5, Math.min(85, ny)); }
+        if (nx < 8 || nx > 92) { nvx = -nvx; nx = Math.max(8, Math.min(92, nx)); }
+        if (ny < 5 || ny > 82) { nvy = -nvy; ny = Math.max(5, Math.min(82, ny)); }
         return { ...b, x: nx, y: ny, vx: nvx, vy: nvy };
       });
       setBubbles([...bubs]);
-      if (elapsed < duration) {
-        animRef.current.push(requestAnimationFrame(animate));
+      if (elapsed < dur) {
+        animRef.current = [requestAnimationFrame(animate)];
       } else {
-        setIsSpinning(false);
-        // Pick random
-        const cats = getCategories();
-        let pool = [];
-        if (selectedCatIdx === 0) {
-          cats.forEach(c => c.films.forEach(f => pool.push({ film: f, cat: c })));
-        } else {
-          const cat = cats[selectedCatIdx - 1];
-          if (cat) cat.films.forEach(f => pool.push({ film: f, cat }));
-        }
-        if (pool.length > 0) {
-          setResult(pool[Math.floor(Math.random() * pool.length)]);
-        }
+        setSpinning(false);
+        pick();
       }
     };
-    animRef.current.push(requestAnimationFrame(animate));
+    animRef.current = [requestAnimationFrame(animate)];
   };
 
-  const pickerItems = ['Все', ...categories.map(c => c.name)];
-
-  const snapPicker = (raw) => {
-    const idx = Math.max(0, Math.min(pickerItems.length - 1, Math.round(-raw / PICKER_H)));
-    setSelectedCatIdx(idx);
-    const snapped = -(idx * PICKER_H);
-    setPickerOffset(snapped);
-    curPickerOffset.current = snapped;
+  const pick = () => {
+    const allCats = getCategories();
+    let pool = [];
+    if (selectedCat) {
+      const c = allCats.find(x => x.id === selectedCat);
+      if (c) c.films.forEach(f => pool.push({ film: f, cat: c }));
+    } else {
+      allCats.forEach(c => c.films.forEach(f => pool.push({ film: f, cat: c })));
+    }
+    if (pool.length > 0) setResult(pool[Math.floor(Math.random() * pool.length)]);
   };
+
+  const toggleCat = (catId) => {
+    setSelectedCat(prev => prev === catId ? null : catId);
+  };
+
+  const selCatObj = cats.find(c => c.id === selectedCat);
 
   return (
     <div className="rand-page">
       {/* Topbar */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, padding: '56px 20px 0', flexShrink: 0 }}>
-        <div className="topbar-circle" style={{ background: 'rgba(255,255,255,0.15)', color: 'white', fontSize: 20 }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <line x1="4" y1="12" x2="20" y2="12" stroke="white" strokeWidth="3" strokeLinecap="round"/>
-            <line x1="4" y1="6" x2="20" y2="6" stroke="white" strokeWidth="3" strokeLinecap="round"/>
-          </svg>
-        </div>
-        <div className="topbar-circle" style={{ background: '#D9D9D9' }}>
-          <span style={{ fontSize: 20, fontWeight: 400, color: '#000' }}>AC</span>
-        </div>
+      <div className="rand-topbar">
+        <button className="topbar-btn" style={{ background: '#D9D9D9', fontSize: 22 }}>+</button>
+        <button className="topbar-btn" style={{ background: '#D9D9D9', fontSize: 20, fontWeight: 400 }}>AC</button>
       </div>
 
       {/* Bubbles */}
-      <div className="rand-bubbles" onClick={handleBubblePress}>
+      <div className="rand-bubbles" onClick={handlePress}>
         {bubbles.map(b => (
           <div key={b.id} style={{
             position: 'absolute',
             left: `${b.x}%`, top: `${b.y}%`,
-            width: b.size, height: b.size,
-            borderRadius: '50%',
+            width: b.size, height: b.size, borderRadius: '50%',
             background: b.color,
-            transform: 'translate(-50%, -50%)',
-            boxShadow: `0 4px 24px ${b.color}66`,
-            transition: isSpinning ? 'none' : 'left 0.8s ease, top 0.8s ease',
+            transform: 'translate(-50%,-50%)',
+            transition: spinning ? 'none' : 'left 1s ease, top 1s ease',
+            boxShadow: `0 4px 20px ${b.color}44`,
           }} />
         ))}
         {bubbles.length === 0 && (
           <div style={{
-            position: 'absolute', inset: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            position: 'absolute', inset: 0, display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
             flexDirection: 'column', gap: 12,
             color: 'rgba(255,255,255,0.3)', fontSize: 16, textAlign: 'center', padding: 40,
           }}>
@@ -139,66 +115,43 @@ export default function RandPage() {
         )}
       </div>
 
-      {/* Result */}
-      {result && (
-        <div className="rand-result">
-          <div className="rand-result-name">{result.film.name}</div>
-        </div>
-      )}
-      {!result && !isSpinning && bubbles.length > 0 && (
-        <div className="rand-hint">Нажми чтобы выбрать фильм</div>
-      )}
-      {isSpinning && <div className="rand-hint">Выбираем...</div>}
+      {/* Bottom area */}
+      <div className="rand-bottom">
+        {/* Result */}
+        {result && (
+          <div className="rand-result">{result.film.name}</div>
+        )}
+        {spinning && <div className="rand-hint">Выбираем...</div>}
+        {!spinning && !result && bubbles.length > 0 && (
+          <div className="rand-hint">Нажми на пузыри</div>
+        )}
 
-      {/* Category picker drum */}
-      {categories.length > 0 && (
-        <div className="rand-picker" style={{ marginBottom: 90 }}>
-          <div className="rand-picker-highlight" />
-          <div
-            style={{
-              transform: `translateY(${pickerOffset + PICKER_H}px)`,
-              transition: dragging.current ? 'none' : 'transform 0.3s ease',
-              cursor: 'grab', userSelect: 'none',
-            }}
-            onTouchStart={e => { startY.current = e.touches[0].clientY; dragging.current = true; }}
-            onTouchMove={e => {
-              if (!dragging.current) return;
-              const raw = curPickerOffset.current + (e.touches[0].clientY - startY.current);
-              setPickerOffset(Math.max(-(pickerItems.length-1)*PICKER_H, Math.min(0, raw)));
-            }}
-            onTouchEnd={e => {
-              dragging.current = false;
-              snapPicker(curPickerOffset.current + (e.changedTouches[0].clientY - startY.current));
-            }}
-            onMouseDown={e => { startY.current = e.clientY; dragging.current = true; }}
-            onMouseMove={e => {
-              if (!dragging.current) return;
-              const raw = curPickerOffset.current + (e.clientY - startY.current);
-              setPickerOffset(Math.max(-(pickerItems.length-1)*PICKER_H, Math.min(0, raw)));
-            }}
-            onMouseUp={e => {
-              dragging.current = false;
-              snapPicker(curPickerOffset.current + (e.clientY - startY.current));
-            }}
-          >
-            {pickerItems.map((item, idx) => {
-              const diff = Math.abs(idx - selectedCatIdx);
-              return (
-                <div key={idx} style={{
-                  height: PICKER_H,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: diff === 0 ? 16 : 14,
-                  fontWeight: diff === 0 ? 860 : 400,
-                  color: diff === 0 ? '#000' : 'rgba(255,255,255,0.35)',
-                  transition: 'all 0.2s',
-                  userSelect: 'none',
-                }}>{item}</div>
-              );
-            })}
+        {/* Category chips or Settings button */}
+        {showCats ? (
+          <div className="rand-cats">
+            {cats.map(c => (
+              <button key={c.id} className="rand-cat-chip" onClick={() => toggleCat(c.id)}
+                style={{ background: selectedCat === c.id ? 'rgba(180,180,180,0.8)' : 'rgba(130,130,130,0.6)' }}>
+                {c.name}
+                {selectedCat === c.id && <span className="rand-chip-x">✕</span>}
+              </button>
+            ))}
           </div>
-          <div className="rand-picker-fade" />
-        </div>
-      )}
+        ) : (
+          cats.length > 0 && (
+            <button className="rand-settings-btn" onClick={() => setShowCats(true)}>
+              Settings
+            </button>
+          )
+        )}
+
+        {/* Selected category tag after result */}
+        {result && selCatObj && (
+          <button className="rand-cat-chip" onClick={() => setSelectedCat(null)}>
+            {selCatObj.name} <span className="rand-chip-x">✕</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 }
