@@ -1,6 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getCategories, addFilm, deleteFilm, updateFilm, updateCategory } from '../store';
 import RatingPicker from '../components/RatingPicker';
+
+function darkenColor(hex, amount = 0.5) {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.substring(0,2), 16);
+  const g = parseInt(h.substring(2,4), 16);
+  const b = parseInt(h.substring(4,6), 16);
+  return `rgb(${Math.round(r*(1-amount))},${Math.round(g*(1-amount))},${Math.round(b*(1-amount))})`;
+}
 
 export default function CategoryPage({ categoryId, onBack, onRefresh }) {
   const [cat, setCat] = useState(null);
@@ -12,6 +20,10 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
   const [editFilmName, setEditFilmName] = useState('');
   const [exiting, setExiting] = useState(false);
 
+  // Swipe to go back
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
+
   const refresh = () => {
     const found = getCategories().find(c => c.id === categoryId);
     setCat(found);
@@ -20,12 +32,18 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
 
   const goBack = () => {
     setExiting(true);
-    setTimeout(() => { onBack(); onRefresh(); }, 280);
+    setTimeout(() => { onBack(); onRefresh(); }, 300);
   };
 
-  const addFilmPrompt = () => {
-    const name = prompt('Название фильма:');
-    if (name?.trim()) { addFilm(categoryId, name.trim()); refresh(); }
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e) => {
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
+    if (dx > 80 && dy < 60) goBack();
   };
 
   const handleRate = (filmId, rating) => {
@@ -39,12 +57,12 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
   };
 
   const saveCatName = () => {
-    if (catName.trim()) { updateCategory(categoryId, { name: catName.trim() }); }
+    if (catName.trim()) updateCategory(categoryId, { name: catName.trim() });
     setEditingName(false); refresh();
   };
 
   const saveFilmName = () => {
-    if (editFilmName.trim()) { updateFilm(categoryId, editFilm.id, { name: editFilmName.trim() }); }
+    if (editFilmName.trim()) updateFilm(categoryId, editFilm.id, { name: editFilmName.trim() });
     setEditFilm(null);
     setMenuFilm(prev => prev ? { ...prev, name: editFilmName.trim() } : null);
     refresh();
@@ -52,40 +70,43 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
 
   if (!cat) return null;
 
-  // sheet bg: category color at 97% opacity
-  const sheetBg = cat.color + 'f7';
+  const dark = darkenColor(cat.color, 0.5);
+  const sheetBg = cat.color + 'f0';
 
   return (
-    <div className={`cat-page ${exiting ? 'screen-exit' : 'screen-enter'}`} style={{ background: cat.color }}>
-      {/* Topbar */}
+    <div
+      className={`cat-page ${exiting ? 'screen-exit' : 'screen-enter'}`}
+      style={{ background: `radial-gradient(ellipse at 50% 30%, ${cat.color} 0%, ${dark} 100%)` }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Topbar — no logo, back arrow instead */}
       <div className="cat-topbar">
         <button className="cat-back" onClick={goBack}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5M12 19l-7-7 7-7"/>
           </svg>
         </button>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button className="topbar-btn" onClick={addFilmPrompt} style={{ background: 'rgba(217,217,217,0.8)', fontSize: 22 }}>+</button>
-          <button className="topbar-btn" style={{ background: 'rgba(217,217,217,0.8)', fontSize: 20, fontWeight: 400 }}>AC</button>
+          <button className="topbar-btn" onClick={() => {
+            const name = prompt('Название фильма:');
+            if (name?.trim()) { addFilm(categoryId, name.trim()); refresh(); }
+          }} style={{ background: 'rgba(217,217,217,0.25)', fontSize: 22, color: 'white' }}>+</button>
+          <button className="topbar-btn" style={{ background: 'rgba(217,217,217,0.25)', fontSize: 20, fontWeight: 400, color: 'white' }}>AC</button>
         </div>
       </div>
 
-      {/* Title */}
+      {/* Title with pencil */}
       <div className="cat-title-row">
         {editingName ? (
           <input autoFocus value={catName} onChange={e => setCatName(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && saveCatName()}
-            onBlur={saveCatName}
-            style={{
-              background: 'transparent', border: 'none', outline: 'none',
-              fontSize: 40, fontWeight: 860, color: 'white', fontFamily: 'inherit',
-              letterSpacing: '-0.5px', width: '100%',
-            }} />
+            onKeyDown={e => e.key === 'Enter' && saveCatName()} onBlur={saveCatName}
+            style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: 40, fontWeight: 900, color: 'white', fontFamily: 'inherit', letterSpacing: '-0.5px', width: '100%' }} />
         ) : (
           <>
             <span className="cat-title">{cat.name}</span>
             <button className="cat-title-edit" onClick={() => { setEditingName(true); setCatName(cat.name); }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
               </svg>
@@ -117,7 +138,7 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
       {menuFilm && (
         <>
           <div className="sheet-overlay" onClick={() => { setMenuFilm(null); setEditFilm(null); }} />
-          <div className="sheet" style={{ background: sheetBg }}>
+          <div className="sheet" style={{ background: sheetBg, backdropFilter: 'blur(20px)' }}>
             <div className="sheet-handle" />
             <div className="sheet-film-row">
               {editFilm?.id === menuFilm.id ? (
@@ -156,7 +177,6 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
         </>
       )}
 
-      {/* Rating picker */}
       {showRating && (
         <RatingPicker film={showRating} bgColor={cat.color}
           onRate={r => handleRate(showRating.id, r)}
