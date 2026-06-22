@@ -12,7 +12,7 @@ export default function App() {
   const refresh = () => setTick(t => t + 1);
 
   return (
-    <div className="app">
+    <div className="app" style={{ background: '#000' }}>
       {page === 'home' && <HomePage onOpenCategory={id => setCatId(id)} refreshKey={tick} />}
       {page === 'rand' && <RandPage key={tick} />}
 
