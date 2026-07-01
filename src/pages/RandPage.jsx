@@ -3,64 +3,32 @@ import { getCategories } from '../store';
 
 export default function RandPage() {
   const [cats, setCats] = useState([]);
-  const [bubbles, setBubbles] = useState([]);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState(null);
+  const [count, setCount] = useState(null);
+  const [selectedCat, setSelectedCat] = useState(null);
   const [showCats, setShowCats] = useState(false);
-  const [selectedCat, setSelectedCat] = useState(null); // null = all
-  const animRef = useRef([]);
 
-  useEffect(() => {
-    const c = getCategories();
-    setCats(c);
-    setBubbles(initBubbles(c));
-  }, []);
+  useEffect(() => { setCats(getCategories()); }, []);
 
-  const initBubbles = (c) => {
-    const maxF = Math.max(...c.map(x => x.films.length), 1);
-    // Approximate positions from Figma screen 9
-    const pos = [
-      { x: 58, y: 42 }, { x: 77, y: 28 }, { x: 25, y: 38 },
-      { x: 33, y: 64 }, { x: 63, y: 65 },
-    ];
-    return c.map((cat, i) => ({
-      id: cat.id, color: cat.color, name: cat.name,
-      size: 50 + (cat.films.length / maxF) * 80,
-      x: (pos[i % pos.length].x) + (Math.random() - 0.5) * 8,
-      y: (pos[i % pos.length].y) + (Math.random() - 0.5) * 8,
-      vx: (Math.random() - 0.5) * 0.5,
-      vy: (Math.random() - 0.5) * 0.5,
-    }));
-  };
-
-  const handlePress = () => {
+  const start = () => {
     if (spinning) return;
     setResult(null);
     setSpinning(true);
-    animRef.current.forEach(cancelAnimationFrame);
-    let bubs = bubbles.map(b => ({ ...b, vx: (Math.random()-0.5)*3.5, vy: (Math.random()-0.5)*3.5 }));
-    let start = null;
-    const dur = 5000;
-    const animate = (ts) => {
-      if (!start) start = ts;
-      const elapsed = ts - start;
-      const speed = Math.max(0.05, 1 - (elapsed / dur) * 0.95);
-      bubs = bubs.map(b => {
-        let nx = b.x + b.vx * speed, ny = b.y + b.vy * speed;
-        let nvx = b.vx, nvy = b.vy;
-        if (nx < 8 || nx > 92) { nvx = -nvx; nx = Math.max(8, Math.min(92, nx)); }
-        if (ny < 5 || ny > 82) { nvy = -nvy; ny = Math.max(5, Math.min(82, ny)); }
-        return { ...b, x: nx, y: ny, vx: nvx, vy: nvy };
-      });
-      setBubbles([...bubs]);
-      if (elapsed < dur) {
-        animRef.current = [requestAnimationFrame(animate)];
+    let n = 9;
+    setCount(n);
+    const tick = () => {
+      n -= 1;
+      if (n >= 0) {
+        setCount(n);
+        setTimeout(tick, 220);
       } else {
         setSpinning(false);
+        setCount(null);
         pick();
       }
     };
-    animRef.current = [requestAnimationFrame(animate)];
+    setTimeout(tick, 220);
   };
 
   const pick = () => {
@@ -75,81 +43,85 @@ export default function RandPage() {
     if (pool.length > 0) setResult(pool[Math.floor(Math.random() * pool.length)]);
   };
 
-  const toggleCat = (catId) => {
-    setSelectedCat(prev => prev === catId ? null : catId);
-  };
-
   const selCatObj = cats.find(c => c.id === selectedCat);
 
   return (
-    <div className="rand-page">
-      {/* Topbar */}
-      <div className="rand-topbar">
-        <button className="topbar-btn" style={{ background: '#D9D9D9', fontSize: 22 }}>+</button>
-        <button className="topbar-btn" style={{ background: '#D9D9D9', fontSize: 20, fontWeight: 400 }}>AC</button>
+    <div style={{ height: '100dvh', background: 'var(--ink)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ padding: '52px 24px 0' }}>
+        <div style={{ fontFamily: 'var(--display)', fontSize: 30, color: 'var(--paper)', letterSpacing: '2px' }}>RANDOM REEL</div>
+        <div style={{ height: 2, width: 50, background: 'var(--amber)', marginTop: 8 }} />
       </div>
 
-      {/* Bubbles */}
-      <div className="rand-bubbles" onClick={handlePress}>
-        {bubbles.map(b => (
-          <div key={b.id} style={{
-            position: 'absolute',
-            left: `${b.x}%`, top: `${b.y}%`,
-            width: b.size, height: b.size, borderRadius: '50%',
-            background: b.color,
-            transform: 'translate(-50%,-50%)',
-            transition: spinning ? 'none' : 'left 1s ease, top 1s ease',
-            boxShadow: `0 4px 20px ${b.color}44`,
-          }} />
-        ))}
-        {bubbles.length === 0 && (
-          <div style={{
-            position: 'absolute', inset: 0, display: 'flex',
-            alignItems: 'center', justifyContent: 'center',
-            flexDirection: 'column', gap: 12,
-            color: 'rgba(255,255,255,0.3)', fontSize: 16, textAlign: 'center', padding: 40,
-          }}>
-            <div style={{ fontSize: 48 }}>🎬</div>
-            <div>Добавь категории на главной</div>
-          </div>
-        )}
-      </div>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 28 }}>
+        {/* Countdown circle — film leader style */}
+        <div
+          onClick={start}
+          style={{
+            width: 220, height: 220, borderRadius: '50%',
+            border: '3px solid var(--paper-dim)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', position: 'relative',
+            background: 'conic-gradient(from 0deg, var(--card) 0deg, var(--card) 350deg, var(--amber) 360deg)',
+          }}
+        >
+          {/* Tick marks like a clock/leader */}
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} style={{
+              position: 'absolute', width: 2, height: 12, background: 'rgba(237,230,214,0.3)',
+              top: 8, left: '50%', transformOrigin: '1px 102px',
+              transform: `rotate(${i * 30}deg)`,
+            }} />
+          ))}
+          {spinning ? (
+            <span style={{ fontFamily: 'var(--mono)', fontSize: 64, fontWeight: 700, color: 'var(--amber)' }}>{count}</span>
+          ) : (
+            <span style={{ fontFamily: 'var(--display)', fontSize: 26, color: 'var(--paper)', letterSpacing: '2px', textAlign: 'center' }}>
+              TAP TO<br/>SPIN
+            </span>
+          )}
+        </div>
 
-      {/* Bottom area */}
-      <div className="rand-bottom">
         {/* Result */}
-        {result && (
-          <div className="rand-result">{result.film.name}</div>
-        )}
-        {spinning && <div className="rand-hint">Выбираем...</div>}
-        {!spinning && !result && bubbles.length > 0 && (
-          <div className="rand-hint">Нажми на пузыри</div>
-        )}
+        <div style={{ minHeight: 60, textAlign: 'center', padding: '0 30px' }}>
+          {result && (
+            <>
+              <div style={{ fontFamily: 'var(--display)', fontSize: 30, color: 'var(--paper)', letterSpacing: '1px', lineHeight: 1.1 }}>{result.film.name.toUpperCase()}</div>
+              <div style={{ fontFamily: 'var(--mono)', fontSize: 12, color: result.cat.color, marginTop: 8, letterSpacing: '1px' }}>{result.cat.name.toUpperCase()}</div>
+            </>
+          )}
+          {!result && !spinning && cats.length === 0 && (
+            <div style={{ color: 'var(--paper-dim)', fontSize: 14 }}>Сначала добавь категории на главной</div>
+          )}
+        </div>
+      </div>
 
-        {/* Category chips or Settings button */}
+      {/* Reel filter */}
+      <div style={{ padding: '0 24px 110px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
         {showCats ? (
-          <div className="rand-cats">
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <button onClick={() => setSelectedCat(null)} style={{
+              fontFamily: 'var(--mono)', fontSize: 12, padding: '8px 16px', borderRadius: 8,
+              border: `1px solid ${!selectedCat ? 'var(--amber)' : 'rgba(237,230,214,0.2)'}`,
+              background: !selectedCat ? 'rgba(217,142,44,0.15)' : 'transparent',
+              color: !selectedCat ? 'var(--amber)' : 'var(--paper-dim)', cursor: 'pointer',
+            }}>ALL</button>
             {cats.map(c => (
-              <button key={c.id} className="rand-cat-chip" onClick={() => toggleCat(c.id)}
-                style={{ background: selectedCat === c.id ? 'rgba(180,180,180,0.8)' : 'rgba(130,130,130,0.6)' }}>
-                {c.name}
-                {selectedCat === c.id && <span className="rand-chip-x">✕</span>}
-              </button>
+              <button key={c.id} onClick={() => setSelectedCat(c.id)} style={{
+                fontFamily: 'var(--mono)', fontSize: 12, padding: '8px 16px', borderRadius: 8,
+                border: `1px solid ${selectedCat === c.id ? c.color : 'rgba(237,230,214,0.2)'}`,
+                background: selectedCat === c.id ? `${c.color}25` : 'transparent',
+                color: selectedCat === c.id ? c.color : 'var(--paper-dim)', cursor: 'pointer',
+              }}>{c.name.toUpperCase()}</button>
             ))}
           </div>
         ) : (
           cats.length > 0 && (
-            <button className="rand-settings-btn" onClick={() => setShowCats(true)}>
-              Settings
-            </button>
+            <button onClick={() => setShowCats(true)} style={{
+              fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '1px',
+              background: 'none', border: '1px dashed rgba(237,230,214,0.3)', borderRadius: 8,
+              padding: '8px 18px', color: 'var(--paper-dim)', cursor: 'pointer',
+            }}>FILTER REEL {selCatObj ? `· ${selCatObj.name.toUpperCase()}` : ''}</button>
           )
-        )}
-
-        {/* Selected category tag after result */}
-        {result && selCatObj && (
-          <button className="rand-cat-chip" onClick={() => setSelectedCat(null)}>
-            {selCatObj.name} <span className="rand-chip-x">✕</span>
-          </button>
         )}
       </div>
     </div>

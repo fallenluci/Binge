@@ -12,17 +12,11 @@ export default function App() {
   const refresh = () => setTick(t => t + 1);
 
   return (
-    <div className="app" style={{ background: '#000' }}>
+    <div className="app">
       {page === 'home' && <HomePage onOpenCategory={id => setCatId(id)} refreshKey={tick} />}
       {page === 'rand' && <RandPage key={tick} />}
-
-      {catId && (
-        <CategoryPage categoryId={catId} onBack={() => setCatId(null)} onRefresh={refresh} />
-      )}
-
-      {!catId && (
-        <Island activePage={page} onChangePage={setPage} onRefresh={refresh} />
-      )}
+      {catId && <CategoryPage categoryId={catId} onBack={() => setCatId(null)} onRefresh={refresh} />}
+      {!catId && <Island activePage={page} onChangePage={setPage} onRefresh={refresh} />}
     </div>
   );
 }
