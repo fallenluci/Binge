@@ -3,124 +3,113 @@ import { getCategories } from '../store';
 
 export default function RandPage() {
   const [cats, setCats] = useState([]);
+  const [bubbles, setBubbles] = useState([]);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState(null);
-  const [count, setCount] = useState(null);
   const [selectedCat, setSelectedCat] = useState(null);
   const [showCats, setShowCats] = useState(false);
+  const animRef = useRef([]);
 
-  useEffect(() => { setCats(getCategories()); }, []);
+  useEffect(() => {
+    const c = getCategories();
+    setCats(c);
+    setBubbles(initBubbles(c));
+  }, []);
 
-  const start = () => {
-    if (spinning) return;
-    setResult(null);
-    setSpinning(true);
-    let n = 9;
-    setCount(n);
-    const tick = () => {
-      n -= 1;
-      if (n >= 0) {
-        setCount(n);
-        setTimeout(tick, 220);
-      } else {
-        setSpinning(false);
-        setCount(null);
-        pick();
-      }
+  const initBubbles = (c) => {
+    const maxF = Math.max(...c.map(x => x.films.length), 1);
+    const pos = [{x:52,y:38},{x:74,y:26},{x:26,y:34},{x:32,y:60},{x:66,y:62}];
+    return c.map((cat, i) => ({
+      id: cat.id, color: cat.color, name: cat.name,
+      size: 56 + (cat.films.length / maxF) * 74,
+      x: pos[i % pos.length].x + (Math.random()-0.5)*6,
+      y: pos[i % pos.length].y + (Math.random()-0.5)*6,
+      vx: (Math.random()-0.5)*0.4, vy: (Math.random()-0.5)*0.4,
+    }));
+  };
+
+  const handlePress = () => {
+    if (spinning || bubbles.length === 0) return;
+    setResult(null); setSpinning(true);
+    let bubs = bubbles.map(b => ({ ...b, vx: (Math.random()-0.5)*3, vy: (Math.random()-0.5)*3 }));
+    let start = null; const dur = 4200;
+    const animate = (ts) => {
+      if (!start) start = ts;
+      const elapsed = ts - start;
+      const speed = Math.max(0.05, 1 - (elapsed/dur)*0.95);
+      bubs = bubs.map(b => {
+        let nx = b.x + b.vx*speed, ny = b.y + b.vy*speed;
+        let nvx = b.vx, nvy = b.vy;
+        if (nx < 10 || nx > 90) { nvx=-nvx; nx=Math.max(10,Math.min(90,nx)); }
+        if (ny < 10 || ny > 80) { nvy=-nvy; ny=Math.max(10,Math.min(80,ny)); }
+        return { ...b, x:nx, y:ny, vx:nvx, vy:nvy };
+      });
+      setBubbles([...bubs]);
+      if (elapsed < dur) animRef.current = [requestAnimationFrame(animate)];
+      else { setSpinning(false); pick(); }
     };
-    setTimeout(tick, 220);
+    animRef.current = [requestAnimationFrame(animate)];
   };
 
   const pick = () => {
     const allCats = getCategories();
     let pool = [];
-    if (selectedCat) {
-      const c = allCats.find(x => x.id === selectedCat);
-      if (c) c.films.forEach(f => pool.push({ film: f, cat: c }));
-    } else {
-      allCats.forEach(c => c.films.forEach(f => pool.push({ film: f, cat: c })));
-    }
-    if (pool.length > 0) setResult(pool[Math.floor(Math.random() * pool.length)]);
+    if (selectedCat) { const c = allCats.find(x=>x.id===selectedCat); if (c) c.films.forEach(f=>pool.push({film:f,cat:c})); }
+    else allCats.forEach(c => c.films.forEach(f => pool.push({ film:f, cat:c })));
+    if (pool.length > 0) setResult(pool[Math.floor(Math.random()*pool.length)]);
   };
 
   const selCatObj = cats.find(c => c.id === selectedCat);
 
   return (
-    <div style={{ height: '100dvh', background: 'var(--ink)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <div style={{ padding: '52px 24px 0' }}>
-        <div style={{ fontFamily: 'var(--display)', fontSize: 30, color: 'var(--paper)', letterSpacing: '2px' }}>RANDOM REEL</div>
-        <div style={{ height: 2, width: 50, background: 'var(--amber)', marginTop: 8 }} />
+    <div style={{ height: '100dvh', background: 'radial-gradient(ellipse at 50% 0%, #1a1a2e 0%, #000 60%)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ padding: '64px 24px 0' }}>
+        <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--text)', letterSpacing: '-1px' }}>Random</div>
+        <div style={{ fontSize: 15, color: 'var(--text-dim)', marginTop: 4 }}>Не знаешь что посмотреть?</div>
       </div>
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 28 }}>
-        {/* Countdown circle — film leader style */}
-        <div
-          onClick={start}
-          style={{
-            width: 220, height: 220, borderRadius: '50%',
-            border: '3px solid var(--paper-dim)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', position: 'relative',
-            background: 'conic-gradient(from 0deg, var(--card) 0deg, var(--card) 350deg, var(--amber) 360deg)',
-          }}
-        >
-          {/* Tick marks like a clock/leader */}
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} style={{
-              position: 'absolute', width: 2, height: 12, background: 'rgba(237,230,214,0.3)',
-              top: 8, left: '50%', transformOrigin: '1px 102px',
-              transform: `rotate(${i * 30}deg)`,
-            }} />
-          ))}
-          {spinning ? (
-            <span style={{ fontFamily: 'var(--mono)', fontSize: 64, fontWeight: 700, color: 'var(--amber)' }}>{count}</span>
-          ) : (
-            <span style={{ fontFamily: 'var(--display)', fontSize: 26, color: 'var(--paper)', letterSpacing: '2px', textAlign: 'center' }}>
-              TAP TO<br/>SPIN
-            </span>
-          )}
-        </div>
-
-        {/* Result */}
-        <div style={{ minHeight: 60, textAlign: 'center', padding: '0 30px' }}>
-          {result && (
-            <>
-              <div style={{ fontFamily: 'var(--display)', fontSize: 30, color: 'var(--paper)', letterSpacing: '1px', lineHeight: 1.1 }}>{result.film.name.toUpperCase()}</div>
-              <div style={{ fontFamily: 'var(--mono)', fontSize: 12, color: result.cat.color, marginTop: 8, letterSpacing: '1px' }}>{result.cat.name.toUpperCase()}</div>
-            </>
-          )}
-          {!result && !spinning && cats.length === 0 && (
-            <div style={{ color: 'var(--paper-dim)', fontSize: 14 }}>Сначала добавь категории на главной</div>
-          )}
-        </div>
+      <div style={{ flex: 1, position: 'relative', cursor: 'pointer' }} onClick={handlePress}>
+        {bubbles.map(b => (
+          <div key={b.id} className="glass" style={{
+            position: 'absolute', left: `${b.x}%`, top: `${b.y}%`,
+            width: b.size, height: b.size, borderRadius: '50%',
+            transform: 'translate(-50%,-50%)',
+            transition: spinning ? 'none' : 'left 0.8s ease, top 0.8s ease',
+            background: `radial-gradient(circle at 35% 30%, ${b.color}, ${b.color}99)`,
+            boxShadow: `0 8px 30px ${b.color}55`,
+            border: '1px solid rgba(255,255,255,0.3)',
+          }} />
+        ))}
+        {bubbles.length === 0 && (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12, color: 'var(--text-dim)', textAlign: 'center', padding: 40 }}>
+            <div style={{ fontSize: 40 }}>🎬</div>
+            <div>Добавь категории на главной</div>
+          </div>
+        )}
       </div>
 
-      {/* Reel filter */}
-      <div style={{ padding: '0 24px 110px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+      <div style={{ padding: '0 24px 100px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+        {result && (
+          <div className="glass" style={{ borderRadius: 24, padding: '20px 28px', textAlign: 'center', animation: 'popIn 0.4s cubic-bezier(0.34,1.4,0.64,1)', maxWidth: '100%' }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)' }}>{result.film.name}</div>
+            <div style={{ fontSize: 13, color: result.cat.color, marginTop: 4, fontWeight: 600 }}>{result.cat.name}</div>
+          </div>
+        )}
+        {spinning && <div style={{ color: 'var(--text-dim)', fontSize: 14 }}>Выбираем...</div>}
+        {!spinning && !result && bubbles.length > 0 && <div style={{ color: 'var(--text-dim)', fontSize: 14 }}>Нажми на пузыри</div>}
+
         {showCats ? (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-            <button onClick={() => setSelectedCat(null)} style={{
-              fontFamily: 'var(--mono)', fontSize: 12, padding: '8px 16px', borderRadius: 8,
-              border: `1px solid ${!selectedCat ? 'var(--amber)' : 'rgba(237,230,214,0.2)'}`,
-              background: !selectedCat ? 'rgba(217,142,44,0.15)' : 'transparent',
-              color: !selectedCat ? 'var(--amber)' : 'var(--paper-dim)', cursor: 'pointer',
-            }}>ALL</button>
+            <button onClick={() => setSelectedCat(null)} className="glass" style={{ borderRadius: 100, padding: '9px 18px', fontSize: 13, fontWeight: 600, color: !selectedCat ? 'var(--accent)' : 'var(--text-dim)', border: 'none', cursor: 'pointer' }}>Все</button>
             {cats.map(c => (
-              <button key={c.id} onClick={() => setSelectedCat(c.id)} style={{
-                fontFamily: 'var(--mono)', fontSize: 12, padding: '8px 16px', borderRadius: 8,
-                border: `1px solid ${selectedCat === c.id ? c.color : 'rgba(237,230,214,0.2)'}`,
-                background: selectedCat === c.id ? `${c.color}25` : 'transparent',
-                color: selectedCat === c.id ? c.color : 'var(--paper-dim)', cursor: 'pointer',
-              }}>{c.name.toUpperCase()}</button>
+              <button key={c.id} onClick={() => setSelectedCat(c.id)} className="glass" style={{ borderRadius: 100, padding: '9px 18px', fontSize: 13, fontWeight: 600, color: selectedCat === c.id ? c.color : 'var(--text-dim)', border: 'none', cursor: 'pointer' }}>{c.name}</button>
             ))}
           </div>
         ) : (
           cats.length > 0 && (
-            <button onClick={() => setShowCats(true)} style={{
-              fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '1px',
-              background: 'none', border: '1px dashed rgba(237,230,214,0.3)', borderRadius: 8,
-              padding: '8px 18px', color: 'var(--paper-dim)', cursor: 'pointer',
-            }}>FILTER REEL {selCatObj ? `· ${selCatObj.name.toUpperCase()}` : ''}</button>
+            <button onClick={() => setShowCats(true)} className="glass" style={{ borderRadius: 100, padding: '10px 22px', fontSize: 14, fontWeight: 600, color: 'var(--text)', border: 'none', cursor: 'pointer' }}>
+              Настроить {selCatObj ? `· ${selCatObj.name}` : ''}
+            </button>
           )
         )}
       </div>

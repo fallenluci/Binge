@@ -1,46 +1,54 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap');
-
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 :root {
-  --ink: #0D0B0A;
-  --card: #18130F;
-  --card-light: #221A14;
-  --safelight: #B8311A;
-  --amber: #D98E2C;
-  --paper: #EDE6D6;
-  --paper-dim: rgba(237,230,214,0.55);
-  --display: 'Bebas Neue', sans-serif;
-  --mono: 'JetBrains Mono', monospace;
-  --body: 'Inter', -apple-system, sans-serif;
+  --font: -apple-system, 'SF Pro Display', 'SF Pro Text', BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  --bg1: #000000;
+  --glass-fill: rgba(255,255,255,0.08);
+  --glass-fill-strong: rgba(255,255,255,0.14);
+  --glass-border: rgba(255,255,255,0.18);
+  --text: #f5f5f7;
+  --text-dim: rgba(245,245,247,0.6);
+  --accent: #0A84FF;
 }
 
 html, body, #root { height: 100%; width: 100%; overflow: hidden; }
-body { font-family: var(--body); background: var(--ink); overscroll-behavior: none; }
+body { font-family: var(--font); background: var(--bg1); overscroll-behavior: none; }
 
 .app {
-  height: 100dvh; width: 100%; max-width: 390px;
-  margin: 0 auto; position: relative; overflow: hidden; background: var(--ink);
+  height: 100dvh; width: 100%; max-width: 430px;
+  margin: 0 auto; position: relative; overflow: hidden;
+  background: var(--bg1);
 }
 .page { height: 100dvh; overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 .page::-webkit-scrollbar { display: none; }
 
-.sprockets { display: flex; gap: 7px; padding: 0 18px; height: 10px; align-items: center; }
-.sprockets span { width: 7px; height: 7px; border-radius: 2px; background: var(--ink); flex-shrink: 0; }
+/* Liquid glass panel base */
+.glass {
+  background: var(--glass-fill);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  position: relative;
+}
+.glass::before {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 40%);
+  pointer-events: none;
+}
 
-.screen-enter { animation: slideInRight 0.32s cubic-bezier(0.25,0.46,0.45,0.94); }
-.screen-exit { animation: slideOutRight 0.28s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
+.screen-enter { animation: slideInRight 0.36s cubic-bezier(0.25,0.46,0.45,0.94); }
+.screen-exit { animation: slideOutRight 0.3s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
 @keyframes slideInRight { from{transform:translateX(100%)} to{transform:translateX(0)} }
 @keyframes slideOutRight { from{transform:translateX(0)} to{transform:translateX(100%)} }
-@keyframes popIn { from{opacity:0;transform:translateX(-50%) scale(0.92)} to{opacity:1;transform:translateX(-50%) scale(1)} }
+@keyframes popIn { from{opacity:0;transform:translateX(-50%) scale(0.92) translateY(8px)} to{opacity:1;transform:translateX(-50%) scale(1) translateY(0)} }
 @keyframes slideUp { from{transform:translateX(-50%) translateY(100%)} to{transform:translateX(-50%) translateY(0)} }
 @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-@keyframes flicker { 0%,100%{opacity:1} 50%{opacity:0.85} }
 
 .cat-page {
-  position: fixed; inset: 0; max-width: 390px; left: 50%; margin-left: -195px;
-  z-index: 20; display: flex; flex-direction: column; overflow: hidden; background: var(--ink);
+  position: fixed; inset: 0; max-width: 430px; left: 50%; margin-left: -215px;
+  z-index: 20; display: flex; flex-direction: column; overflow: hidden;
 }
 .cat-list { flex: 1; overflow-y: auto; scrollbar-width: none; }
 .cat-list::-webkit-scrollbar { display: none; }
-.film-row { display: flex; align-items: flex-start; padding: 6px 20px; min-height: 37px; gap: 12px; }
