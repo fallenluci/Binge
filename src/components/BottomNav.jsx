@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from 'react'
 import './BottomNav.css'
 
 const TABS = [
@@ -19,10 +20,11 @@ function TabIcon({ id }) {
     case 'random':
       return (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <path d="M4 6h4l9 12h3" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M4 18h4l2.5-3.3" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M14.5 7.3 17 4h3" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="m17 8 3-4-3-4" transform="translate(0 4)" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M4 7h3.5L16 18h3.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M4 18h3.5l2-2.6" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M14.5 8.6 16 6.8" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="m16 6.8 3.5-.1L21 9" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="m19.5 15 1.5 2.1-1.5 2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       )
     case 'search':
@@ -44,17 +46,37 @@ function TabIcon({ id }) {
 }
 
 export default function BottomNav({ active, onChange }) {
-  const activeIndex = TABS.findIndex((t) => t.id === active)
+  const itemRefs = useRef([])
+  const navRef = useRef(null)
+  const [indicator, setIndicator] = useState({ left: 0, width: 0 })
+
+  useLayoutEffect(() => {
+    function measure() {
+      const activeEl = itemRefs.current[TABS.findIndex((t) => t.id === active)]
+      const navEl = navRef.current
+      if (!activeEl || !navEl) return
+      const navRect = navEl.getBoundingClientRect()
+      const itemRect = activeEl.getBoundingClientRect()
+      setIndicator({
+        left: itemRect.left - navRect.left,
+        width: itemRect.width,
+      })
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [active])
 
   return (
-    <nav className="bottom-nav" aria-label="Основная навигация">
+    <nav className="bottom-nav" ref={navRef} aria-label="Основная навигация">
       <div
         className="bottom-nav-indicator"
-        style={{ transform: `translateX(${activeIndex * 100}%)` }}
+        style={{ transform: `translateX(${indicator.left}px)`, width: indicator.width }}
       />
-      {TABS.map((tab) => (
+      {TABS.map((tab, i) => (
         <button
           key={tab.id}
+          ref={(el) => (itemRefs.current[i] = el)}
           className={`bottom-nav-item ${tab.id === active ? 'is-active' : ''}`}
           onClick={() => onChange(tab.id)}
           aria-label={tab.label}
