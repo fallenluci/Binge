@@ -1,0 +1,38 @@
+.home-page {
+  min-height: 100vh;
+  background: #0d0d0d;
+  padding-top: 24px;
+}
+
+.home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  margin-bottom: 16px;
+}
+
+.home-header h1 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.home-add-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.home-add-btn svg {
+  width: 18px;
+  height: 18px;
+}
