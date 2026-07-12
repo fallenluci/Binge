@@ -1,31 +1,26 @@
 import { useState } from 'react'
 import CategoryGrid from '../components/CategoryGrid'
-import AddCategoryModal from '../components/AddCategoryModal'
+import CategoryMenuSheet from '../components/CategoryMenuSheet'
 import { useBingeStore } from '../store/useBingeStore'
 import './Home.css'
 
 export default function Home({ onOpenCategory }) {
   const categories = useBingeStore((s) => s.categories)
   const movies = useBingeStore((s) => s.movies)
-  const addCategory = useBingeStore((s) => s.addCategory)
+  const renameCategory = useBingeStore((s) => s.renameCategory)
   const deleteCategory = useBingeStore((s) => s.deleteCategory)
-  const [showAddModal, setShowAddModal] = useState(false)
+  const [menuCategoryId, setMenuCategoryId] = useState(null)
 
-  function handleCategoryMenu(categoryId) {
-    const category = categories.find((c) => c.id === categoryId)
-    if (!category) return
-    // Placeholder menu for now — full edit/delete UI comes with the category detail screen.
-    const shouldDelete = window.confirm(`Удалить категорию «${category.name}»? Все фильмы внутри тоже удалятся.`)
-    if (shouldDelete) deleteCategory(categoryId)
-  }
+  const menuCategory = categories.find((c) => c.id === menuCategoryId)
 
   return (
     <div className="home-page">
       <header className="home-header">
         <h1>Binge</h1>
-        <button className="home-add-btn" onClick={() => setShowAddModal(true)} aria-label="Добавить категорию">
+        <button className="home-profile-btn" aria-label="Профиль">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+            <circle cx="12" cy="8" r="3.2" />
+            <path d="M5 20c1.2-3.6 4.2-5.5 7-5.5s5.8 1.9 7 5.5" strokeLinecap="round" />
           </svg>
         </button>
       </header>
@@ -34,11 +29,16 @@ export default function Home({ onOpenCategory }) {
         categories={categories}
         movies={movies}
         onOpenCategory={onOpenCategory}
-        onCategoryMenu={handleCategoryMenu}
+        onCategoryMenu={setMenuCategoryId}
       />
 
-      {showAddModal && (
-        <AddCategoryModal onCreate={addCategory} onClose={() => setShowAddModal(false)} />
+      {menuCategory && (
+        <CategoryMenuSheet
+          category={menuCategory}
+          onRename={(name) => renameCategory(menuCategory.id, name)}
+          onDelete={() => deleteCategory(menuCategory.id)}
+          onClose={() => setMenuCategoryId(null)}
+        />
       )}
     </div>
   )

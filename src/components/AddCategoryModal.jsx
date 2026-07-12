@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import './AddCategoryModal.css'
+import './ActionSheet.css'
 
 export default function AddCategoryModal({ onCreate, onClose }) {
   const [name, setName] = useState('')
@@ -13,8 +13,8 @@ export default function AddCategoryModal({ onCreate, onClose }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
+    <div className="sheet-overlay" onClick={onClose}>
+      <div className="sheet" onClick={(e) => e.stopPropagation()}>
         <h2>Новая категория</h2>
         <form onSubmit={handleSubmit}>
           <input
@@ -24,7 +24,7 @@ export default function AddCategoryModal({ onCreate, onClose }) {
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-          <div className="modal-actions">
+          <div className="sheet-actions">
             <button type="button" className="btn-secondary" onClick={onClose}>
               Отмена
             </button>
@@ -33,7 +33,9 @@ export default function AddCategoryModal({ onCreate, onClose }) {
             </button>
           </div>
         </form>
-        <p className="modal-hint">Цвет и градиент подберутся автоматически, без повторов.</p>
+        <p className="sheet-hint" style={{ marginTop: 14 }}>
+          Цвет и градиент подберутся автоматически, без повторов.
+        </p>
       </div>
     </div>
   )

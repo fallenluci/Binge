@@ -1,35 +1,43 @@
 import { useState } from 'react'
 import Home from './pages/Home'
+import RandomizerPage from './pages/RandomizerPage'
+import SearchPage from './pages/SearchPage'
+import CategoryPage from './pages/CategoryPage'
 import BottomNav from './components/BottomNav'
-
-// Randomizer, Search and per-category detail screens are the next build step —
-// stubbed here so the nav and data layer can be wired end-to-end already.
-function ComingSoon({ title }) {
-  return (
-    <div style={{ minHeight: '100vh', background: '#0d0d0d', color: '#fff', padding: '24px 16px' }}>
-      <h1 style={{ fontSize: 22, fontWeight: 600 }}>{title}</h1>
-      <p style={{ color: 'rgba(255,255,255,0.5)', marginTop: 8 }}>Экран в разработке.</p>
-    </div>
-  )
-}
+import AddCategoryFab from './components/AddCategoryFab'
+import AddCategoryModal from './components/AddCategoryModal'
+import { useBingeStore } from './store/useBingeStore'
 
 export default function App() {
   const [tab, setTab] = useState('home')
   const [openCategoryId, setOpenCategoryId] = useState(null)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const addCategory = useBingeStore((s) => s.addCategory)
 
   function handleOpenCategory(categoryId) {
     setOpenCategoryId(categoryId)
-    // Category detail screen (movie list inside a category) is next on the list.
+  }
+
+  function handleBackFromCategory() {
+    setOpenCategoryId(null)
+  }
+
+  if (openCategoryId) {
+    return <CategoryPage categoryId={openCategoryId} onBack={handleBackFromCategory} />
   }
 
   return (
     <>
       {tab === 'home' && <Home onOpenCategory={handleOpenCategory} />}
-      {tab === 'random' && <ComingSoon title="Рандомайзер" />}
-      {tab === 'search' && <ComingSoon title="Поиск" />}
-      {tab === 'add' && <ComingSoon title="Добавить" />}
+      {tab === 'random' && <RandomizerPage />}
+      {tab === 'search' && <SearchPage onOpenCategory={handleOpenCategory} />}
 
       <BottomNav active={tab} onChange={setTab} />
+      <AddCategoryFab onClick={() => setShowAddModal(true)} />
+
+      {showAddModal && (
+        <AddCategoryModal onCreate={addCategory} onClose={() => setShowAddModal(false)} />
+      )}
     </>
   )
 }

@@ -1,5 +1,4 @@
 import { categoryGradient } from '../lib/colors'
-import { movieWord } from '../lib/pluralize'
 import './CategoryGrid.css'
 
 export default function CategoryGrid({ categories, movies, onOpenCategory, onCategoryMenu }) {
@@ -7,7 +6,7 @@ export default function CategoryGrid({ categories, movies, onOpenCategory, onCat
     return (
       <div className="category-grid-empty">
         <p>Пока нет ни одной категории.</p>
-        <p className="hint">Нажми «Добавить», чтобы создать первую.</p>
+        <p className="hint">Нажми круглую «+» рядом с навигацией, чтобы создать первую.</p>
       </div>
     )
   }
@@ -19,19 +18,28 @@ export default function CategoryGrid({ categories, movies, onOpenCategory, onCat
         const preview = categoryMovies.slice(0, 3)
 
         return (
-          <div
+          <button
             key={cat.id}
+            type="button"
             className="category-tile"
             style={{ background: categoryGradient(cat) }}
             onClick={() => onOpenCategory(cat.id)}
           >
             <div className="category-tile-header">
               <span className="category-tile-name">{cat.name}</span>
-              <button
+              <span
                 className="category-tile-menu-btn"
+                role="button"
+                tabIndex={0}
                 onClick={(e) => {
                   e.stopPropagation()
                   onCategoryMenu(cat.id)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.stopPropagation()
+                    onCategoryMenu(cat.id)
+                  }
                 }}
                 aria-label={`Меню категории ${cat.name}`}
               >
@@ -40,11 +48,7 @@ export default function CategoryGrid({ categories, movies, onOpenCategory, onCat
                   <circle cx="12" cy="12" r="1.8" />
                   <circle cx="19" cy="12" r="1.8" />
                 </svg>
-              </button>
-            </div>
-
-            <div className="category-tile-count">
-              {categoryMovies.length} {movieWord(categoryMovies.length)}
+              </span>
             </div>
 
             {preview.length > 0 && (
@@ -56,7 +60,7 @@ export default function CategoryGrid({ categories, movies, onOpenCategory, onCat
                 ))}
               </div>
             )}
-          </div>
+          </button>
         )
       })}
     </div>

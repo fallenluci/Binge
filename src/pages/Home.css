@@ -19,7 +19,7 @@
   margin: 0;
 }
 
-.home-add-btn {
+.home-profile-btn {
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -32,7 +32,7 @@
   cursor: pointer;
 }
 
-.home-add-btn svg {
+.home-profile-btn svg {
   width: 18px;
   height: 18px;
 }

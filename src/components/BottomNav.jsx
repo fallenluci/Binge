@@ -5,8 +5,9 @@ const TABS = [
   { id: 'home', icon: 'home', label: 'Главная' },
   { id: 'random', icon: 'random', label: 'Рандом' },
   { id: 'search', icon: 'search', label: 'Поиск' },
-  { id: 'add', icon: 'add', label: 'Добавить' },
 ]
+
+const INDICATOR_SIZE = 44
 
 function TabIcon({ id }) {
   switch (id) {
@@ -34,12 +35,6 @@ function TabIcon({ id }) {
           <path d="m20 20-4.3-4.3" strokeLinecap="round" />
         </svg>
       )
-    case 'add':
-      return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <path d="M12 5v14M5 12h14" strokeLinecap="round" />
-        </svg>
-      )
     default:
       return null
   }
@@ -48,7 +43,7 @@ function TabIcon({ id }) {
 export default function BottomNav({ active, onChange }) {
   const itemRefs = useRef([])
   const navRef = useRef(null)
-  const [indicator, setIndicator] = useState({ left: 0, width: 0 })
+  const [left, setLeft] = useState(0)
 
   useLayoutEffect(() => {
     function measure() {
@@ -57,10 +52,8 @@ export default function BottomNav({ active, onChange }) {
       if (!activeEl || !navEl) return
       const navRect = navEl.getBoundingClientRect()
       const itemRect = activeEl.getBoundingClientRect()
-      setIndicator({
-        left: itemRect.left - navRect.left,
-        width: itemRect.width,
-      })
+      const center = itemRect.left - navRect.left + itemRect.width / 2
+      setLeft(center - INDICATOR_SIZE / 2)
     }
     measure()
     window.addEventListener('resize', measure)
@@ -71,7 +64,7 @@ export default function BottomNav({ active, onChange }) {
     <nav className="bottom-nav" ref={navRef} aria-label="Основная навигация">
       <div
         className="bottom-nav-indicator"
-        style={{ transform: `translateX(${indicator.left}px)`, width: indicator.width }}
+        style={{ transform: `translateX(${left}px)`, width: INDICATOR_SIZE, height: INDICATOR_SIZE }}
       />
       {TABS.map((tab, i) => (
         <button
