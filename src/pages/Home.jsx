@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import CategoryStack from '../components/CategoryStack'
+import CategoryGrid from '../components/CategoryGrid'
 import AddCategoryModal from '../components/AddCategoryModal'
 import { useBingeStore } from '../store/useBingeStore'
 import './Home.css'
@@ -30,7 +30,7 @@ export default function Home({ onOpenCategory }) {
         </button>
       </header>
 
-      <CategoryStack
+      <CategoryGrid
         categories={categories}
         movies={movies}
         onOpenCategory={onOpenCategory}
