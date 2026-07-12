@@ -88,6 +88,7 @@ export default function CategoryPage({ categoryId, onBack }) {
       {menuMovie && (
         <MovieMenuSheet
           movie={menuMovie}
+          category={category}
           onRate={(rating) => rateMovie(menuMovie.id, rating)}
           onRename={(title) => renameMovie(menuMovie.id, title)}
           onDelete={() => deleteMovie(menuMovie.id)}

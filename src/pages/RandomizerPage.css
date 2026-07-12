@@ -1,15 +1,12 @@
 .randomizer-page {
   min-height: 100vh;
   background: #0d0d0d;
-  padding: 24px 16px 120px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  padding: 24px 16px 120px;
 }
 
-.randomizer-page h1 {
-  align-self: flex-start;
+.randomizer-header h1 {
   font-size: 22px;
   font-weight: 600;
   color: #ffffff;
@@ -17,38 +14,77 @@
 }
 
 .randomizer-scope {
-  align-self: flex-start;
   font-size: 13px;
   color: rgba(255, 255, 255, 0.5);
-  margin: 4px 0 0;
 }
 
-.randomizer-center {
+.randomizer-bubbles {
+  position: relative;
   flex: 1;
+  min-height: 340px;
+  margin-top: 12px;
+  cursor: pointer;
+}
+
+.randomizer-bubble {
+  position: absolute;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  padding: 6px;
+  box-sizing: border-box;
+}
+
+.randomizer-bubble-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.randomizer-bubbles-empty {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 24px;
-  width: 100%;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.4);
+  gap: 4px;
+  padding: 0 32px;
 }
 
-.randomizer-btn {
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  border: none;
-  background: linear-gradient(135deg, #7350c9, #2f7fd1);
-  color: #ffffff;
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1.3;
-  cursor: pointer;
-  box-shadow: 0 20px 50px rgba(115, 80, 201, 0.4);
+.randomizer-bubbles-empty .hint {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.3);
 }
 
-.randomizer-btn:active {
-  transform: scale(0.96);
+.randomizer-hint {
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+
+.randomizer-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
 }
 
 .randomizer-result {

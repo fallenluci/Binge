@@ -1,22 +1,30 @@
 import { useState } from 'react'
-import Drum from './Drum'
+import RatingDrum from './RatingDrum'
 import './ActionSheet.css'
 
-const RATING_ITEMS = [
-  { value: null, label: 'Без оценки' },
-  ...Array.from({ length: 11 }, (_, i) => ({ value: i, label: String(i) })),
-]
-
-export default function MovieMenuSheet({ movie, onRate, onRename, onDelete, onClose }) {
+export default function MovieMenuSheet({ movie, category, onRate, onRename, onDelete, onClose }) {
   const [mode, setMode] = useState('menu') // menu | rate | rename | confirmDelete
   const [title, setTitle] = useState(movie.title)
-  const [rating, setRating] = useState(movie.rating)
 
   function submitRename(e) {
     e.preventDefault()
     if (!title.trim()) return
     onRename(title)
     onClose()
+  }
+
+  if (mode === 'rate') {
+    return (
+      <RatingDrum
+        category={category}
+        initialValue={movie.rating ?? 7}
+        onRate={(rating) => {
+          onRate(rating)
+          onClose()
+        }}
+        onClose={onClose}
+      />
+    )
   }
 
   return (
@@ -37,27 +45,6 @@ export default function MovieMenuSheet({ movie, onRate, onRename, onDelete, onCl
             <button className="sheet-option is-muted" onClick={onClose}>
               Отмена
             </button>
-          </>
-        )}
-
-        {mode === 'rate' && (
-          <>
-            <h2>Оценка</h2>
-            <Drum items={RATING_ITEMS} value={rating} onChange={setRating} />
-            <div className="sheet-actions">
-              <button className="btn-secondary" onClick={onClose}>
-                Отмена
-              </button>
-              <button
-                className="btn-primary"
-                onClick={() => {
-                  onRate(rating)
-                  onClose()
-                }}
-              >
-                Сохранить
-              </button>
-            </div>
           </>
         )}
 
