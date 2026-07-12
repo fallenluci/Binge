@@ -4,6 +4,7 @@ import { categoryGradient } from '../lib/colors'
 import { movieWord } from '../lib/pluralize'
 import MovieMenuSheet from '../components/MovieMenuSheet'
 import RenameSheet from '../components/RenameSheet'
+import AddMovieSheet from './AddMovieSheet'
 import './CategoryPage.css'
 
 export default function CategoryPage({ categoryId, onBack }) {
@@ -15,9 +16,9 @@ export default function CategoryPage({ categoryId, onBack }) {
   const rateMovie = useBingeStore((s) => s.rateMovie)
   const deleteMovie = useBingeStore((s) => s.deleteMovie)
 
-  const [newTitle, setNewTitle] = useState('')
   const [menuMovieId, setMenuMovieId] = useState(null)
   const [renamingCategory, setRenamingCategory] = useState(false)
+  const [showAddMovie, setShowAddMovie] = useState(false)
 
   if (!category) {
     return (
@@ -32,16 +33,9 @@ export default function CategoryPage({ categoryId, onBack }) {
 
   const menuMovie = movies.find((m) => m.id === menuMovieId)
 
-  function handleAdd(e) {
-    e.preventDefault()
-    if (!newTitle.trim()) return
-    addMovie(categoryId, newTitle)
-    setNewTitle('')
-  }
-
   return (
-    <div className="category-page">
-      <div className="category-page-header" style={{ background: categoryGradient(category) }}>
+    <div className="category-page" style={{ background: categoryGradient(category) }}>
+      <div className="category-page-header">
         <button className="category-page-back" onClick={onBack} aria-label="Назад">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
@@ -81,19 +75,15 @@ export default function CategoryPage({ categoryId, onBack }) {
         ))}
       </div>
 
-      <form className="movie-add-form" onSubmit={handleAdd}>
-        <input
-          type="text"
-          placeholder="Добавить фильм..."
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-        />
-        <button type="submit" aria-label="Добавить фильм">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 5v14M5 12h14" strokeLinecap="round" />
-          </svg>
-        </button>
-      </form>
+      <button className="category-page-add-fab" onClick={() => setShowAddMovie(true)} aria-label="Добавить фильм">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+        </svg>
+      </button>
+
+      {showAddMovie && (
+        <AddMovieSheet onCreate={(title) => addMovie(categoryId, title)} onClose={() => setShowAddMovie(false)} />
+      )}
 
       {menuMovie && (
         <MovieMenuSheet
