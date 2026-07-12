@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import CategoryGrid from '../components/CategoryGrid'
-import CategoryMenuSheet from '../components/CategoryMenuSheet'
+import RenameSheet from '../components/RenameSheet'
+import ConfirmSheet from '../components/ConfirmSheet'
 import { useBingeStore } from '../store/useBingeStore'
 import './Home.css'
 
@@ -9,9 +10,11 @@ export default function Home({ onOpenCategory }) {
   const movies = useBingeStore((s) => s.movies)
   const renameCategory = useBingeStore((s) => s.renameCategory)
   const deleteCategory = useBingeStore((s) => s.deleteCategory)
-  const [menuCategoryId, setMenuCategoryId] = useState(null)
+  const [renameCategoryId, setRenameCategoryId] = useState(null)
+  const [deleteCategoryId, setDeleteCategoryId] = useState(null)
 
-  const menuCategory = categories.find((c) => c.id === menuCategoryId)
+  const categoryToRename = categories.find((c) => c.id === renameCategoryId)
+  const categoryToDelete = categories.find((c) => c.id === deleteCategoryId)
 
   return (
     <div className="home-page">
@@ -29,15 +32,25 @@ export default function Home({ onOpenCategory }) {
         categories={categories}
         movies={movies}
         onOpenCategory={onOpenCategory}
-        onCategoryMenu={setMenuCategoryId}
+        onRenameCategory={setRenameCategoryId}
+        onDeleteCategory={setDeleteCategoryId}
       />
 
-      {menuCategory && (
-        <CategoryMenuSheet
-          category={menuCategory}
-          onRename={(name) => renameCategory(menuCategory.id, name)}
-          onDelete={() => deleteCategory(menuCategory.id)}
-          onClose={() => setMenuCategoryId(null)}
+      {categoryToRename && (
+        <RenameSheet
+          title="Переименовать категорию"
+          initialValue={categoryToRename.name}
+          onSave={(name) => renameCategory(categoryToRename.id, name)}
+          onClose={() => setRenameCategoryId(null)}
+        />
+      )}
+
+      {categoryToDelete && (
+        <ConfirmSheet
+          title={`Удалить «${categoryToDelete.name}»?`}
+          message="Все фильмы внутри категории тоже будут удалены."
+          onConfirm={() => deleteCategory(categoryToDelete.id)}
+          onClose={() => setDeleteCategoryId(null)}
         />
       )}
     </div>

@@ -4,7 +4,7 @@ import './ActionSheet.css'
 
 const RATING_ITEMS = [
   { value: null, label: 'Без оценки' },
-  ...Array.from({ length: 10 }, (_, i) => ({ value: i + 1, label: String(i + 1) })),
+  ...Array.from({ length: 11 }, (_, i) => ({ value: i, label: String(i) })),
 ]
 
 export default function MovieMenuSheet({ movie, onRate, onRename, onDelete, onClose }) {
@@ -26,7 +26,7 @@ export default function MovieMenuSheet({ movie, onRate, onRename, onDelete, onCl
           <>
             <h2>{movie.title}</h2>
             <button className="sheet-option" onClick={() => setMode('rate')}>
-              {movie.rating ? `Оценка: ${movie.rating}` : 'Поставить оценку'}
+              {movie.rating !== null && movie.rating !== undefined ? `Оценка: ${movie.rating}` : 'Поставить оценку'}
             </button>
             <button className="sheet-option" onClick={() => setMode('rename')}>
               Переименовать

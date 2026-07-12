@@ -33,6 +33,23 @@
   font-weight: 700;
   color: #ffffff;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.category-page-edit-btn {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  padding: 2px;
+  display: flex;
+  cursor: pointer;
+}
+
+.category-page-edit-btn svg {
+  width: 16px;
+  height: 16px;
 }
 
 .category-page-count {
@@ -56,6 +73,10 @@
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.06);
   cursor: pointer;
+}
+
+.movie-row-index {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .movie-row-title {
