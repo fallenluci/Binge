@@ -3,7 +3,7 @@ const STORAGE_KEY = 'filmlog_data';
 const defaultData = {
   categories: [
     {
-      id: '1', name: 'Аниме', color: '#B8311A', image: null,
+      id: '1', name: 'Аниме', color: '#B8311A', image: null, imagePosition: { x: 50, y: 50 },
       films: [
         { id: '1', name: 'Атака титанов', rating: 7 },
         { id: '2', name: 'Клинок, рассекающий демонов', rating: 10 },
@@ -48,9 +48,9 @@ export function saveData(data) {
 
 export function getCategories() { return getData().categories; }
 
-export function addCategory(name, color, image = null) {
+export function addCategory(name, color, image = null, imagePosition = { x: 50, y: 50 }) {
   const data = getData();
-  const newCat = { id: Date.now().toString(), name, color, image, films: [] };
+  const newCat = { id: Date.now().toString(), name, color, image, imagePosition, films: [] };
   data.categories.push(newCat);
   saveData(data);
   return newCat;

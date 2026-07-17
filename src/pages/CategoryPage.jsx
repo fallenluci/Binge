@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getCategories, addFilm, deleteFilm, updateFilm, updateCategory, CATEGORY_COLORS } from '../store';
 import RatingPicker from '../components/RatingPicker';
+import ImagePositionEditor from '../components/ImagePositionEditor';
 
 export default function CategoryPage({ categoryId, onBack, onRefresh }) {
   const [cat, setCat] = useState(null);
@@ -14,6 +15,7 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
   const [showAppearance, setShowAppearance] = useState(false);
   const [tempColor, setTempColor] = useState('');
   const [tempImage, setTempImage] = useState(null);
+  const [tempImagePos, setTempImagePos] = useState({ x: 50, y: 50 });
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const fileInputRef = useRef(null);
@@ -40,10 +42,11 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
   const openAppearance = () => {
     setTempColor(cat.color);
     setTempImage(cat.image);
+    setTempImagePos(cat.imagePosition || { x: 50, y: 50 });
     setShowAppearance(true);
   };
   const saveAppearance = () => {
-    updateCategory(categoryId, { color: tempColor, image: tempImage });
+    updateCategory(categoryId, { color: tempColor, image: tempImage, imagePosition: tempImagePos });
     setShowAppearance(false);
     refresh();
     onRefresh();
@@ -52,7 +55,7 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => setTempImage(reader.result);
+    reader.onload = () => { setTempImage(reader.result); setTempImagePos({ x: 50, y: 50 }); };
     reader.readAsDataURL(file);
   };
 
@@ -150,17 +153,23 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
             <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.25)', margin: '0 auto 20px' }} />
             <div style={{ fontSize: 20, fontWeight: 700, textAlign: 'center', color: 'var(--text)', marginBottom: 20 }}>Оформление</div>
 
-            <div style={{
-              width: '100%', height: 100, borderRadius: 16, marginBottom: 16,
-              background: tempImage ? `url(${tempImage}) center/cover` : tempColor,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.12)',
-            }}>
-              <span style={{ color: 'white', fontWeight: 700, fontSize: 18, textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>{cat.name}</span>
-            </div>
+            {tempImage ? (
+              <div style={{ marginBottom: 16 }}>
+                <ImagePositionEditor image={tempImage} position={tempImagePos} onChange={setTempImagePos} />
+              </div>
+            ) : (
+              <div style={{
+                width: '100%', height: 100, borderRadius: 16, marginBottom: 16,
+                background: tempColor,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.12)',
+              }}>
+                <span style={{ color: 'white', fontWeight: 700, fontSize: 18, textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>{cat.name}</span>
+              </div>
+            )}
 
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
             <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-              <button onClick={() => fileInputRef.current?.click()} style={{ flex: 1, padding: 13, borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)', color: 'var(--text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Загрузить фото</button>
+              <button onClick={() => fileInputRef.current?.click()} style={{ flex: 1, padding: 13, borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)', color: 'var(--text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{tempImage ? 'Заменить фото' : 'Загрузить фото'}</button>
               {tempImage && (
                 <button onClick={() => setTempImage(null)} style={{ padding: '13px 16px', borderRadius: 12, border: '1px solid rgba(255,69,58,0.3)', background: 'rgba(255,69,58,0.1)', color: '#FF453A', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Убрать</button>
               )}

@@ -24,7 +24,30 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
 .dotted-bg {
   background-color: #000;
   background-image: radial-gradient(rgba(255,255,255,0.12) 1px, transparent 1px);
-  background-size: 22px 22px;
+  background-size: 14px 14px;
+}
+
+/* Grainy gradient border wrapper — used around category tiles */
+.grain-border {
+  position: relative;
+  border-radius: 28px;
+  padding: 2.5px;
+}
+.grain-border::after {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.35;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+.grain-inner {
+  border-radius: 25.5px;
+  overflow: hidden;
+  position: relative;
+  height: 100%;
+  width: 100%;
 }
 
 .glass {
