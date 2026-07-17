@@ -3,7 +3,7 @@ const STORAGE_KEY = 'filmlog_data';
 const defaultData = {
   categories: [
     {
-      id: '1', name: 'Аниме', color: '#B8311A', image: null, imagePosition: { x: 50, y: 50 },
+      id: '1', name: 'Аниме', color: '#B8311A', image: null, imagePosition: { x: 50, y: 50, scale: 100 },
       films: [
         { id: '1', name: 'Атака титанов', rating: 7 },
         { id: '2', name: 'Клинок, рассекающий демонов', rating: 10 },
@@ -48,7 +48,7 @@ export function saveData(data) {
 
 export function getCategories() { return getData().categories; }
 
-export function addCategory(name, color, image = null, imagePosition = { x: 50, y: 50 }) {
+export function addCategory(name, color, image = null, imagePosition = { x: 50, y: 50, scale: 100 }) {
   const data = getData();
   const newCat = { id: Date.now().toString(), name, color, image, imagePosition, films: [] };
   data.categories.push(newCat);
@@ -98,3 +98,11 @@ export const CATEGORY_COLORS = [
   '#B8311A', '#D98E2C', '#6B2D8C', '#3A7D44', '#1F6F78', '#A8492F',
   '#4A4E69', '#8C6A3F', '#2E5A3E', '#9C2C4F', '#5B7B9A', '#7A5230',
 ];
+
+// Rating color depends on the score, not the category:
+// < 4 red, 4–6 gray, >= 7 green
+export function ratingColor(rating) {
+  if (rating < 4) return '#FF453A';
+  if (rating < 7) return '#8E8E93';
+  return '#30D158';
+}

@@ -44,22 +44,22 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
       {plusOpen && (
         <>
           <div style={{ position: 'fixed', inset: 0, zIndex: 50 }} onClick={() => setPlusOpen(false)} />
-          <div className="glass" style={{
+          <div className="menu-solid" style={{
             position: 'fixed', bottom: 110, left: '50%', transform: 'translateX(-50%)',
             borderRadius: 22, overflow: 'hidden', zIndex: 200, minWidth: 240,
             animation: 'popIn 0.28s cubic-bezier(0.34,1.4,0.64,1)',
           }}>
             <div onClick={() => { setPlusOpen(false); refreshCats(); setShowAddFilm(true); }}
               style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px', cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-              <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(10,132,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.2" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="4"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2.2" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="4"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
               </div>
               <span style={{ fontSize: 16, fontWeight: 500, color: 'var(--text)' }}>Новый фильм</span>
             </div>
             <div onClick={() => { setPlusOpen(false); setShowAddCat(true); }}
               style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px', cursor: 'pointer' }}>
-              <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(191,90,242,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#BF5AF2" strokeWidth="2.2" strokeLinecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2.2" strokeLinecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
               </div>
               <span style={{ fontSize: 16, fontWeight: 500, color: 'var(--text)' }}>Новая категория</span>
             </div>
@@ -69,7 +69,7 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
 
       {/* Bottom nav: main dock (Home/Rand) + separate "+" island */}
       <div style={{ position: 'fixed', bottom: 30, left: '50%', transform: 'translateX(-50%)', zIndex: 100, display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div className="glass" style={{ borderRadius: 100, height: 62, padding: '0 8px', display: 'flex', alignItems: 'center', gap: 4 }}>
+        <div className="nav-solid" style={{ height: 62, padding: '0 8px', display: 'flex', alignItems: 'center', gap: 4 }}>
           <DockBtn active={activePage === 'home'} onClick={() => onChangePage('home')} label="Home" icon={
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 11l9-8 9 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M5 10v10h14V10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
           } />
@@ -78,12 +78,12 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
           } />
         </div>
 
-        {/* Separate "+" island */}
-        <button onClick={() => { setPlusOpen(!plusOpen); refreshCats(); }} className="glass" style={{
-          width: 62, height: 62, borderRadius: '50%',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: 'none',
+        {/* Separate "+" island — solid gray, white icon */}
+        <button onClick={() => { setPlusOpen(!plusOpen); refreshCats(); }} className="nav-solid" style={{
+          width: 62, height: 62,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: 'none', padding: 0,
         }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.6" strokeLinecap="round"><line x1="12" y1="4" x2="12" y2="20"/><line x1="4" y1="12" x2="20" y2="12"/></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round"><line x1="12" y1="4" x2="12" y2="20"/><line x1="4" y1="12" x2="20" y2="12"/></svg>
         </button>
       </div>
 

@@ -75,43 +75,38 @@ export default function HomePage({ onOpenCategory, refreshKey }) {
         )}
 
         {cats.map(cat => {
-          const pos = cat.imagePosition || { x: 50, y: 50 };
+          const pos = cat.imagePosition || { x: 50, y: 50, scale: 100 };
+          const scale = pos.scale ?? 100;
           return (
             <div
               key={cat.id}
-              className="grain-border"
+              onClick={() => onOpenCategory(cat.id)}
               style={{
-                background: `linear-gradient(135deg, ${cat.color} 0%, rgba(0,0,0,0.9) 35%, rgba(0,0,0,0.9) 65%, ${cat.color} 100%)`,
+                cursor: 'pointer',
+                height: 160,
+                borderRadius: 28,
+                overflow: 'hidden',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                transition: 'transform 0.2s cubic-bezier(0.25,0.46,0.45,0.94)',
+                background: cat.image
+                  ? `url(${cat.image}) ${pos.x}% ${pos.y}%/${scale}% no-repeat`
+                  : cat.color,
               }}
+              onTouchStart={e => e.currentTarget.style.transform = 'scale(0.97)'}
+              onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
             >
-              <div
-                className="grain-inner"
-                onClick={() => onOpenCategory(cat.id)}
-                style={{
-                  cursor: 'pointer',
-                  height: 160,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  transition: 'transform 0.2s cubic-bezier(0.25,0.46,0.45,0.94)',
-                  background: cat.image
-                    ? `url(${cat.image}) ${pos.x}% ${pos.y}%/cover no-repeat`
-                    : cat.color,
-                }}
-                onTouchStart={e => e.currentTarget.style.transform = 'scale(0.97)'}
-                onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
-              >
-                <div style={{
-                  position: 'absolute', inset: 0,
-                  background: cat.image ? 'rgba(0,0,0,0.4)' : 'linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.25))',
-                }} />
-                <span style={{
-                  position: 'relative', zIndex: 1, fontSize: 28, fontWeight: 700, color: '#fff',
-                  letterSpacing: '-0.5px', textAlign: 'center', padding: '0 20px',
-                  textShadow: '0 2px 12px rgba(0,0,0,0.4)',
-                }}>{cat.name}</span>
-              </div>
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: cat.image ? 'rgba(0,0,0,0.4)' : 'linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.25))',
+              }} />
+              <span style={{
+                position: 'relative', zIndex: 1, fontSize: 28, fontWeight: 700, color: '#fff',
+                letterSpacing: '-0.5px', textAlign: 'center', padding: '0 20px',
+                textShadow: '0 2px 12px rgba(0,0,0,0.4)',
+              }}>{cat.name}</span>
             </div>
           );
         })}
