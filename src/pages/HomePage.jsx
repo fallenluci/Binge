@@ -23,7 +23,7 @@ export default function HomePage({ onOpenCategory, refreshKey }) {
     <div className="page dotted-bg" style={{ paddingBottom: 140 }}>
       {/* Top bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '56px 24px 0' }}>
-        <div style={{ fontSize: 40, fontWeight: 700, color: 'var(--text)', letterSpacing: '-1.5px' }}>Dori.</div>
+        <div style={{ fontSize: 40, fontWeight: 700, color: 'var(--text)', letterSpacing: '-1.5px' }}>Dori</div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={() => setSearchMode(true)} className="glass" style={{
             width: 42, height: 42, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.15)',

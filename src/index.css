@@ -20,43 +20,52 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
 .page { height: 100dvh; overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 .page::-webkit-scrollbar { display: none; }
 
-/* Black dotted background — dark dots barely visible on black */
+/* Black dotted background — dots dimmer/less bright */
 .dotted-bg {
   background-color: #000;
-  background-image: radial-gradient(rgba(255,255,255,0.12) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
   background-size: 14px 14px;
+}
+
+/* Glowing rating pill — color + glow driven by inline style vars */
+.rating-pill {
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  border: 1px solid;
 }
 
 /* (grain/gradient tile border removed per user request) */
 
 .glass {
-  background: var(--glass-fill);
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  border: 1px solid var(--glass-border);
+  background: rgb(30,30,32);
+  border: 1px solid rgba(255,255,255,0.1);
   position: relative;
 }
-.glass::before {
-  content: '';
-  position: absolute; inset: 0; border-radius: inherit;
-  background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 40%);
-  pointer-events: none;
-}
+/* sheen removed — no more transparent/glassy highlight */
 
-/* Solid gray Apple-style nav surfaces — no sheen, clean oval clipping */
+/* Solid gray Apple-style nav surfaces — fully opaque, no blur/transparency */
 .nav-solid {
-  background: rgba(44,44,46,0.92);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgb(28,28,30);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: 999px;
   overflow: hidden;
 }
 .menu-solid {
-  background: rgba(44,44,46,0.96);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  background: rgb(30,30,32);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+/* Individual oval nav buttons with visible border, like Apple Music tab bar */
+.nav-btn-oval {
+  border-radius: 999px;
   border: 1px solid rgba(255,255,255,0.08);
+  background: rgb(38,38,40);
+}
+.nav-btn-oval.active {
+  border-color: rgba(255,255,255,0.18);
+  background: rgb(46,46,48);
 }
 
 .screen-enter { animation: slideInRight 0.36s cubic-bezier(0.25,0.46,0.45,0.94); }

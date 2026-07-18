@@ -96,20 +96,33 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
         )}
       </div>
 
-      <div className="cat-list" style={{ padding: '0 16px 40px' }}>
+      <div className="cat-list" style={{ padding: '0 28px 40px' }}>
         {cat.films.length === 0 && (
-          <div className="glass" style={{ borderRadius: 20, padding: '30px', textAlign: 'center', color: 'var(--text-dim)', fontSize: 15 }}>Нажми + чтобы добавить фильм</div>
+          <div style={{ padding: '20px 4px', color: 'var(--text-dim)', fontSize: 15 }}>Нажми + чтобы добавить фильм</div>
         )}
-        {cat.films.map((film, idx) => (
-          <div key={film.id} className="glass" style={{ borderRadius: 18, padding: '16px 18px', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-dim)', minWidth: 22 }}>{idx + 1}</span>
-            <span style={{ fontSize: 17, fontWeight: 500, color: 'var(--text)', flex: 1 }}>{film.name}</span>
-            {film.rating !== null && (
-              <span style={{ fontSize: 13, fontWeight: 700, color: ratingColor(film.rating), background: `${ratingColor(film.rating)}25`, borderRadius: 20, padding: '4px 11px', flexShrink: 0 }}>{film.rating}</span>
-            )}
-            <button onClick={() => setMenuFilm(film)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', fontSize: 18, padding: '0 2px', flexShrink: 0 }}>⋯</button>
-          </div>
-        ))}
+        {cat.films.map((film, idx) => {
+          const rc = film.rating !== null ? ratingColor(film.rating) : null;
+          return (
+            <div key={film.id} style={{
+              display: 'flex', alignItems: 'center', gap: 14,
+              padding: '13px 0',
+              borderBottom: idx < cat.films.length - 1 ? '1px solid rgba(255,255,255,0.08)' : 'none',
+            }}>
+              <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-dim)', minWidth: 20, flexShrink: 0 }}>{idx + 1}</span>
+              <span style={{ fontSize: 17, fontWeight: 500, color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{film.name}</span>
+              {rc && (
+                <span className="rating-pill" style={{
+                  fontSize: 13, minWidth: 30, height: 24, padding: '0 9px',
+                  color: rc, borderColor: rc,
+                  background: `${rc}20`,
+                  boxShadow: `0 0 10px ${rc}55`,
+                  flexShrink: 0,
+                }}>{film.rating}</span>
+              )}
+              <button onClick={() => setMenuFilm(film)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', fontSize: 18, padding: '0 2px', flexShrink: 0 }}>⋯</button>
+            </div>
+          );
+        })}
       </div>
 
       {/* Film action sheet */}

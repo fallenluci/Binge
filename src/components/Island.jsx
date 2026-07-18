@@ -176,11 +176,10 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
 
 function DockBtn({ active, onClick, icon, label }) {
   return (
-    <button onClick={onClick} style={{
+    <button onClick={onClick} className={`nav-btn-oval${active ? ' active' : ''}`} style={{
       display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-      background: active ? 'rgba(255,255,255,0.12)' : 'none', border: 'none', borderRadius: 20,
-      padding: '8px 16px', cursor: 'pointer', color: active ? 'var(--text)' : 'var(--text-dim)',
-      transition: 'background 0.2s',
+      padding: '8px 18px', cursor: 'pointer', color: active ? 'var(--text)' : 'var(--text-dim)',
+      transition: 'all 0.2s',
     }}>
       {icon}
       <span style={{ fontSize: 10, fontWeight: 500 }}>{label}</span>
