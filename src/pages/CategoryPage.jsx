@@ -108,7 +108,7 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
               padding: '13px 0',
               borderBottom: 'none',
             }}>
-              <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-dim)', minWidth: 20, flexShrink: 0 }}>{idx + 1}</span>
+              <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-dim)', minWidth: 20, flexShrink: 0 }}>{idx + 1}</span>
               <span style={{ fontSize: 17, fontWeight: 500, color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{film.name}</span>
               {rc && (
                 <span onClick={() => setShowRating(film)} className="rating-pill" style={{
@@ -134,9 +134,9 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 28px 18px', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: 8 }}>
               {editFilm?.id === menuFilm.id ? (
                 <input autoFocus value={editFilmName} onChange={e => setEditFilmName(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveFilmName()}
-                  style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 19, fontWeight: 600, color: 'var(--text)', fontFamily: 'inherit' }} />
+                  style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 19, fontWeight: 500, color: 'var(--text)', fontFamily: 'inherit' }} />
               ) : (
-                <span style={{ flex: 1, fontSize: 19, fontWeight: 600, color: 'var(--text)' }}>{menuFilm.name}</span>
+                <span style={{ flex: 1, fontSize: 19, fontWeight: 500, color: 'var(--text)' }}>{menuFilm.name}</span>
               )}
               <button onClick={() => { setEditFilm(menuFilm); setEditFilmName(menuFilm.name); }} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -164,7 +164,7 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 398 }} onClick={() => setShowAppearance(false)} />
           <div className="glass" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 430, borderRadius: '28px 28px 0 0', padding: '20px 22px 48px', zIndex: 399, animation: 'slideUp 0.32s cubic-bezier(0.34,1.26,0.64,1)', borderBottom: 'none', maxHeight: '85dvh', overflowY: 'auto' }}>
             <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.25)', margin: '0 auto 20px' }} />
-            <div style={{ fontSize: 20, fontWeight: 700, textAlign: 'center', color: 'var(--text)', marginBottom: 20 }}>Оформление</div>
+            <div style={{ fontSize: 20, fontWeight: 500, textAlign: 'center', color: 'var(--text)', marginBottom: 20 }}>Оформление</div>
 
             {tempImage ? (
               <div style={{ marginBottom: 16 }}>
@@ -182,13 +182,13 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
 
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
             <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-              <button onClick={() => fileInputRef.current?.click()} style={{ flex: 1, padding: 13, borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)', color: 'var(--text)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>{tempImage ? 'Заменить фото' : 'Загрузить фото'}</button>
+              <button onClick={() => fileInputRef.current?.click()} style={{ flex: 1, padding: 13, borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)', color: 'var(--text)', fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>{tempImage ? 'Заменить фото' : 'Загрузить фото'}</button>
               {tempImage && (
-                <button onClick={() => setTempImage(null)} style={{ padding: '13px 16px', borderRadius: 12, border: '1px solid rgba(255,69,58,0.3)', background: 'rgba(255,69,58,0.1)', color: '#FF453A', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Убрать</button>
+                <button onClick={() => setTempImage(null)} style={{ padding: '13px 16px', borderRadius: 12, border: '1px solid rgba(255,69,58,0.3)', background: 'rgba(255,69,58,0.1)', color: '#FF453A', fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>Убрать</button>
               )}
             </div>
 
-            <div style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: tempImage ? 0.4 : 1 }}>Или выбери цвет</div>
+            <div style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 10, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: tempImage ? 0.4 : 1 }}>Или выбери цвет</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 12, marginBottom: 18, opacity: tempImage ? 0.4 : 1, pointerEvents: tempImage ? 'none' : 'auto' }}>
               {CATEGORY_COLORS.map(c => (
                 <div key={c} onClick={() => setTempColor(c)} style={{
@@ -198,7 +198,7 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
                 }} />
               ))}
             </div>
-            <button onClick={saveAppearance} style={{ width: '100%', padding: 16, borderRadius: 14, border: 'none', background: 'var(--accent)', color: 'white', fontSize: 17, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Сохранить</button>
+            <button onClick={saveAppearance} style={{ width: '100%', padding: 16, borderRadius: 14, border: 'none', background: 'var(--accent)', color: 'white', fontSize: 17, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>Сохранить</button>
             <button onClick={() => setShowAppearance(false)} style={{ width: '100%', padding: 16, borderRadius: 14, border: 'none', background: 'rgba(255,255,255,0.08)', color: 'var(--text)', fontSize: 16, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', marginTop: 10 }}>Отмена</button>
           </div>
         </>

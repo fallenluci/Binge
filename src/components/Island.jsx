@@ -93,7 +93,7 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 399 }} onClick={() => setShowAddFilm(false)} />
           <div className="glass" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 430, borderRadius: '28px 28px 0 0', padding: '20px 22px 48px', zIndex: 400, animation: 'slideUp 0.35s cubic-bezier(0.34,1.26,0.64,1)', borderBottom: 'none' }}>
             <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.25)', margin: '0 auto 20px' }} />
-            <div style={{ fontSize: 20, fontWeight: 700, textAlign: 'center', color: 'var(--text)', marginBottom: 20 }}>Новый фильм</div>
+            <div style={{ fontSize: 20, fontWeight: 500, textAlign: 'center', color: 'var(--text)', marginBottom: 20 }}>Новый фильм</div>
             <input autoFocus value={filmName} onChange={e => setFilmName(e.target.value)} onKeyDown={e => e.key === 'Enter' && submitFilm()}
               placeholder="Название фильма"
               style={{ width: '100%', padding: '15px 16px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)', fontSize: 16, fontFamily: 'inherit', outline: 'none', color: 'var(--text)', marginBottom: 14 }} />
@@ -106,7 +106,7 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
                 </div>
               ))}
             </div>
-            <button onClick={submitFilm} style={{ width: '100%', padding: 16, borderRadius: 14, border: 'none', background: 'var(--accent)', color: 'white', fontSize: 17, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Добавить</button>
+            <button onClick={submitFilm} style={{ width: '100%', padding: 16, borderRadius: 14, border: 'none', background: 'var(--accent)', color: 'white', fontSize: 17, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>Добавить</button>
             <button onClick={() => setShowAddFilm(false)} style={{ width: '100%', padding: 16, borderRadius: 14, border: 'none', background: 'rgba(255,255,255,0.08)', color: 'var(--text)', fontSize: 16, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', marginTop: 10 }}>Отмена</button>
           </div>
         </>
@@ -118,7 +118,7 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 399 }} onClick={() => setShowAddCat(false)} />
           <div className="glass" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 430, borderRadius: '28px 28px 0 0', padding: '20px 22px 48px', zIndex: 400, animation: 'slideUp 0.35s cubic-bezier(0.34,1.26,0.64,1)', borderBottom: 'none', maxHeight: '85dvh', overflowY: 'auto' }}>
             <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.25)', margin: '0 auto 20px' }} />
-            <div style={{ fontSize: 20, fontWeight: 700, textAlign: 'center', color: 'var(--text)', marginBottom: 20 }}>Новая категория</div>
+            <div style={{ fontSize: 20, fontWeight: 500, textAlign: 'center', color: 'var(--text)', marginBottom: 20 }}>Новая категория</div>
             <input autoFocus value={catName} onChange={e => setCatName(e.target.value)} onKeyDown={e => e.key === 'Enter' && submitCat()}
               placeholder="Название категории"
               style={{ width: '100%', padding: '15px 16px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)', fontSize: 16, fontFamily: 'inherit', outline: 'none', color: 'var(--text)', marginBottom: 16 }} />
@@ -140,19 +140,19 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
             <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
               <button onClick={() => fileInputRef.current?.click()} style={{
                 flex: 1, padding: 13, borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)',
-                background: 'rgba(255,255,255,0.06)', color: 'var(--text)', fontSize: 14, fontWeight: 600,
+                background: 'rgba(255,255,255,0.06)', color: 'var(--text)', fontSize: 14, fontWeight: 500,
                 cursor: 'pointer', fontFamily: 'inherit',
               }}>{catImage ? 'Заменить фото' : 'Загрузить фото'}</button>
               {catImage && (
                 <button onClick={() => setCatImage(null)} style={{
                   padding: '13px 16px', borderRadius: 12, border: '1px solid rgba(255,69,58,0.3)',
-                  background: 'rgba(255,69,58,0.1)', color: '#FF453A', fontSize: 14, fontWeight: 600,
+                  background: 'rgba(255,69,58,0.1)', color: '#FF453A', fontSize: 14, fontWeight: 500,
                   cursor: 'pointer', fontFamily: 'inherit',
                 }}>Убрать</button>
               )}
             </div>
 
-            <div style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: catImage ? 0.4 : 1 }}>
+            <div style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 10, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: catImage ? 0.4 : 1 }}>
               Или выбери цвет
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 12, marginBottom: 18, opacity: catImage ? 0.4 : 1, pointerEvents: catImage ? 'none' : 'auto' }}>
@@ -165,7 +165,7 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
                 }} />
               ))}
             </div>
-            <button onClick={submitCat} style={{ width: '100%', padding: 16, borderRadius: 14, border: 'none', background: 'var(--accent)', color: 'white', fontSize: 17, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Создать</button>
+            <button onClick={submitCat} style={{ width: '100%', padding: 16, borderRadius: 14, border: 'none', background: 'var(--accent)', color: 'white', fontSize: 17, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>Создать</button>
             <button onClick={() => { setShowAddCat(false); setCatImage(null); }} style={{ width: '100%', padding: 16, borderRadius: 14, border: 'none', background: 'rgba(255,255,255,0.08)', color: 'var(--text)', fontSize: 16, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', marginTop: 10 }}>Отмена</button>
           </div>
         </>

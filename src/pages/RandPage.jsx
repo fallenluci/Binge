@@ -64,7 +64,7 @@ export default function RandPage() {
   return (
     <div className="dotted-bg" style={{ height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <div style={{ padding: '64px 24px 0' }}>
-        <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--text)', letterSpacing: '-1px' }}>Random</div>
+        <div style={{ fontSize: 32, fontWeight: 500, color: 'var(--text)', letterSpacing: '-1px' }}>Random</div>
         <div style={{ fontSize: 15, color: 'var(--text-dim)', marginTop: 4 }}>Не знаешь что посмотреть?</div>
       </div>
 
@@ -91,8 +91,8 @@ export default function RandPage() {
       <div style={{ padding: '0 24px 100px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
         {result && (
           <div className="glass" style={{ borderRadius: 24, padding: '20px 28px', textAlign: 'center', animation: 'popIn 0.4s cubic-bezier(0.34,1.4,0.64,1)', maxWidth: '100%' }}>
-            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)' }}>{result.film.name}</div>
-            <div style={{ fontSize: 13, color: result.cat.color, marginTop: 4, fontWeight: 600 }}>{result.cat.name}</div>
+            <div style={{ fontSize: 22, fontWeight: 500, color: 'var(--text)' }}>{result.film.name}</div>
+            <div style={{ fontSize: 13, color: result.cat.color, marginTop: 4, fontWeight: 700 }}>{result.cat.name}</div>
           </div>
         )}
         {spinning && <div style={{ color: 'var(--text-dim)', fontSize: 14 }}>Выбираем...</div>}
@@ -100,14 +100,14 @@ export default function RandPage() {
 
         {showCats ? (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-            <button onClick={() => setSelectedCat(null)} className="glass" style={{ borderRadius: 100, padding: '9px 18px', fontSize: 13, fontWeight: 600, color: !selectedCat ? 'var(--accent)' : 'var(--text-dim)', border: 'none', cursor: 'pointer' }}>Все</button>
+            <button onClick={() => setSelectedCat(null)} className="glass" style={{ borderRadius: 100, padding: '9px 18px', fontSize: 13, fontWeight: 500, color: !selectedCat ? 'var(--accent)' : 'var(--text-dim)', border: 'none', cursor: 'pointer' }}>Все</button>
             {cats.map(c => (
-              <button key={c.id} onClick={() => setSelectedCat(c.id)} className="glass" style={{ borderRadius: 100, padding: '9px 18px', fontSize: 13, fontWeight: 600, color: selectedCat === c.id ? c.color : 'var(--text-dim)', border: 'none', cursor: 'pointer' }}>{c.name}</button>
+              <button key={c.id} onClick={() => setSelectedCat(c.id)} className="glass" style={{ borderRadius: 100, padding: '9px 18px', fontSize: 13, fontWeight: 700, color: selectedCat === c.id ? c.color : 'var(--text-dim)', border: 'none', cursor: 'pointer' }}>{c.name}</button>
             ))}
           </div>
         ) : (
           cats.length > 0 && (
-            <button onClick={() => setShowCats(true)} className="glass" style={{ borderRadius: 100, padding: '10px 22px', fontSize: 14, fontWeight: 600, color: 'var(--text)', border: 'none', cursor: 'pointer' }}>
+            <button onClick={() => setShowCats(true)} className="glass" style={{ borderRadius: 100, padding: '10px 22px', fontSize: 14, fontWeight: 500, color: 'var(--text)', border: 'none', cursor: 'pointer' }}>
               Настроить {selCatObj ? `· ${selCatObj.name}` : ''}
             </button>
           )

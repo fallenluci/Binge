@@ -32,7 +32,7 @@ export default function HomePage({ onOpenCategory, refreshKey }) {
           </div>
         ) : (
           <>
-            <div style={{ fontSize: 40, fontWeight: 700, color: 'var(--text)', letterSpacing: '-1.5px' }}>Dori</div>
+            <div style={{ fontSize: 40, fontWeight: 800, color: 'var(--text)', letterSpacing: '-1.5px' }}>Dori</div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setSearchMode(true)} className="glass" style={{
                 width: 42, height: 42, borderRadius: '50%',
@@ -73,7 +73,7 @@ export default function HomePage({ onOpenCategory, refreshKey }) {
         {cats.length === 0 && (
           <div className="glass" style={{ borderRadius: 28, padding: '60px 24px', textAlign: 'center' }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>🎬</div>
-            <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>Пока пусто</div>
+            <div style={{ fontSize: 20, fontWeight: 500, color: 'var(--text)', marginBottom: 6 }}>Пока пусто</div>
             <div style={{ fontSize: 15, color: 'var(--text-dim)' }}>Нажми + чтобы добавить категорию</div>
           </div>
         )}
