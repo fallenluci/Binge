@@ -181,8 +181,9 @@ function DockBtn({ active, onClick, icon, label }) {
       background: active ? 'rgb(58,58,60)' : 'none',
       border: 'none',
       borderRadius: '999px',
-      padding: '6px 22px', cursor: 'pointer', color: active ? 'var(--text)' : 'var(--text-dim)',
-      transition: 'background 0.2s',
+      width: 68,
+      padding: '6px 4px', cursor: 'pointer', color: active ? 'var(--text)' : 'var(--text-dim)',
+      transition: 'background 0.2s', flexShrink: 0,
     }}>
       {icon}
       <span style={{ fontSize: 10, fontWeight: 500 }}>{label}</span>
