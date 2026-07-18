@@ -57,16 +57,7 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
   background: rgb(30,30,32);
   border: 1px solid rgba(255,255,255,0.1);
 }
-/* Individual nav buttons — no border/bg by default; active gets a pill
-   highlight matching the dock's own rounded shape, like iOS tab selection */
-.nav-btn-oval {
-  border-radius: 999px;
-  border: none;
-  background: none;
-}
-.nav-btn-oval.active {
-  background: rgb(46,46,48);
-}
+
 
 .screen-enter { animation: slideInRight 0.36s cubic-bezier(0.25,0.46,0.45,0.94); }
 .screen-exit { animation: slideOutRight 0.3s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
