@@ -149,11 +149,17 @@ export default function RatingPicker({ film, onRate, onClose }) {
     }}>
       <button onClick={onClose} className="nav-solid" style={{ position: 'fixed', top: 60, right: 22, width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text)', fontSize: 16, border: 'none' }}>✕</button>
 
-      <div style={{ fontSize: 17, color: 'var(--text-dim)', textAlign: 'center', padding: '0 50px', marginBottom: 32, fontWeight: 500 }}>{film.name}</div>
+      <div style={{ fontSize: 17, color: 'var(--text)', textAlign: 'center', padding: '0 50px', marginBottom: 32, fontWeight: 500 }}>{film.name}</div>
 
       <div
-        className="nav-solid"
-        style={{ position: 'relative', width: 140, height: 220, overflow: 'hidden', cursor: 'grab', userSelect: 'none', borderRadius: 70 }}
+        style={{
+          position: 'relative', width: 140, height: 220, overflow: 'hidden', cursor: 'grab', userSelect: 'none',
+          borderRadius: 70,
+          border: `4px solid ${color}`,
+          background: `${color}26`,
+          boxShadow: `0 0 60px 10px ${color}55`,
+          transition: 'border-color 0.25s, background 0.25s, box-shadow 0.25s',
+        }}
         onTouchStart={e => handleStart(e.touches[0].clientY)}
         onTouchMove={e => handleMove(e.touches[0].clientY)}
         onTouchEnd={handleEnd}
@@ -162,16 +168,16 @@ export default function RatingPicker({ film, onRate, onClose }) {
         <div style={{ position: 'relative', transform: `translateY(${offset + ITEM_H}px)`, transition: 'none' }}>
           {RATINGS.map(r => {
             const diff = Math.abs(r - selected);
-            const c = diff === 0 ? color : 'var(--text)';
+            const c = diff === 0 ? '#fff' : 'var(--text)';
             return (
-              <div key={r} style={{ height: ITEM_H, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: diff === 0 ? 72 : 40, color: c, opacity: diff === 0 ? 1 : diff === 1 ? 0.35 : 0.1, letterSpacing: '-2px' }}>{r}</div>
+              <div key={r} style={{ height: ITEM_H, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: diff === 0 ? 72 : 40, color: c, opacity: diff === 0 ? 1 : diff === 1 ? 0.4 : 0.15, letterSpacing: '-2px' }}>{r}</div>
             );
           })}
         </div>
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 35%, transparent 65%, rgba(0,0,0,0.5) 100%)', pointerEvents: 'none' }}/>
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, transparent 35%, transparent 65%, rgba(0,0,0,0.35) 100%)', pointerEvents: 'none' }}/>
       </div>
 
-      <button onClick={() => onRate(selected)} style={{ marginTop: 44, background: color, border: 'none', borderRadius: 100, padding: '16px 60px', color: 'white', fontSize: 18, fontWeight: 700, cursor: 'pointer', boxShadow: `0 8px 30px ${color}66`, transition: 'background 0.2s' }}>Оценить</button>
+      <button onClick={() => onRate(selected)} style={{ marginTop: 44, background: color, border: 'none', borderRadius: 100, padding: '16px 60px', color: 'white', fontSize: 18, fontWeight: 700, cursor: 'pointer', transition: 'background 0.2s' }}>Оценить</button>
     </div>
   );
 }
