@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { getCategories, addFilm, deleteFilm, updateFilm, updateCategory, CATEGORY_COLORS, ratingColor } from '../store';
+import { getCategories, addFilm, deleteFilm, updateFilm, updateCategory, deleteCategory, CATEGORY_COLORS, ratingColor } from '../store';
 import RatingPicker from '../components/RatingPicker';
 import ImagePositionEditor from '../components/ImagePositionEditor';
 
@@ -59,6 +59,14 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
     reader.readAsDataURL(file);
   };
 
+  const handleDeleteCategory = () => {
+    if (confirm(`Удалить категорию «${cat.name}» вместе со всеми фильмами?`)) {
+      deleteCategory(categoryId);
+      onRefresh();
+      onBack();
+    }
+  };
+
   if (!cat) return null;
 
   const accent = cat.color;
@@ -75,6 +83,9 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={openAppearance} className="glass" style={{ borderRadius: 16, width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.15)' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="var(--text)"/><circle cx="17.5" cy="10.5" r=".5" fill="var(--text)"/><circle cx="8.5" cy="7.5" r=".5" fill="var(--text)"/><circle cx="6.5" cy="12.5" r=".5" fill="var(--text)"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+          </button>
+          <button onClick={handleDeleteCategory} className="glass" style={{ borderRadius: 16, width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.15)' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF453A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>
           </button>
           <button onClick={() => { const n = prompt('Название фильма:'); if (n?.trim()) { addFilm(categoryId, n.trim()); refresh(); } }}
             style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 16, width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white', fontSize: 22, fontWeight: 300 }}>+</button>

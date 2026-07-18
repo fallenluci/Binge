@@ -32,7 +32,7 @@ export default function HomePage({ onOpenCategory, refreshKey }) {
           </div>
         ) : (
           <>
-            <div style={{ fontSize: 40, fontWeight: 800, color: 'var(--text)', letterSpacing: '-1.5px' }}>Dori</div>
+            <div style={{ fontSize: 40, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>Dori</div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => setSearchMode(true)} className="glass" style={{
                 width: 42, height: 42, borderRadius: '50%',

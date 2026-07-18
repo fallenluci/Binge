@@ -46,22 +46,22 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
           <div style={{ position: 'fixed', inset: 0, zIndex: 50 }} onClick={() => setPlusOpen(false)} />
           <div className="menu-solid" style={{
             position: 'fixed', bottom: 110, left: '50%', transform: 'translateX(-50%)',
-            borderRadius: 22, overflow: 'hidden', zIndex: 200, minWidth: 240,
+            borderRadius: 22, overflow: 'hidden', zIndex: 200, width: 224,
             animation: 'popIn 0.28s cubic-bezier(0.34,1.4,0.64,1)',
           }}>
             <div onClick={() => { setPlusOpen(false); refreshCats(); setShowAddFilm(true); }}
-              style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px', cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-              <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2.2" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="4"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', cursor: 'pointer' }}>
+              <div style={{ width: 30, height: 30, borderRadius: 9, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2.2" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="4"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
               </div>
-              <span style={{ fontSize: 16, fontWeight: 500, color: 'var(--text)' }}>Новый фильм</span>
+              <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--text)' }}>Новый фильм</span>
             </div>
             <div onClick={() => { setPlusOpen(false); setShowAddCat(true); }}
-              style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px', cursor: 'pointer' }}>
-              <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2.2" strokeLinecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', cursor: 'pointer' }}>
+              <div style={{ width: 30, height: 30, borderRadius: 9, background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2.2" strokeLinecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
               </div>
-              <span style={{ fontSize: 16, fontWeight: 500, color: 'var(--text)' }}>Новая категория</span>
+              <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--text)' }}>Новая категория</span>
             </div>
           </div>
         </>
@@ -69,7 +69,16 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
 
       {/* Bottom nav: main dock (Home/Rand) + separate "+" island */}
       <div style={{ position: 'fixed', bottom: 30, left: '50%', transform: 'translateX(-50%)', zIndex: 100, display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div className="nav-solid" style={{ height: 62, padding: 6, display: 'flex', alignItems: 'stretch', gap: 4 }}>
+        <div className="nav-solid" style={{ height: 62, padding: 6, display: 'flex', alignItems: 'stretch', gap: 4, position: 'relative' }}>
+          {/* Sliding active indicator — glides between Home/Rand like iOS segmented control */}
+          <div style={{
+            position: 'absolute', top: 6, left: 6,
+            width: 68, height: 50, borderRadius: 999,
+            background: 'rgb(58,58,60)',
+            transform: `translateX(${activePage === 'rand' ? 72 : 0}px)`,
+            transition: 'transform 0.35s cubic-bezier(0.34,1.15,0.64,1)',
+            pointerEvents: 'none',
+          }} />
           <DockBtn active={activePage === 'home'} onClick={() => onChangePage('home')} label="Home" icon={
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 11l9-8 9 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M5 10v10h14V10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
           } />
@@ -78,12 +87,15 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
           } />
         </div>
 
-        {/* Separate "+" island — solid gray, white icon */}
+        {/* Separate "+" island — rotates into an "×" when open */}
         <button onClick={() => { setPlusOpen(!plusOpen); refreshCats(); }} className="nav-solid" style={{
           width: 62, height: 62,
           display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: 'none', padding: 0,
         }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round"><line x1="12" y1="4" x2="12" y2="20"/><line x1="4" y1="12" x2="20" y2="12"/></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round"
+            style={{ transform: plusOpen ? 'rotate(45deg)' : 'rotate(0deg)', transition: 'transform 0.3s cubic-bezier(0.34,1.4,0.64,1)' }}>
+            <line x1="12" y1="4" x2="12" y2="20"/><line x1="4" y1="12" x2="20" y2="12"/>
+          </svg>
         </button>
       </div>
 
@@ -178,12 +190,12 @@ function DockBtn({ active, onClick, icon, label }) {
   return (
     <button onClick={onClick} style={{
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
-      background: active ? 'rgb(58,58,60)' : 'none',
+      background: 'none',
       border: 'none',
       borderRadius: '999px',
       width: 68,
       padding: '6px 4px', cursor: 'pointer', color: active ? 'var(--text)' : 'var(--text-dim)',
-      transition: 'background 0.2s', flexShrink: 0,
+      transition: 'color 0.2s', flexShrink: 0, position: 'relative', zIndex: 1,
     }}>
       {icon}
       <span style={{ fontSize: 10, fontWeight: 500 }}>{label}</span>
