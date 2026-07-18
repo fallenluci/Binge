@@ -153,7 +153,7 @@ export default function RatingPicker({ film, onRate, onClose }) {
 
       <div
         className="nav-solid"
-        style={{ position: 'relative', width: 140, height: 200, overflow: 'hidden', cursor: 'grab', userSelect: 'none', borderRadius: 40 }}
+        style={{ position: 'relative', width: 140, height: 220, overflow: 'hidden', cursor: 'grab', userSelect: 'none', borderRadius: 70 }}
         onTouchStart={e => handleStart(e.touches[0].clientY)}
         onTouchMove={e => handleMove(e.touches[0].clientY)}
         onTouchEnd={handleEnd}
