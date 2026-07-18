@@ -69,11 +69,11 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
 
       {/* Bottom nav: main dock (Home/Rand) + separate "+" island */}
       <div style={{ position: 'fixed', bottom: 30, left: '50%', transform: 'translateX(-50%)', zIndex: 100, display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div className="nav-solid" style={{ height: 62, padding: 0, display: 'flex', alignItems: 'stretch', gap: 0 }}>
-          <DockBtn active={activePage === 'home'} onClick={() => onChangePage('home')} label="Home" side="left" icon={
+        <div className="nav-solid" style={{ height: 62, padding: 6, display: 'flex', alignItems: 'stretch', gap: 4 }}>
+          <DockBtn active={activePage === 'home'} onClick={() => onChangePage('home')} label="Home" icon={
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 11l9-8 9 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M5 10v10h14V10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
           } />
-          <DockBtn active={activePage === 'rand'} onClick={() => onChangePage('rand')} label="Random" side="right" icon={
+          <DockBtn active={activePage === 'rand'} onClick={() => onChangePage('rand')} label="Random" icon={
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="15.5" cy="8.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="8.5" cy="15.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>
           } />
         </div>
@@ -174,17 +174,14 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
   );
 }
 
-function DockBtn({ active, onClick, icon, label, side }) {
-  const radius = side === 'left'
-    ? '999px 22px 22px 999px'
-    : '22px 999px 999px 22px';
+function DockBtn({ active, onClick, icon, label }) {
   return (
     <button onClick={onClick} style={{
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
       background: active ? 'rgb(58,58,60)' : 'none',
       border: 'none',
-      borderRadius: radius,
-      padding: '8px 22px', cursor: 'pointer', color: active ? 'var(--text)' : 'var(--text-dim)',
+      borderRadius: '999px',
+      padding: '6px 22px', cursor: 'pointer', color: active ? 'var(--text)' : 'var(--text-dim)',
       transition: 'background 0.2s',
     }}>
       {icon}
