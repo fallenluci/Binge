@@ -57,14 +57,14 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
   background: rgb(30,30,32);
   border: 1px solid rgba(255,255,255,0.1);
 }
-/* Individual oval nav buttons with visible border, like Apple Music tab bar */
+/* Individual nav buttons — no border/bg by default; active gets a pill
+   highlight matching the dock's own rounded shape, like iOS tab selection */
 .nav-btn-oval {
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgb(38,38,40);
+  border: none;
+  background: none;
 }
 .nav-btn-oval.active {
-  border-color: rgba(255,255,255,0.18);
   background: rgb(46,46,48);
 }
 

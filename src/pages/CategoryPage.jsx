@@ -106,7 +106,7 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
             <div key={film.id} style={{
               display: 'flex', alignItems: 'center', gap: 14,
               padding: '13px 0',
-              borderBottom: idx < cat.films.length - 1 ? '1px solid rgba(255,255,255,0.08)' : 'none',
+              borderBottom: 'none',
             }}>
               <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-dim)', minWidth: 20, flexShrink: 0 }}>{idx + 1}</span>
               <span style={{ fontSize: 17, fontWeight: 500, color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{film.name}</span>

@@ -21,36 +21,41 @@ export default function HomePage({ onOpenCategory, refreshKey }) {
 
   return (
     <div className="page dotted-bg" style={{ paddingBottom: 140 }}>
-      {/* Top bar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '56px 24px 0' }}>
-        <div style={{ fontSize: 40, fontWeight: 700, color: 'var(--text)', letterSpacing: '-1.5px' }}>Dori</div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={() => setSearchMode(true)} className="glass" style={{
-            width: 42, height: 42, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.15)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-          }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2.3" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          </button>
-          <div className="glass" style={{
-            width: 42, height: 42, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.15)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--text-dim)"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
-          </div>
-        </div>
-      </div>
-
-      {/* Search overlay panel */}
-      {searchMode && (
-        <div style={{ padding: '16px 24px 0' }}>
-          <div className="glass" style={{ borderRadius: 16, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+      {/* Top bar — replaced entirely by search input when in search mode */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '56px 24px 0', gap: 10 }}>
+        {searchMode ? (
+          <div className="glass" style={{ borderRadius: 100, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10, flex: 1, height: 42 }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             <input autoFocus value={query} onChange={e => doSearch(e.target.value)} placeholder="Search"
               style={{ background: 'none', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 16, flex: 1, fontFamily: 'inherit' }} />
-            <button onClick={() => { setSearchMode(false); setQuery(''); setResults([]); }} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: 16 }}>✕</button>
+            <button onClick={() => { setSearchMode(false); setQuery(''); setResults([]); }} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: 16, flexShrink: 0 }}>✕</button>
           </div>
-          {query && results.length > 0 && (
-            <div className="glass" style={{ borderRadius: 16, overflow: 'hidden', marginBottom: 10 }}>
+        ) : (
+          <>
+            <div style={{ fontSize: 40, fontWeight: 700, color: 'var(--text)', letterSpacing: '-1.5px' }}>Dori</div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setSearchMode(true)} className="glass" style={{
+                width: 42, height: 42, borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+              }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2.3" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              </button>
+              <div className="glass" style={{
+                width: 42, height: 42, borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--text-dim)"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Search results — shown directly below the header row */}
+      {searchMode && query && (
+        <div style={{ padding: '10px 24px 0' }}>
+          {results.length > 0 ? (
+            <div className="glass" style={{ borderRadius: 16, overflow: 'hidden' }}>
               {results.map(({ film, cat }) => (
                 <div key={`${cat.id}-${film.id}`} style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
                   <div style={{ fontSize: 15, color: 'var(--text)', fontWeight: 500 }}>{film.name}</div>
@@ -58,8 +63,7 @@ export default function HomePage({ onOpenCategory, refreshKey }) {
                 </div>
               ))}
             </div>
-          )}
-          {query && results.length === 0 && (
+          ) : (
             <div style={{ color: 'var(--text-dim)', fontSize: 14, padding: '4px 4px 10px' }}>Ничего не найдено</div>
           )}
         </div>
