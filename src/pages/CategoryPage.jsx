@@ -111,12 +111,12 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
               <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-dim)', minWidth: 20, flexShrink: 0 }}>{idx + 1}</span>
               <span style={{ fontSize: 17, fontWeight: 500, color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{film.name}</span>
               {rc && (
-                <span className="rating-pill" style={{
+                <span onClick={() => setShowRating(film)} className="rating-pill" style={{
                   fontSize: 13, minWidth: 30, height: 24, padding: '0 9px',
                   color: rc, borderColor: rc,
                   background: `${rc}20`,
                   boxShadow: `0 0 10px ${rc}55`,
-                  flexShrink: 0,
+                  flexShrink: 0, cursor: 'pointer',
                 }}>{film.rating}</span>
               )}
               <button onClick={() => setMenuFilm(film)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', fontSize: 18, padding: '0 2px', flexShrink: 0 }}>⋯</button>
