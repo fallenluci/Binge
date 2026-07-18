@@ -34,14 +34,15 @@ export default function HomePage({ onOpenCategory, refreshKey }) {
   return (
     <div className="page dotted-bg" style={{ paddingBottom: 140 }}>
       {/* Top bar — search pill morphs from a small circle into the full bar */}
-      <div style={{ display: 'flex', alignItems: 'center', padding: '56px 24px 0', gap: 10, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', alignItems: 'center', padding: '56px 24px 0', overflow: 'hidden' }}>
         {/* Logo — collapses away smoothly when searching */}
         <div style={{
           flexBasis: searchMode ? 0 : 120, flexGrow: 0, flexShrink: 0,
           overflow: 'hidden', whiteSpace: 'nowrap',
           fontSize: 40, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px',
           opacity: searchMode ? 0 : 1,
-          transition: `flex-basis 0.4s ${EASE}, opacity 0.22s ease`,
+          marginRight: searchMode ? 0 : 10,
+          transition: `flex-basis 0.4s ${EASE}, opacity 0.22s ease, margin 0.4s ${EASE}`,
         }}>Dori</div>
 
         {/* Spacer — pushes search+profile to the right edge; collapses when searching */}
@@ -59,7 +60,8 @@ export default function HomePage({ onOpenCategory, refreshKey }) {
             flexBasis: 42, flexGrow: searchMode ? 1 : 0, flexShrink: 0,
             overflow: 'hidden', cursor: searchMode ? 'default' : 'pointer',
             paddingLeft: searchMode ? 16 : 12, paddingRight: searchMode ? 10 : 12,
-            transition: `flex-grow 0.4s ${EASE}, padding 0.4s ${EASE}`,
+            marginRight: searchMode ? 0 : 10,
+            transition: `flex-grow 0.4s ${EASE}, padding 0.4s ${EASE}, margin 0.4s ${EASE}`,
           }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0 }}>
@@ -110,7 +112,11 @@ export default function HomePage({ onOpenCategory, refreshKey }) {
           {results.length > 0 ? (
             <div className="glass" style={{ borderRadius: 16, overflow: 'hidden' }}>
               {results.map(({ film, cat }) => (
-                <div key={`${cat.id}-${film.id}`} style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                <div
+                  key={`${cat.id}-${film.id}`}
+                  onClick={() => { onOpenCategory(cat.id); closeSearch(); }}
+                  style={{ padding: '12px 16px', cursor: 'pointer' }}
+                >
                   <div style={{ fontSize: 15, color: 'var(--text)', fontWeight: 500 }}>{film.name}</div>
                   <div style={{ fontSize: 12, color: cat.color, marginTop: 2 }}>{cat.name}{film.rating !== null ? ` · ${film.rating}/10` : ''}</div>
                 </div>

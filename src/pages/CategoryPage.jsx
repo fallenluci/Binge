@@ -146,7 +146,6 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
                   fontSize: 13, minWidth: 30, height: 24, padding: '0 9px',
                   color: rc, border: 'none',
                   background: `${rc}20`,
-                  boxShadow: `0 0 10px ${rc}55`,
                   flexShrink: 0, cursor: 'pointer',
                 }}>{film.rating}</span>
               )}

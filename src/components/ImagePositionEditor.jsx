@@ -45,9 +45,9 @@ export default function ImagePositionEditor({ image, position, onChange }) {
         onMouseMove={e => onMove(e.clientX, e.clientY)}
         onMouseUp={onUp}
         onMouseLeave={onUp}
-        onTouchStart={e => onDown(e.touches[0].clientX, e.touches[0].clientY)}
-        onTouchMove={e => onMove(e.touches[0].clientX, e.touches[0].clientY)}
-        onTouchEnd={onUp}
+        onTouchStart={e => { e.stopPropagation(); onDown(e.touches[0].clientX, e.touches[0].clientY); }}
+        onTouchMove={e => { e.stopPropagation(); onMove(e.touches[0].clientX, e.touches[0].clientY); }}
+        onTouchEnd={e => { e.stopPropagation(); onUp(); }}
       >
         <div style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
@@ -67,6 +67,8 @@ export default function ImagePositionEditor({ image, position, onChange }) {
         <input
           type="range" min="100" max="300" step="1" value={scale}
           onChange={e => onChange({ ...position, scale: Number(e.target.value) })}
+          onTouchStart={e => e.stopPropagation()}
+          onTouchMove={e => e.stopPropagation()}
           style={{ flex: 1, accentColor: 'var(--accent)', minWidth: 0 }}
         />
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0 }}><circle cx="11" cy="11" r="8"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
