@@ -102,7 +102,7 @@ export const CATEGORY_COLORS = [
 // Rating color depends on the score, not the category:
 // < 4 red, 4–6 gray, >= 7 green
 export function ratingColor(rating) {
-  if (rating < 4) return '#FF453A';
+  if (rating < 4) return '#FF0000';
   if (rating < 7) return '#8E8E93';
   return '#30D158';
 }
