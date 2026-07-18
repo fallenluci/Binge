@@ -41,7 +41,7 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
 
 .glass {
   background: rgb(30,30,32);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: none;
   position: relative;
 }
 /* sheen removed — no more transparent/glassy highlight */
@@ -49,13 +49,13 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
 /* Solid gray Apple-style nav surfaces — fully opaque, no blur/transparency */
 .nav-solid {
   background: rgb(28,28,30);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: none;
   border-radius: 999px;
   overflow: hidden;
 }
 .menu-solid {
   background: rgb(30,30,32);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: none;
 }
 
 
