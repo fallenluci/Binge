@@ -44,6 +44,12 @@ export default function HomePage({ onOpenCategory, refreshKey }) {
           transition: `flex-basis 0.4s ${EASE}, opacity 0.22s ease`,
         }}>Dori</div>
 
+        {/* Spacer — pushes search+profile to the right edge; collapses when searching */}
+        <div style={{
+          flexGrow: searchMode ? 0 : 1, flexShrink: 1, flexBasis: 0,
+          transition: `flex-grow 0.4s ${EASE}`,
+        }} />
+
         {/* Search pill — grows via flex-grow to fill the freed space */}
         <div
           className="glass"

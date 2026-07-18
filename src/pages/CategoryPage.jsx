@@ -13,6 +13,9 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
   const [editFilmName, setEditFilmName] = useState('');
   const [exiting, setExiting] = useState(false);
   const [showAppearance, setShowAppearance] = useState(false);
+  const [appearanceDragY, setAppearanceDragY] = useState(0);
+  const appearanceDragging = useRef(false);
+  const appearanceStartY = useRef(0);
   const [tempColor, setTempColor] = useState('');
   const [tempImage, setTempImage] = useState(null);
   const [tempImagePos, setTempImagePos] = useState({ x: 50, y: 50 });
@@ -59,6 +62,23 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
     reader.readAsDataURL(file);
   };
 
+  const handleAppearanceTouchStart = (e) => {
+    appearanceDragging.current = true;
+    appearanceStartY.current = e.touches[0].clientY;
+  };
+  const handleAppearanceTouchMove = (e) => {
+    if (!appearanceDragging.current) return;
+    const dy = e.touches[0].clientY - appearanceStartY.current;
+    if (dy > 0) setAppearanceDragY(dy);
+  };
+  const handleAppearanceTouchEnd = () => {
+    appearanceDragging.current = false;
+    if (appearanceDragY > 100) {
+      setShowAppearance(false);
+    }
+    setAppearanceDragY(0);
+  };
+
   const handleDeleteCategory = () => {
     if (confirm(`Удалить категорию «${cat.name}» вместе со всеми фильмами?`)) {
       deleteCategory(categoryId);
@@ -77,18 +97,18 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
       onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '60px 22px 0' }}>
-        <button onClick={goBack} className="glass" style={{ borderRadius: 16, width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+        <button onClick={goBack} className="glass" style={{ borderRadius: '50%', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={openAppearance} className="glass" style={{ borderRadius: 16, width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+          <button onClick={openAppearance} className="glass" style={{ borderRadius: '50%', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="var(--text)"/><circle cx="17.5" cy="10.5" r=".5" fill="var(--text)"/><circle cx="8.5" cy="7.5" r=".5" fill="var(--text)"/><circle cx="6.5" cy="12.5" r=".5" fill="var(--text)"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
           </button>
-          <button onClick={handleDeleteCategory} className="glass" style={{ borderRadius: 16, width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+          <button onClick={handleDeleteCategory} className="glass" style={{ borderRadius: '50%', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF453A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>
           </button>
           <button onClick={() => { const n = prompt('Название фильма:'); if (n?.trim()) { addFilm(categoryId, n.trim()); refresh(); } }}
-            style={{ background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: 16, width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white', fontSize: 22, fontWeight: 300 }}>+</button>
+            style={{ background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: '50%', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white', fontSize: 22, fontWeight: 300 }}>+</button>
         </div>
       </div>
 
@@ -124,7 +144,7 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
               {rc && (
                 <span onClick={() => setShowRating(film)} className="rating-pill" style={{
                   fontSize: 13, minWidth: 30, height: 24, padding: '0 9px',
-                  color: rc, borderColor: rc,
+                  color: rc, border: 'none',
                   background: `${rc}20`,
                   boxShadow: `0 0 10px ${rc}55`,
                   flexShrink: 0, cursor: 'pointer',
@@ -142,15 +162,15 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 300 }} onClick={() => { setMenuFilm(null); setEditFilm(null); }} />
           <div className="glass" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 430, borderRadius: '28px 28px 0 0', padding: '14px 0 46px', zIndex: 301, animation: 'slideUp 0.32s cubic-bezier(0.34,1.26,0.64,1)', borderBottom: 'none' }}>
             <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.25)', margin: '0 auto 18px' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 28px 18px', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 28px 18px', marginBottom: 8 }}>
               {editFilm?.id === menuFilm.id ? (
                 <input autoFocus value={editFilmName} onChange={e => setEditFilmName(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveFilmName()}
                   style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 19, fontWeight: 500, color: 'var(--text)', fontFamily: 'inherit' }} />
               ) : (
                 <span style={{ flex: 1, fontSize: 19, fontWeight: 500, color: 'var(--text)' }}>{menuFilm.name}</span>
               )}
-              <button onClick={() => { setEditFilm(menuFilm); setEditFilmName(menuFilm.name); }} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              <button onClick={() => { setEditFilm(menuFilm); setEditFilmName(menuFilm.name); }} style={{ background: 'none', border: 'none', padding: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               </button>
             </div>
             <div onClick={() => handleDelete(menuFilm.id)} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 28px', cursor: 'pointer' }}>
@@ -173,7 +193,20 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
       {showAppearance && (
         <>
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 398 }} onClick={() => setShowAppearance(false)} />
-          <div className="glass" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 430, borderRadius: '28px 28px 0 0', padding: '20px 22px 48px', zIndex: 399, animation: 'slideUp 0.32s cubic-bezier(0.34,1.26,0.64,1)', borderBottom: 'none', maxHeight: '85dvh', overflowY: 'auto' }}>
+          <div
+            className="glass"
+            style={{
+              position: 'fixed', bottom: 0, left: '50%',
+              transform: `translateX(-50%) translateY(${appearanceDragY}px)`,
+              width: 430, borderRadius: '28px 28px 0 0', padding: '20px 22px 48px', zIndex: 399,
+              animation: appearanceDragY === 0 ? 'slideUp 0.32s cubic-bezier(0.34,1.26,0.64,1)' : 'none',
+              maxHeight: '85dvh', overflowY: 'auto',
+              transition: appearanceDragging.current ? 'none' : 'transform 0.25s ease',
+            }}
+            onTouchStart={handleAppearanceTouchStart}
+            onTouchMove={handleAppearanceTouchMove}
+            onTouchEnd={handleAppearanceTouchEnd}
+          >
             <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.25)', margin: '0 auto 20px' }} />
             <div style={{ fontSize: 20, fontWeight: 500, textAlign: 'center', color: 'var(--text)', marginBottom: 20 }}>Оформление</div>
 
@@ -183,9 +216,9 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
               </div>
             ) : (
               <div style={{
-                width: '100%', height: 100, borderRadius: 16, marginBottom: 16,
+                width: '100%', height: 100, borderRadius: 28, marginBottom: 16,
                 background: tempColor,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.12)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 <span style={{ color: 'white', fontWeight: 700, fontSize: 18, textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>{cat.name}</span>
               </div>
@@ -193,9 +226,9 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
 
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
             <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-              <button onClick={() => fileInputRef.current?.click()} style={{ flex: 1, padding: 13, borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)', color: 'var(--text)', fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>{tempImage ? 'Заменить фото' : 'Загрузить фото'}</button>
+              <button onClick={() => fileInputRef.current?.click()} style={{ flex: 1, padding: 13, borderRadius: 999, border: 'none', background: 'rgba(255,255,255,0.1)', color: 'var(--text)', fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>{tempImage ? 'Заменить фото' : 'Загрузить фото'}</button>
               {tempImage && (
-                <button onClick={() => setTempImage(null)} style={{ padding: '13px 16px', borderRadius: 12, border: '1px solid rgba(255,69,58,0.3)', background: 'rgba(255,69,58,0.1)', color: '#FF453A', fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>Убрать</button>
+                <button onClick={() => setTempImage(null)} style={{ padding: '13px 20px', borderRadius: 999, border: 'none', background: 'rgba(255,69,58,0.15)', color: '#FF453A', fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>Убрать</button>
               )}
             </div>
 
@@ -209,8 +242,7 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
                 }} />
               ))}
             </div>
-            <button onClick={saveAppearance} style={{ width: '100%', padding: 16, borderRadius: 14, border: 'none', background: 'var(--accent)', color: 'white', fontSize: 17, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>Сохранить</button>
-            <button onClick={() => setShowAppearance(false)} style={{ width: '100%', padding: 16, borderRadius: 14, border: 'none', background: 'rgba(255,255,255,0.08)', color: 'var(--text)', fontSize: 16, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', marginTop: 10 }}>Отмена</button>
+            <button onClick={saveAppearance} style={{ width: '100%', padding: 16, borderRadius: 999, border: 'none', background: 'rgba(255,255,255,0.12)', color: 'var(--text)', fontSize: 17, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>Сохранить</button>
           </div>
         </>
       )}

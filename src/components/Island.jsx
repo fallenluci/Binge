@@ -6,6 +6,9 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
   const [plusOpen, setPlusOpen] = useState(false);
   const [showAddFilm, setShowAddFilm] = useState(false);
   const [showAddCat, setShowAddCat] = useState(false);
+  const [addCatDragY, setAddCatDragY] = useState(0);
+  const addCatDragging = useRef(false);
+  const addCatStartY = useRef(0);
   const [filmName, setFilmName] = useState('');
   const [catName, setCatName] = useState('');
   const [selCatId, setSelCatId] = useState('');
@@ -22,6 +25,21 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
     if (!filmName.trim() || !selCatId) return;
     addFilm(selCatId, filmName.trim());
     setFilmName(''); setShowAddFilm(false); onRefresh();
+  };
+
+  const handleAddCatTouchStart = (e) => {
+    addCatDragging.current = true;
+    addCatStartY.current = e.touches[0].clientY;
+  };
+  const handleAddCatTouchMove = (e) => {
+    if (!addCatDragging.current) return;
+    const dy = e.touches[0].clientY - addCatStartY.current;
+    if (dy > 0) setAddCatDragY(dy);
+  };
+  const handleAddCatTouchEnd = () => {
+    addCatDragging.current = false;
+    if (addCatDragY > 100) { setShowAddCat(false); setCatImage(null); }
+    setAddCatDragY(0);
   };
 
   const submitCat = () => {
@@ -128,12 +146,25 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
       {showAddCat && (
         <>
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 399 }} onClick={() => setShowAddCat(false)} />
-          <div className="glass" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 430, borderRadius: '28px 28px 0 0', padding: '20px 22px 48px', zIndex: 400, animation: 'slideUp 0.35s cubic-bezier(0.34,1.26,0.64,1)', borderBottom: 'none', maxHeight: '85dvh', overflowY: 'auto' }}>
+          <div
+            className="glass"
+            style={{
+              position: 'fixed', bottom: 0, left: '50%',
+              transform: `translateX(-50%) translateY(${addCatDragY}px)`,
+              width: 430, borderRadius: '28px 28px 0 0', padding: '20px 22px 48px', zIndex: 400,
+              animation: addCatDragY === 0 ? 'slideUp 0.35s cubic-bezier(0.34,1.26,0.64,1)' : 'none',
+              maxHeight: '85dvh', overflowY: 'auto',
+              transition: addCatDragging.current ? 'none' : 'transform 0.25s ease',
+            }}
+            onTouchStart={handleAddCatTouchStart}
+            onTouchMove={handleAddCatTouchMove}
+            onTouchEnd={handleAddCatTouchEnd}
+          >
             <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.25)', margin: '0 auto 20px' }} />
             <div style={{ fontSize: 20, fontWeight: 500, textAlign: 'center', color: 'var(--text)', marginBottom: 20 }}>Новая категория</div>
             <input autoFocus value={catName} onChange={e => setCatName(e.target.value)} onKeyDown={e => e.key === 'Enter' && submitCat()}
               placeholder="Название категории"
-              style={{ width: '100%', padding: '15px 16px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)', fontSize: 16, fontFamily: 'inherit', outline: 'none', color: 'var(--text)', marginBottom: 16 }} />
+              style={{ width: '100%', padding: '15px 16px', borderRadius: 14, border: 'none', background: 'rgba(255,255,255,0.08)', fontSize: 16, fontFamily: 'inherit', outline: 'none', color: 'var(--text)', marginBottom: 16 }} />
 
             {catImage ? (
               <div style={{ marginBottom: 16 }}>
@@ -141,8 +172,8 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
               </div>
             ) : (
               <div style={{
-                width: '100%', height: 100, borderRadius: 16, marginBottom: 16, background: selColor,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.12)',
+                width: '100%', height: 100, borderRadius: 28, marginBottom: 16, background: selColor,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 <span style={{ color: 'white', fontWeight: 700, fontSize: 18, textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>{catName || 'Превью'}</span>
               </div>
@@ -151,14 +182,14 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
             <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
               <button onClick={() => fileInputRef.current?.click()} style={{
-                flex: 1, padding: 13, borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)',
-                background: 'rgba(255,255,255,0.06)', color: 'var(--text)', fontSize: 14, fontWeight: 500,
+                flex: 1, padding: 13, borderRadius: 999, border: 'none',
+                background: 'rgba(255,255,255,0.1)', color: 'var(--text)', fontSize: 14, fontWeight: 500,
                 cursor: 'pointer', fontFamily: 'inherit',
               }}>{catImage ? 'Заменить фото' : 'Загрузить фото'}</button>
               {catImage && (
                 <button onClick={() => setCatImage(null)} style={{
-                  padding: '13px 16px', borderRadius: 12, border: '1px solid rgba(255,69,58,0.3)',
-                  background: 'rgba(255,69,58,0.1)', color: '#FF453A', fontSize: 14, fontWeight: 500,
+                  padding: '13px 20px', borderRadius: 999, border: 'none',
+                  background: 'rgba(255,69,58,0.15)', color: '#FF453A', fontSize: 14, fontWeight: 500,
                   cursor: 'pointer', fontFamily: 'inherit',
                 }}>Убрать</button>
               )}
@@ -177,8 +208,7 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
                 }} />
               ))}
             </div>
-            <button onClick={submitCat} style={{ width: '100%', padding: 16, borderRadius: 14, border: 'none', background: 'var(--accent)', color: 'white', fontSize: 17, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>Создать</button>
-            <button onClick={() => { setShowAddCat(false); setCatImage(null); }} style={{ width: '100%', padding: 16, borderRadius: 14, border: 'none', background: 'rgba(255,255,255,0.08)', color: 'var(--text)', fontSize: 16, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', marginTop: 10 }}>Отмена</button>
+            <button onClick={submitCat} style={{ width: '100%', padding: 16, borderRadius: 999, border: 'none', background: 'var(--accent)', color: 'white', fontSize: 17, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>Создать</button>
           </div>
         </>
       )}
