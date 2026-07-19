@@ -41,7 +41,7 @@ export default function RandPage({ onChangePage }) {
 
   useEffect(() => { setCats(getCategories()); }, []);
 
-  const drumItems = [{ id: 'all', label: 'Все категории' }, ...cats.map(c => ({ id: c.id, label: c.name, color: c.color }))];
+  const drumItems = [{ id: 'all', label: 'Все' }, ...cats.map(c => ({ id: c.id, label: c.name, color: c.color }))];
   const selectedCat = selectedIdx > 0 ? cats[selectedIdx - 1] : null;
 
   const pickFilm = () => {

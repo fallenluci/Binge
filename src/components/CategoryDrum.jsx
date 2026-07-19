@@ -48,13 +48,17 @@ export default function CategoryDrum({ items, selectedIndex, onSelect, onDone })
   }, []);
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 500,
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      gap: 28,
-      background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)',
-    }}>
+    <div
+      onClick={onDone}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 500,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        gap: 28,
+        background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)',
+      }}
+    >
       <div
+        onClick={e => e.stopPropagation()}
         style={{
           position: 'relative', width: 150, height: 210, overflow: 'hidden',
           cursor: 'grab', userSelect: 'none', touchAction: 'pan-x',
