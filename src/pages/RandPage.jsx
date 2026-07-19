@@ -135,12 +135,17 @@ export default function RandPage({ onChangePage }) {
           {phase === 'playing' && videoOk ? (
             <video
               ref={videoRef}
-              src="/dori2.webm"
               muted
               playsInline
+              preload="auto"
               onError={() => setVideoOk(false)}
-              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-            />
+              onStalled={() => setVideoOk(false)}
+              style={{ width: '100%', height: '100%', objectFit: 'contain', mixBlendMode: 'screen' }}
+            >
+              {/* Safari/iOS can't decode VP9 — provide an H.264 mp4 fallback with the same name */}
+              <source src="/dori2.mp4" type="video/mp4" />
+              <source src="/dori2.webm" type="video/webm; codecs=vp9" />
+            </video>
           ) : imgOk ? (
             <img
               src="/dori2.png"
@@ -155,7 +160,7 @@ export default function RandPage({ onChangePage }) {
 
         {/* Result film name */}
         {phase === 'result' && result && (
-          <div style={{ textAlign: 'center', animation: 'popIn 0.4s cubic-bezier(0.34,1.4,0.64,1)' }} onClick={tapAgain}>
+          <div style={{ textAlign: 'center', animation: 'apple-reveal 0.7s cubic-bezier(0.22,1,0.36,1)' }} onClick={tapAgain}>
             <div style={{ fontSize: 38, fontWeight: 700, color: 'var(--text)', letterSpacing: '-1px', lineHeight: 1.15 }}>
               {result.film.name}
             </div>
@@ -173,10 +178,14 @@ export default function RandPage({ onChangePage }) {
             <CategoryDrum items={drumItems} selectedIndex={selectedIdx} onSelect={setSelectedIdx} />
           ) : (
             phase !== 'playing' && (
-              <button onClick={() => setShowDrum(true)} className="glass" style={{
-                borderRadius: 999, padding: '12px 26px', border: 'none', cursor: 'pointer',
-                fontSize: 15, fontWeight: 500, color: 'var(--text)',
-              }}>Настроить</button>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setShowDrum(true); }}
+                className="glass"
+                style={{
+                  borderRadius: 999, padding: '12px 26px', border: 'none', cursor: 'pointer',
+                  fontSize: 15, fontWeight: 500, color: 'var(--text)',
+                }}>Настроить</button>
             )
           )}
         </div>
