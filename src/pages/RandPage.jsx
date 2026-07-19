@@ -3,7 +3,6 @@ import { getCategories } from '../store';
 import CategoryDrum from '../components/CategoryDrum';
 
 const GLOW = '#311C7E';
-const ANIM_DURATION = 7000;
 
 // Fallback cat artwork (used until dori2.png is present in /public, or if it fails to load)
 const CatFace = ({ size = 220 }) => (
@@ -37,7 +36,8 @@ export default function RandPage({ onChangePage }) {
   const [imgOk, setImgOk] = useState(true);
   const [videoOk, setVideoOk] = useState(true);
   const videoRef = useRef(null);
-  const timeoutRef = useRef(null);
+  const pendingResult = useRef(null);
+  const safetyTimeout = useRef(null);
 
   useEffect(() => { setCats(getCategories()); }, []);
 
@@ -56,26 +56,49 @@ export default function RandPage({ onChangePage }) {
     return pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : null;
   };
 
+  const finish = () => {
+    setPhase('result');
+    setResult(pendingResult.current);
+    clearTimeout(safetyTimeout.current);
+  };
+
+  // Video element stays mounted permanently — we only toggle visibility and play/pause it,
+  // matching the reference implementation that's confirmed to work reliably.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const onEnded = () => finish();
+    const onErr = () => setVideoOk(false);
+    v.addEventListener('ended', onEnded);
+    v.addEventListener('error', onErr);
+    return () => {
+      v.removeEventListener('ended', onEnded);
+      v.removeEventListener('error', onErr);
+    };
+  }, []);
+
   const start = () => {
     if (phase === 'playing') return;
-    const pool = pickFilm();
+    pendingResult.current = pickFilm();
     setResult(null);
     setPhase('playing');
     setShowDrum(false);
 
-    if (videoRef.current && videoOk) {
-      videoRef.current.currentTime = 0;
-      videoRef.current.play().catch(() => {});
+    const v = videoRef.current;
+    if (v && videoOk) {
+      v.currentTime = 0;
+      v.play().catch(() => setVideoOk(false));
+      // Safety net in case 'ended' never fires for some reason
+      clearTimeout(safetyTimeout.current);
+      safetyTimeout.current = setTimeout(finish, 9000);
+    } else {
+      // No video available — fall back to a fixed reveal delay
+      clearTimeout(safetyTimeout.current);
+      safetyTimeout.current = setTimeout(finish, 2200);
     }
-
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      setPhase('result');
-      setResult(pool);
-    }, ANIM_DURATION);
   };
 
-  useEffect(() => () => clearTimeout(timeoutRef.current), []);
+  useEffect(() => () => clearTimeout(safetyTimeout.current), []);
 
   const tapAgain = () => {
     setPhase('idle');
@@ -120,7 +143,7 @@ export default function RandPage({ onChangePage }) {
           pointerEvents: 'none',
         }} />
 
-        {/* Cat button / video */}
+        {/* Cat button — img + video both stay mounted; we just toggle which is visible */}
         <button
           onClick={start}
           disabled={phase === 'playing'}
@@ -132,29 +155,31 @@ export default function RandPage({ onChangePage }) {
           onTouchStart={e => phase !== 'playing' && (e.currentTarget.style.transform = 'scale(0.96)')}
           onTouchEnd={e => (e.currentTarget.style.transform = 'scale(1)')}
         >
-          {phase === 'playing' && videoOk ? (
-            <video
-              ref={videoRef}
-              muted
-              playsInline
-              preload="auto"
-              onError={() => setVideoOk(false)}
-              onStalled={() => setVideoOk(false)}
-              style={{ width: '100%', height: '100%', objectFit: 'contain', mixBlendMode: 'screen' }}
-            >
-              {/* Safari/iOS can't decode VP9 — provide an H.264 mp4 fallback with the same name */}
-              <source src="/dori2.mp4" type="video/mp4" />
-              <source src="/dori2.webm" type="video/webm; codecs=vp9" />
-            </video>
-          ) : imgOk ? (
+          {imgOk && (
             <img
               src="/dori2.png"
               alt="Dori"
               onError={() => setImgOk(false)}
-              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              style={{
+                position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain',
+                display: phase === 'playing' && videoOk ? 'none' : 'block',
+              }}
             />
-          ) : (
-            <CatFace size={220} />
+          )}
+          {!imgOk && phase !== 'playing' && <CatFace size={220} />}
+          {videoOk && (
+            <video
+              ref={videoRef}
+              src="/dori2.webm"
+              muted
+              playsInline
+              preload="auto"
+              style={{
+                position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain',
+                mixBlendMode: 'screen',
+                display: phase === 'playing' ? 'block' : 'none',
+              }}
+            />
           )}
         </button>
 

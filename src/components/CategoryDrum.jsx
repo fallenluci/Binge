@@ -1,5 +1,7 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
+// Horizontal drum, mirroring the proven vertical RatingPicker drag/snap logic exactly,
+// just rotated onto the X axis.
 const ITEM_W = 120;
 
 export default function CategoryDrum({ items, selectedIndex, onSelect }) {
@@ -7,9 +9,9 @@ export default function CategoryDrum({ items, selectedIndex, onSelect }) {
   const cur = useRef(-selectedIndex * ITEM_W);
   const startX = useRef(0);
   const dragging = useRef(false);
-  const [dragActive, setDragActive] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
-  const maxIdx = items.length - 1;
+  const maxIdx = Math.max(0, items.length - 1);
   const clamp = (v) => Math.max(-maxIdx * ITEM_W, Math.min(0, v));
 
   const snap = (raw) => {
@@ -20,54 +22,58 @@ export default function CategoryDrum({ items, selectedIndex, onSelect }) {
     onSelect(idx);
   };
 
-  const onDown = (x) => { dragging.current = true; setDragActive(true); startX.current = x; };
-  const onMove = (x) => {
+  const handleStart = (x) => { dragging.current = true; setIsDragging(true); startX.current = x; };
+  const handleMove = (x) => {
     if (!dragging.current) return;
-    const next = clamp(cur.current + (x - startX.current));
-    setOffset(next);
+    setOffset(clamp(cur.current + (x - startX.current)));
   };
-  const onUp = (x) => {
+  const handleEnd = (x) => {
     if (!dragging.current) return;
     dragging.current = false;
-    setDragActive(false);
+    setIsDragging(false);
     snap(cur.current + (x - startX.current));
   };
 
-  return (
-    <div style={{
-      position: 'relative', width: '100%', maxWidth: 340, height: 64,
-      overflow: 'hidden', margin: '0 auto',
-      animation: 'rand-drum-in 0.4s cubic-bezier(0.34,1.4,0.64,1)',
-    }}>
-      {/* Center highlight */}
-      <div style={{
-        position: 'absolute', left: '50%', top: 4, bottom: 4,
-        width: ITEM_W - 12, transform: 'translateX(-50%)',
-        background: 'rgba(255,255,255,0.08)', borderRadius: 999,
-        pointerEvents: 'none',
-      }} />
+  useEffect(() => {
+    const up = (e) => handleEnd(e.clientX);
+    const mv = (e) => handleMove(e.clientX);
+    window.addEventListener('mouseup', up);
+    window.addEventListener('mousemove', mv);
+    return () => {
+      window.removeEventListener('mouseup', up);
+      window.removeEventListener('mousemove', mv);
+    };
+  }, []);
 
+  return (
+    <div style={{ width: '100%', maxWidth: 340, margin: '0 auto' }}>
       <div
         style={{
-          position: 'relative', height: '100%', cursor: 'grab', userSelect: 'none', touchAction: 'pan-y',
+          position: 'relative', width: '100%', height: 64, overflow: 'hidden',
+          cursor: 'grab', userSelect: 'none', touchAction: 'pan-y',
+          background: 'rgb(28,28,30)', borderRadius: 20,
         }}
-        onTouchStart={e => onDown(e.touches[0].clientX)}
-        onTouchMove={e => onMove(e.touches[0].clientX)}
-        onTouchEnd={e => onUp(e.changedTouches[0].clientX)}
-        onMouseDown={e => onDown(e.clientX)}
-        onMouseMove={e => onMove(e.clientX)}
-        onMouseUp={e => onUp(e.clientX)}
-        onMouseLeave={() => { if (dragging.current) { dragging.current = false; setDragActive(false); snap(cur.current); } }}
+        onTouchStart={e => handleStart(e.touches[0].clientX)}
+        onTouchMove={e => handleMove(e.touches[0].clientX)}
+        onTouchEnd={e => handleEnd(e.changedTouches[0].clientX)}
+        onMouseDown={e => handleStart(e.clientX)}
       >
+        {/* Center highlight */}
         <div style={{
-          position: 'absolute', top: 0, bottom: 0, left: '50%',
-          display: 'flex', alignItems: 'center',
-          transform: `translateX(calc(-50% + ${offset}px))`,
-          transition: dragActive ? 'none' : 'transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94)',
+          position: 'absolute', top: 6, bottom: 6, left: '50%',
+          width: ITEM_W - 16, transform: 'translateX(-50%)',
+          background: 'rgba(255,255,255,0.1)', borderRadius: 14,
+          pointerEvents: 'none', zIndex: 0,
+        }} />
+
+        <div style={{
+          position: 'relative', height: '100%', display: 'flex', alignItems: 'center',
+          transform: `translateX(calc(50% - ${ITEM_W / 2}px + ${offset}px))`,
+          transition: isDragging ? 'none' : 'transform 0.32s cubic-bezier(0.25,0.46,0.45,0.94)',
+          zIndex: 1,
         }}>
           {items.map((item, idx) => {
-            const dist = Math.abs(idx * ITEM_W + offset);
-            const isCenter = dist < ITEM_W / 2;
+            const isCenter = Math.round(-offset / ITEM_W) === idx;
             return (
               <div key={item.id ?? idx} style={{
                 width: ITEM_W, height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -76,23 +82,17 @@ export default function CategoryDrum({ items, selectedIndex, onSelect }) {
                 <span style={{
                   fontSize: isCenter ? 16 : 14,
                   fontWeight: isCenter ? 700 : 500,
-                  color: isCenter ? (item.color || 'var(--text)') : 'var(--text-dim)',
+                  color: isCenter ? (item.color || '#fff') : 'var(--text-dim)',
                   opacity: isCenter ? 1 : 0.5,
-                  transition: 'all 0.2s',
+                  transition: 'color 0.2s, opacity 0.2s',
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                  maxWidth: ITEM_W - 16,
+                  maxWidth: ITEM_W - 16, textAlign: 'center',
                 }}>{item.label}</span>
               </div>
             );
           })}
         </div>
       </div>
-
-      {/* Edge fade */}
-      <div style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none',
-        background: 'linear-gradient(to right, #000 0%, transparent 15%, transparent 85%, #000 100%)',
-      }} />
     </div>
   );
 }
