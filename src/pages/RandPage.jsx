@@ -1,117 +1,185 @@
 import { useState, useEffect, useRef } from 'react';
 import { getCategories } from '../store';
+import CategoryDrum from '../components/CategoryDrum';
 
-export default function RandPage() {
+const GLOW = '#311C7E';
+const ANIM_DURATION = 7000;
+
+// Fallback cat artwork (used until dori2.png is present in /public, or if it fails to load)
+const CatFace = ({ size = 220 }) => (
+  <svg width={size} height={size} viewBox="0 0 220 220" fill="none">
+    <defs>
+      <radialGradient id="catGrad" cx="50%" cy="35%" r="70%">
+        <stop offset="0%" stopColor="#6b4fd6" />
+        <stop offset="100%" stopColor="#2a1a66" />
+      </radialGradient>
+      <filter id="catBlur" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="6" />
+      </filter>
+    </defs>
+    <path d="M60 40 C40 40 30 70 34 100 C20 120 18 160 40 185 C60 205 90 210 110 210 C130 210 160 205 180 185 C202 160 200 120 186 100 C190 70 180 40 160 40 C145 40 138 65 130 85 C124 78 116 74 110 74 C104 74 96 78 90 85 C82 65 75 40 60 40 Z"
+      fill="url(#catGrad)" filter="url(#catBlur)" opacity="0.95" />
+    <path d="M60 40 C40 40 30 70 34 100 C20 120 18 160 40 185 C60 205 90 210 110 210 C130 210 160 205 180 185 C202 160 200 120 186 100 C190 70 180 40 160 40 C145 40 138 65 130 85 C124 78 116 74 110 74 C104 78 96 78 90 85 C82 65 75 40 60 40 Z"
+      fill="url(#catGrad)" />
+    <ellipse cx="80" cy="128" rx="24" ry="30" fill="#fff" />
+    <ellipse cx="140" cy="128" rx="24" ry="30" fill="#fff" />
+    <path d="M70 128 Q80 118 90 128 Q80 138 70 128 Z" fill={GLOW} />
+    <path d="M130 128 Q140 118 150 128 Q140 138 130 128 Z" fill={GLOW} />
+  </svg>
+);
+
+export default function RandPage({ onChangePage }) {
   const [cats, setCats] = useState([]);
-  const [bubbles, setBubbles] = useState([]);
-  const [spinning, setSpinning] = useState(false);
+  const [phase, setPhase] = useState('idle'); // idle | playing | result
   const [result, setResult] = useState(null);
-  const [selectedCat, setSelectedCat] = useState(null);
-  const [showCats, setShowCats] = useState(false);
-  const animRef = useRef([]);
+  const [showDrum, setShowDrum] = useState(false);
+  const [selectedIdx, setSelectedIdx] = useState(0); // 0 = all categories
+  const [imgOk, setImgOk] = useState(true);
+  const [videoOk, setVideoOk] = useState(true);
+  const videoRef = useRef(null);
+  const timeoutRef = useRef(null);
 
-  useEffect(() => {
-    const c = getCategories();
-    setCats(c);
-    setBubbles(initBubbles(c));
-  }, []);
+  useEffect(() => { setCats(getCategories()); }, []);
 
-  const initBubbles = (c) => {
-    const maxF = Math.max(...c.map(x => x.films.length), 1);
-    const pos = [{x:52,y:38},{x:74,y:26},{x:26,y:34},{x:32,y:60},{x:66,y:62}];
-    return c.map((cat, i) => ({
-      id: cat.id, color: cat.color, name: cat.name,
-      size: 56 + (cat.films.length / maxF) * 74,
-      x: pos[i % pos.length].x + (Math.random()-0.5)*6,
-      y: pos[i % pos.length].y + (Math.random()-0.5)*6,
-      vx: (Math.random()-0.5)*0.4, vy: (Math.random()-0.5)*0.4,
-    }));
-  };
+  const drumItems = [{ id: 'all', label: 'Все категории' }, ...cats.map(c => ({ id: c.id, label: c.name, color: c.color }))];
+  const selectedCat = selectedIdx > 0 ? cats[selectedIdx - 1] : null;
 
-  const handlePress = () => {
-    if (spinning || bubbles.length === 0) return;
-    setResult(null); setSpinning(true);
-    let bubs = bubbles.map(b => ({ ...b, vx: (Math.random()-0.5)*3, vy: (Math.random()-0.5)*3 }));
-    let start = null; const dur = 4200;
-    const animate = (ts) => {
-      if (!start) start = ts;
-      const elapsed = ts - start;
-      const speed = Math.max(0.05, 1 - (elapsed/dur)*0.95);
-      bubs = bubs.map(b => {
-        let nx = b.x + b.vx*speed, ny = b.y + b.vy*speed;
-        let nvx = b.vx, nvy = b.vy;
-        if (nx < 10 || nx > 90) { nvx=-nvx; nx=Math.max(10,Math.min(90,nx)); }
-        if (ny < 10 || ny > 80) { nvy=-nvy; ny=Math.max(10,Math.min(80,ny)); }
-        return { ...b, x:nx, y:ny, vx:nvx, vy:nvy };
-      });
-      setBubbles([...bubs]);
-      if (elapsed < dur) animRef.current = [requestAnimationFrame(animate)];
-      else { setSpinning(false); pick(); }
-    };
-    animRef.current = [requestAnimationFrame(animate)];
-  };
-
-  const pick = () => {
+  const pickFilm = () => {
     const allCats = getCategories();
     let pool = [];
-    if (selectedCat) { const c = allCats.find(x=>x.id===selectedCat); if (c) c.films.forEach(f=>pool.push({film:f,cat:c})); }
-    else allCats.forEach(c => c.films.forEach(f => pool.push({ film:f, cat:c })));
-    if (pool.length > 0) setResult(pool[Math.floor(Math.random()*pool.length)]);
+    if (selectedCat) {
+      const c = allCats.find(x => x.id === selectedCat.id);
+      if (c) c.films.forEach(f => pool.push({ film: f, cat: c }));
+    } else {
+      allCats.forEach(c => c.films.forEach(f => pool.push({ film: f, cat: c })));
+    }
+    return pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : null;
   };
 
-  const selCatObj = cats.find(c => c.id === selectedCat);
+  const start = () => {
+    if (phase === 'playing') return;
+    const pool = pickFilm();
+    setResult(null);
+    setPhase('playing');
+    setShowDrum(false);
+
+    if (videoRef.current && videoOk) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play().catch(() => {});
+    }
+
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      setPhase('result');
+      setResult(pool);
+    }, ANIM_DURATION);
+  };
+
+  useEffect(() => () => clearTimeout(timeoutRef.current), []);
+
+  const tapAgain = () => {
+    setPhase('idle');
+    setResult(null);
+  };
 
   return (
-    <div className="dotted-bg" style={{ height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <div style={{ padding: '64px 24px 0' }}>
-        <div style={{ fontSize: 32, fontWeight: 500, color: 'var(--text)', letterSpacing: '-1px' }}>Random</div>
-        <div style={{ fontSize: 15, color: 'var(--text-dim)', marginTop: 4 }}>Не знаешь что посмотреть?</div>
+    <div className="rand-frame dotted-bg">
+      {/* Top bar — mirrors Home header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '56px 24px 0' }}>
+        <div style={{ fontSize: 40, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>Dori</div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={() => onChangePage && onChangePage('home')} className="glass" style={{
+            width: 42, height: 42, borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2.3" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </button>
+          <div className="glass" style={{
+            width: 42, height: 42, borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--text-dim)"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+          </div>
+        </div>
       </div>
 
-      <div style={{ flex: 1, position: 'relative', cursor: 'pointer' }} onClick={handlePress}>
-        {bubbles.map(b => (
-          <div key={b.id} className="glass" style={{
-            position: 'absolute', left: `${b.x}%`, top: `${b.y}%`,
-            width: b.size, height: b.size, borderRadius: '50%',
-            transform: 'translate(-50%,-50%)',
-            transition: spinning ? 'none' : 'left 0.8s ease, top 0.8s ease',
-            background: `radial-gradient(circle at 35% 30%, ${b.color}, ${b.color}99)`,
-            boxShadow: `0 8px 30px ${b.color}55`,
-            border: '1px solid rgba(255,255,255,0.3)',
-          }} />
-        ))}
-        {bubbles.length === 0 && (
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12, color: 'var(--text-dim)', textAlign: 'center', padding: 40 }}>
-            <div style={{ fontSize: 40 }}>🎬</div>
-            <div>Добавь категории на главной</div>
-          </div>
-        )}
-      </div>
+      {/* Center content */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        padding: '0 24px', gap: 28,
+      }}>
+        {/* Ambient glow behind the cat */}
+        <div style={{
+          position: 'absolute', width: 320, height: 320, borderRadius: '50%',
+          background: `radial-gradient(circle, ${GLOW}aa 0%, ${GLOW}33 45%, transparent 72%)`,
+          filter: 'blur(10px)',
+          animation: phase === 'playing' ? 'rand-glow-pulse 1.1s ease-in-out infinite' : 'none',
+          opacity: phase === 'playing' ? 1 : 0.6,
+          transition: 'opacity 0.4s ease',
+          pointerEvents: 'none',
+        }} />
 
-      <div style={{ padding: '0 24px 100px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
-        {result && (
-          <div className="glass" style={{ borderRadius: 24, padding: '20px 28px', textAlign: 'center', animation: 'popIn 0.4s cubic-bezier(0.34,1.4,0.64,1)', maxWidth: '100%' }}>
-            <div style={{ fontSize: 22, fontWeight: 500, color: 'var(--text)' }}>{result.film.name}</div>
-            <div style={{ fontSize: 13, color: result.cat.color, marginTop: 4, fontWeight: 700 }}>{result.cat.name}</div>
-          </div>
-        )}
-        {spinning && <div style={{ color: 'var(--text-dim)', fontSize: 14 }}>Выбираем...</div>}
-        {!spinning && !result && bubbles.length > 0 && <div style={{ color: 'var(--text-dim)', fontSize: 14 }}>Нажми на пузыри</div>}
+        {/* Cat button / video */}
+        <button
+          onClick={start}
+          disabled={phase === 'playing'}
+          style={{
+            position: 'relative', width: 220, height: 220, background: 'none', border: 'none',
+            cursor: phase === 'playing' ? 'default' : 'pointer', padding: 0,
+            transition: 'transform 0.15s',
+          }}
+          onTouchStart={e => phase !== 'playing' && (e.currentTarget.style.transform = 'scale(0.96)')}
+          onTouchEnd={e => (e.currentTarget.style.transform = 'scale(1)')}
+        >
+          {phase === 'playing' && videoOk ? (
+            <video
+              ref={videoRef}
+              src="/dori2.webm"
+              muted
+              playsInline
+              onError={() => setVideoOk(false)}
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            />
+          ) : imgOk ? (
+            <img
+              src="/dori2.png"
+              alt="Dori"
+              onError={() => setImgOk(false)}
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            />
+          ) : (
+            <CatFace size={220} />
+          )}
+        </button>
 
-        {showCats ? (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-            <button onClick={() => setSelectedCat(null)} className="glass" style={{ borderRadius: 100, padding: '9px 18px', fontSize: 13, fontWeight: 500, color: !selectedCat ? 'var(--accent)' : 'var(--text-dim)', border: 'none', cursor: 'pointer' }}>Все</button>
-            {cats.map(c => (
-              <button key={c.id} onClick={() => setSelectedCat(c.id)} className="glass" style={{ borderRadius: 100, padding: '9px 18px', fontSize: 13, fontWeight: 700, color: selectedCat === c.id ? c.color : 'var(--text-dim)', border: 'none', cursor: 'pointer' }}>{c.name}</button>
-            ))}
+        {/* Result film name */}
+        {phase === 'result' && result && (
+          <div style={{ textAlign: 'center', animation: 'popIn 0.4s cubic-bezier(0.34,1.4,0.64,1)' }} onClick={tapAgain}>
+            <div style={{ fontSize: 38, fontWeight: 700, color: 'var(--text)', letterSpacing: '-1px', lineHeight: 1.15 }}>
+              {result.film.name}
+            </div>
           </div>
-        ) : (
-          cats.length > 0 && (
-            <button onClick={() => setShowCats(true)} className="glass" style={{ borderRadius: 100, padding: '10px 22px', fontSize: 14, fontWeight: 500, color: 'var(--text)', border: 'none', cursor: 'pointer' }}>
-              Настроить {selCatObj ? `· ${selCatObj.name}` : ''}
-            </button>
-          )
         )}
+        {phase === 'result' && !result && (
+          <div style={{ textAlign: 'center', color: 'var(--text-dim)', fontSize: 15 }} onClick={tapAgain}>
+            В этой категории пока нет фильмов
+          </div>
+        )}
+
+        {/* Настроить button / horizontal drum */}
+        <div style={{ minHeight: 64, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {showDrum ? (
+            <CategoryDrum items={drumItems} selectedIndex={selectedIdx} onSelect={setSelectedIdx} />
+          ) : (
+            phase !== 'playing' && (
+              <button onClick={() => setShowDrum(true)} className="glass" style={{
+                borderRadius: 999, padding: '12px 26px', border: 'none', cursor: 'pointer',
+                fontSize: 15, fontWeight: 500, color: 'var(--text)',
+              }}>Настроить</button>
+            )
+          )}
+        </div>
       </div>
     </div>
   );
