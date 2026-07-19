@@ -197,24 +197,29 @@ export default function RandPage({ onChangePage }) {
           </div>
         )}
 
-        {/* Настроить button / horizontal drum */}
+        {/* Настроить button — opens the vertical category drum overlay */}
         <div style={{ minHeight: 64, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {showDrum ? (
-            <CategoryDrum items={drumItems} selectedIndex={selectedIdx} onSelect={setSelectedIdx} />
-          ) : (
-            phase !== 'playing' && (
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); setShowDrum(true); }}
-                className="glass"
-                style={{
-                  borderRadius: 999, padding: '12px 26px', border: 'none', cursor: 'pointer',
-                  fontSize: 15, fontWeight: 500, color: 'var(--text)',
-                }}>Настроить</button>
-            )
+          {phase !== 'playing' && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setShowDrum(true); }}
+              className="glass"
+              style={{
+                borderRadius: 999, padding: '12px 26px', border: 'none', cursor: 'pointer',
+                fontSize: 15, fontWeight: 500, color: 'var(--text)',
+              }}>Настроить {selectedCat ? `· ${selectedCat.name}` : ''}</button>
           )}
         </div>
       </div>
+
+      {showDrum && (
+        <CategoryDrum
+          items={drumItems}
+          selectedIndex={selectedIdx}
+          onSelect={setSelectedIdx}
+          onDone={() => setShowDrum(false)}
+        />
+      )}
     </div>
   );
 }
