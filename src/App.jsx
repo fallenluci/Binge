@@ -14,7 +14,7 @@ export default function App() {
   return (
     <div className="app">
       {page === 'home' && <HomePage onOpenCategory={id => setCatId(id)} refreshKey={tick} />}
-      {page === 'rand' && <RandPage key={tick} onChangePage={setPage} />}
+      {page === 'rand' && <RandPage key={tick} onOpenCategory={id => setCatId(id)} />}
       {catId && <CategoryPage categoryId={catId} onBack={() => setCatId(null)} onRefresh={refresh} />}
       {!catId && <Island activePage={page} onChangePage={setPage} onRefresh={refresh} />}
     </div>

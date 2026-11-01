@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getCategories } from '../store';
 import CategoryDrum from '../components/CategoryDrum';
+import TopBar from '../components/TopBar';
 
 const GLOW = '#311C7E';
 
@@ -27,7 +28,7 @@ const CatFace = ({ size = 220 }) => (
   </svg>
 );
 
-export default function RandPage({ onChangePage }) {
+export default function RandPage({ onOpenCategory, onProfile }) {
   const [cats, setCats] = useState([]);
   const [phase, setPhase] = useState('idle'); // idle | playing | result
   const [result, setResult] = useState(null);
@@ -107,24 +108,8 @@ export default function RandPage({ onChangePage }) {
 
   return (
     <div className="rand-frame dotted-bg">
-      {/* Top bar — mirrors Home header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '56px 24px 0' }}>
-        <div style={{ fontSize: 40, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>Dori</div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={() => onChangePage && onChangePage('home')} className="glass" style={{
-            width: 42, height: 42, borderRadius: '50%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-          }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2.3" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          </button>
-          <div className="glass" style={{
-            width: 42, height: 42, borderRadius: '50%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--text-dim)"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
-          </div>
-        </div>
-      </div>
+      {/* Same header as Home — identical icons, working search */}
+      <TopBar onOpenCategory={onOpenCategory} onProfile={onProfile} floatingResults />
 
       {/* Center content */}
       <div style={{
