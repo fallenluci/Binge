@@ -3,10 +3,10 @@
 :root {
   --font: -apple-system, 'SF Pro Display', 'SF Pro Text', BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
   --bg: #000000;
-  --glass-fill: rgba(255,255,255,0.06);
-  --glass-border: rgba(255,255,255,0.12);
+  --glass-fill: rgb(44,44,46);
+  --glass-border: rgb(58,58,60);
   --text: #f5f5f7;
-  --text-dim: rgba(245,245,247,0.55);
+  --text-dim: #8E8E93; /* solid grey: translucent white made overlapping icon strokes brighter */
   --accent: #0A84FF;
 }
 
