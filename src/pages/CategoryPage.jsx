@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { getCategories, addFilm, deleteFilm, updateFilm, updateCategory, deleteCategory, CATEGORY_COLORS, ratingColor } from '../store';
+import { compressImage } from '../lib/image';
 import RatingPicker from '../components/RatingPicker';
 import ImagePositionEditor from '../components/ImagePositionEditor';
 
-export default function CategoryPage({ categoryId, onBack, onRefresh }) {
+export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh }) {
   const [cat, setCat] = useState(null);
   const [menuFilm, setMenuFilm] = useState(null);
   const [showRating, setShowRating] = useState(null);
@@ -25,6 +26,13 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
 
   const refresh = () => setCat(getCategories().find(c => c.id === categoryId));
   useEffect(() => { refresh(); }, [categoryId]);
+  // Data changed elsewhere (another device via sync): re-read without remounting the page.
+  useEffect(() => {
+    if (refreshKey === undefined) return;
+    const fresh = getCategories().find(c => c.id === categoryId);
+    if (fresh) setCat(fresh);
+    else onBack(); // the category was deleted on another device
+  }, [refreshKey]);
   const goBack = () => { setExiting(true); setTimeout(() => { onBack(); onRefresh(); }, 300); };
   const handleTouchStart = e => { touchStartX.current = e.touches[0].clientX; touchStartY.current = e.touches[0].clientY; };
   const handleTouchEnd = e => {
@@ -57,9 +65,10 @@ export default function CategoryPage({ categoryId, onBack, onRefresh }) {
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => { setTempImage(reader.result); setTempImagePos({ x: 50, y: 50 }); };
-    reader.readAsDataURL(file);
+    e.target.value = ''; // allow re-picking the same file
+    compressImage(file)
+      .then((url) => { setTempImage(url); setTempImagePos({ x: 50, y: 50 }); })
+      .catch((err) => alert(err.message));
   };
 
   const handleAppearanceTouchStart = (e) => {

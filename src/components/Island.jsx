@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { getCategories, addFilm, addCategory, CATEGORY_COLORS } from '../store';
+import { compressImage } from '../lib/image';
 import ImagePositionEditor from './ImagePositionEditor';
 
 export default function Island({ activePage, onChangePage, onRefresh }) {
@@ -52,9 +53,10 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => { setCatImage(reader.result); setCatImagePos({ x: 50, y: 50 }); };
-    reader.readAsDataURL(file);
+    e.target.value = ''; // allow re-picking the same file
+    compressImage(file)
+      .then((url) => { setCatImage(url); setCatImagePos({ x: 50, y: 50 }); })
+      .catch((err) => alert(err.message));
   };
 
   return (

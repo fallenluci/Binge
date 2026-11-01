@@ -38,12 +38,29 @@ export function getData() {
   } catch { return defaultData; }
 }
 
-export function saveData(data) {
+// Cloud sync subscribes here to push every local change (see sync.js).
+const saveListeners = new Set();
+export function onLocalSave(fn) {
+  saveListeners.add(fn);
+  return () => saveListeners.delete(fn);
+}
+
+function writeLocal(data) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (e) {
     console.error('Storage full or failed', e);
   }
+}
+
+export function saveData(data) {
+  writeLocal(data);
+  saveListeners.forEach(fn => fn(data));
+}
+
+// Used when data arrives from the cloud: update the local copy without echoing it back.
+export function replaceDataFromRemote(data) {
+  writeLocal(data);
 }
 
 export function getCategories() { return getData().categories; }
