@@ -5,7 +5,7 @@ import CroppedImage from '../components/CroppedImage';
 import { coverCrop } from '../lib/cover';
 import { useIsDesktop } from '../lib/useIsDesktop';
 
-export default function HomePage({ onOpenCategory, onProfile, onRefresh, profile, refreshKey }) {
+export default function HomePage({ onOpenCategory, onProfile, onRefresh, profile, refreshKey, badge }) {
   const [cats, setCats] = useState(getCategories); // no empty first frame
   const desktop = useIsDesktop();
 
@@ -13,7 +13,7 @@ export default function HomePage({ onOpenCategory, onProfile, onRefresh, profile
 
   return (
     <div className="page dotted-bg" style={{ paddingBottom: 140 }}>
-      <TopBar onOpenCategory={onOpenCategory} onProfile={onProfile} onRefresh={onRefresh} profile={profile} />
+      <TopBar onOpenCategory={onOpenCategory} onProfile={onProfile} onRefresh={onRefresh} profile={profile} badge={badge} />
 
       {/* Phone: one column of wide tiles. Desktop: 2-column grid of 375×200 tiles (Figma desktop). */}
       <div style={desktop

@@ -12,13 +12,21 @@ import ProfilePage from './pages/ProfilePage';
 import { subscribeProfile } from './profile';
 import { auth, firebaseEnabled } from './firebase';
 import { startSync, stopSync } from './sync';
-import { replaceDataFromRemote } from './store';
+import { replaceDataFromRemote, onLocalSave } from './store';
+import PublicView from './pages/PublicView';
+import { schedulePublish, resetPublishCache, subscribeFriends, subscribeInbox } from './social';
 import { fillMissingPosters } from './lib/posters';
 
 const SPLASH_MIN_MS = 1000;
 // Launch splash only on phones (touch screen or narrow window).
 const IS_MOBILE = typeof window !== 'undefined' &&
   (window.matchMedia?.('(pointer: coarse)').matches || window.innerWidth < 768);
+
+// /u/{uid} — someone's public profile, /u/{uid}/c/{id} — one of their categories
+const parseRoute = () => {
+  const m = location.pathname.match(/^\/u\/([^/]+)(?:\/c\/([^/]+))?\/?$/);
+  return m ? { uid: decodeURIComponent(m[1]), catId: m[2] ? decodeURIComponent(m[2]) : null } : null;
+};
 
 export default function App() {
   const [page, setPage] = useState('home');
@@ -36,6 +44,51 @@ export default function App() {
   const [splash, setSplash] = useState(IS_MOBILE ? 'shown' : 'gone'); // shown | leaving | gone
   const [splashMinDone, setSplashMinDone] = useState(!IS_MOBILE);
   const refresh = () => setTick(t => t + 1);
+
+  // ---- public links ----
+  const [route, setRoute] = useState(parseRoute);
+  useEffect(() => {
+    const on = () => setRoute(parseRoute());
+    window.addEventListener('popstate', on);
+    return () => window.removeEventListener('popstate', on);
+  }, []);
+  const openPublic = (uid, cat) => {
+    history.pushState({ dori: true }, '', cat ? `/u/${uid}/c/${cat}` : `/u/${uid}`);
+    setRoute({ uid, catId: cat || null });
+  };
+  const closePublic = () => {
+    if (history.state?.dori) history.back();
+    else { history.replaceState(null, '', '/'); setRoute(null); }
+  };
+  // Opened a link without an account → sign in, then come back to the same link
+  const goLogin = () => {
+    try { sessionStorage.setItem('dori-after-login', location.pathname); } catch { /* private mode */ }
+    history.replaceState(null, '', '/'); setRoute(null);
+  };
+  useEffect(() => {
+    if (!user) return;
+    let back = null;
+    try { back = sessionStorage.getItem('dori-after-login'); sessionStorage.removeItem('dori-after-login'); } catch { /* ignore */ }
+    if (back && back.startsWith('/u/')) { history.replaceState(null, '', back); setRoute(parseRoute()); }
+  }, [user]);
+
+  // ---- friends, inbox, publishing what's public ----
+  const [social, setSocial] = useState({ friends: [], inbox: [] });
+  useEffect(() => {
+    if (!user) { setSocial({ friends: [], inbox: [] }); resetPublishCache(); return; }
+    const a = subscribeFriends(user.uid, (friends) => setSocial((s) => ({ ...s, friends })));
+    const b = subscribeInbox(user.uid, (inbox) => setSocial((s) => ({ ...s, inbox })));
+    return () => { a(); b(); };
+  }, [user]);
+  const profileRef = useRef(profile);
+  profileRef.current = profile;
+  useEffect(() => {
+    if (!user || !dataReady) return;
+    schedulePublish(user, profileRef.current);
+    return onLocalSave(() => schedulePublish(user, profileRef.current));
+  }, [user, dataReady]);
+  useEffect(() => { if (user && dataReady && profile) schedulePublish(user, profile); }, [profile]); // eslint-disable-line react-hooks/exhaustive-deps
+  const badge = social.friends.filter((f) => f.status === 'incoming').length + social.inbox.length;
 
   useEffect(() => {
     if (!firebaseEnabled) return;
@@ -100,6 +153,8 @@ export default function App() {
   // split second instead of flashing the login form at a signed-in user.
   if (!authReady) return <div className="app" style={{ background: '#000' }}>{splashLayer}</div>;
   // Welcome screen: sign in or register before using the app.
+  // Public links open without an account
+  if (firebaseEnabled && !user && route) return <div className="app"><PublicView uid={route.uid} catId={route.catId} me={null} onOpen={openPublic} onClose={goLogin} onLogin={goLogin} />{splashLayer}</div>;
   if (firebaseEnabled && !user) return <div className="app"><AuthScreen fromSplash={splash !== 'gone'} />{splashLayer}</div>;
   if (!dataReady) return <div className="app" style={{ background: '#000' }}>{splashLayer}</div>;
 
@@ -108,14 +163,15 @@ export default function App() {
       {/* Both tabs stay mounted and are only shown/hidden: switching is instant,
           with no re-render of the list and no re-decoding of the mascot image */}
       <div style={{ display: page === 'home' ? 'block' : 'none' }}>
-        <HomePage onOpenCategory={id => setCatId(id)} onProfile={openAccount} onRefresh={refresh} profile={profile} refreshKey={tick} />
+        <HomePage onOpenCategory={id => setCatId(id)} onProfile={openAccount} onRefresh={refresh} profile={profile} refreshKey={tick} badge={badge} />
       </div>
       <div style={{ display: page === 'rand' ? 'block' : 'none' }}>
-        <RandPage onOpenCategory={id => setCatId(id)} onProfile={openAccount} onRefresh={refresh} profile={profile} refreshKey={tick} />
+        <RandPage onOpenCategory={id => setCatId(id)} onProfile={openAccount} onRefresh={refresh} profile={profile} refreshKey={tick} badge={badge} />
       </div>
-      {catId && <CategoryPage categoryId={catId} refreshKey={tick} onBack={() => setCatId(null)} onRefresh={refresh} />}
-      {showProfile && user && <ProfilePage user={user} profile={profile} refreshKey={tick} onClose={() => setShowProfile(false)} onOpenCategory={id => { setShowProfile(false); setCatId(id); }} />}
-      {!catId && !showProfile && <Island activePage={page} onChangePage={setPage} onRefresh={refresh} />}
+      {catId && <CategoryPage categoryId={catId} refreshKey={tick} onBack={() => setCatId(null)} onRefresh={refresh} user={user} social={social} />}
+      {showProfile && user && <ProfilePage user={user} profile={profile} refreshKey={tick} onClose={() => setShowProfile(false)} onOpenCategory={id => { setShowProfile(false); setCatId(id); }} social={social} onOpenPublic={openPublic} />}
+      {route && <PublicView uid={route.uid} catId={route.catId} me={user} onOpen={openPublic} onClose={closePublic} onLogin={goLogin} onSaved={refresh} />}
+      {!catId && !showProfile && !route && <Island activePage={page} onChangePage={setPage} onRefresh={refresh} />}
       {showAccount && <AccountSheet user={user} syncStatus={syncStatus} onClose={() => setShowAccount(false)} />}
       {splashLayer}
     </div>

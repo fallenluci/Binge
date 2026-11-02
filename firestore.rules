@@ -1,10 +1,44 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Each user can read and write only their own data:
-    // users/{uid}/categories/{id} and users/{uid}/profile/main
+    function signedIn() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+
+    // Private data: users/{uid}/categories, users/{uid}/profile — only the owner.
     match /users/{uid}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read, write: if signedIn() && me() == uid;
+    }
+
+    // Friends: users/{uid}/friends/{other} = { status: outgoing | incoming | friends, at }.
+    // Besides the owner (rule above), the OTHER person may touch only their own entry
+    // in my list: create a request to me, turn my "outgoing" into "friends" when they
+    // accept, or remove the link.
+    match /users/{uid}/friends/{other} {
+      allow create: if signedIn() && me() == other && request.resource.data.status == 'incoming';
+      allow update: if signedIn() && me() == other
+        && resource.data.status == 'outgoing' && request.resource.data.status == 'friends';
+      allow delete: if signedIn() && me() == other;
+    }
+
+    // Inbox: a friend can drop a shared category into it (and update their own entry).
+    match /users/{uid}/inbox/{id} {
+      allow create, update: if signedIn()
+        && request.resource.data.from == me()
+        && id.matches(me() + '_.*')
+        && get(/databases/$(database)/documents/users/$(uid)/friends/$(me())).data.status == 'friends';
+    }
+
+    // Public profile snapshot: anyone (even without an account) can read, only the owner writes.
+    match /public/{uid} {
+      allow read: if true;
+      allow write: if signedIn() && me() == uid;
+    }
+    // Published categories: "public" ones can be listed on the profile; "link" ones
+    // can only be opened by someone who has the exact link.
+    match /public/{uid}/categories/{catId} {
+      allow get: if true;
+      allow list: if resource.data.visibility == 'public' || (signedIn() && me() == uid);
+      allow write: if signedIn() && me() == uid;
     }
   }
 }

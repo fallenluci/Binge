@@ -23,7 +23,7 @@ const btn = { height: 46, borderRadius: 18, border: 'none', cursor: 'pointer', f
 
 export default function ProfileDesktop({
   user, name, view, editing, draft, setDraft, error, busy, refreshKey,
-  onPhotoTap, onBack, onEdit, onSave, onLogout, onOpenCategory,
+  onPhotoTap, onBack, onEdit, onSave, onLogout, onOpenCategory, social, onFriends, onShare,
 }) {
   return (
     <div style={{ width: W, margin: '0 auto', padding: '40px 0 70px' }}>
@@ -91,6 +91,17 @@ export default function ProfileDesktop({
             ) : (
               <>
                 <button key="logout" type="button" onClick={onLogout} disabled={busy} style={{ ...btn, background: 'none', color: '#C40000', padding: 0 }}>Выйти</button>
+                {social && (
+                  <button key="friends" type="button" onClick={onFriends} style={{ ...btn, background: '#2C2C2C', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    Друзья{social.friendsCount ? ` · ${social.friendsCount}` : ''}
+                    {social.pending > 0 && <span style={{ minWidth: 20, height: 20, padding: '0 6px', borderRadius: 10, background: '#FF3B30', fontSize: 12, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{social.pending}</span>}
+                  </button>
+                )}
+                {social && (
+                  <button key="share" type="button" onClick={onShare} aria-label="Поделиться профилем" title="Поделиться профилем" style={{ ...btn, background: '#2C2C2C', padding: 0, width: 46, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v13" /><path d="m7 8 5-5 5 5" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" /></svg>
+                  </button>
+                )}
                 <button key="edit" type="button" onClick={onEdit} style={{ ...btn, background: PURPLE }}>Редактировать профиль</button>
               </>
             )}

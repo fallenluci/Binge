@@ -51,8 +51,9 @@ function Tile({ cat, size }) {
   );
 }
 
-export default function ProfileStats({ desktop, onOpenCategory, refreshKey }) {
-  const s = useMemo(() => computeStats(getCategories()), [refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
+// data — precomputed stats (someone's public profile); otherwise computed from my own list
+export default function ProfileStats({ desktop, onOpenCategory, refreshKey, data, emptyText }) {
+  const s = useMemo(() => data || computeStats(getCategories()), [refreshKey, data]); // eslint-disable-line react-hooks/exhaustive-deps
   const label = { color: GREY, fontSize: 14, fontWeight: 700, margin: '20px 0 8px 4px' };
 
   const numbers = [
@@ -89,7 +90,7 @@ export default function ProfileStats({ desktop, onOpenCategory, refreshKey }) {
     </div>
   );
 
-  const top = (
+  const top = (data && s.top.length === 0) ? null : (
     <div>
       <div style={label}>{s.topFresh ? 'Топ-5 за месяц' : 'Топ-5 за всё время'}</div>
       <div style={{ background: CARD, borderRadius: 22, padding: '6px 14px' }}>
@@ -120,12 +121,12 @@ export default function ProfileStats({ desktop, onOpenCategory, refreshKey }) {
     return (
       <div style={{ textAlign: 'center', paddingTop: desktop ? 60 : 50 }}>
         <div style={{ color: GREY, fontSize: 36, lineHeight: '36px', fontWeight: 800 }}>ПУСТО</div>
-        <div style={{ color: GREY, fontSize: 13, fontWeight: 700, marginTop: 8 }}>Добавь фильмы — здесь появится статистика</div>
+        <div style={{ color: GREY, fontSize: 13, fontWeight: 700, marginTop: 8 }}>{emptyText || 'Добавь фильмы — здесь появится статистика'}</div>
       </div>
     );
   }
 
-  if (desktop) return <Wide s={s} statRow={statRow} label={label} onOpenCategory={onOpenCategory} />;
+  if (desktop) return <Wide s={s} statRow={statRow} label={label} onOpenCategory={onOpenCategory} isPublic={!!data} />;
 
   return (
     <div>
@@ -152,15 +153,15 @@ function Poster({ path, w }) {
 
 // Desktop profile (wide layout): stats row, favourite category as a real home tile,
 // top-5 as poster cards with big rank numbers.
-function Wide({ s, statRow, label, onOpenCategory }) {
+function Wide({ s, statRow, label, onOpenCategory, isPublic }) {
   const fav = s.favorite;
   return (
     <div>
       {statRow}
 
       {/* Top-5 across the whole width: the big numbers need the room */}
-      <div style={label}>{s.topFresh ? 'Топ-5 за месяц' : 'Топ-5 за всё время'}</div>
-      {s.top.length === 0 ? (
+      {!(isPublic && s.top.length === 0) && <div style={label}>{s.topFresh ? 'Топ-5 за месяц' : 'Топ-5 за всё время'}</div>}
+      {isPublic && s.top.length === 0 ? null : s.top.length === 0 ? (
         <div style={{ height: 120, borderRadius: 26, background: CARD, display: 'flex', alignItems: 'center', justifyContent: 'center', color: GREY, fontSize: 15, fontWeight: 700 }}>
           Оцени пару фильмов — здесь появится твой топ
         </div>

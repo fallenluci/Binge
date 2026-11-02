@@ -16,7 +16,7 @@ const DUR = '0.42s';
  * floatingResults — render results as an overlay under the header instead of in
  * the page flow (Random has full-screen centered content that must not shift).
  */
-export default function TopBar({ onOpenCategory, onProfile, onRefresh, profile, floatingResults = false }) {
+export default function TopBar({ onOpenCategory, onProfile, onRefresh, profile, badge = 0, floatingResults = false }) {
   const [searchMode, setSearchMode] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -110,6 +110,7 @@ export default function TopBar({ onOpenCategory, onProfile, onRefresh, profile, 
           {/* Place of the search circle in the row (the real one is the overlay below) */}
           <div style={{ width: 42, height: 42, flexShrink: 0, marginRight: 10 }} />
 
+          <div style={{ position: 'relative', flexShrink: 0 }}>
           <button onClick={onProfile} aria-label="Профиль" className="glass" style={{
           width: 42, flexShrink: 0,
           height: 42, borderRadius: '50%', border: 'none', padding: 0, cursor: 'pointer',
@@ -125,6 +126,9 @@ export default function TopBar({ onOpenCategory, onProfile, onRefresh, profile, 
             </svg>
           )}
         </button>
+          {/* Friend requests / categories sent to me */}
+          {badge > 0 && !searchMode && <span style={{ position: 'absolute', top: -2, right: -2, minWidth: 18, height: 18, padding: '0 5px', borderRadius: 9, background: '#FF3B30', color: '#fff', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 2px #000', pointerEvents: 'none' }}>{badge}</span>}
+          </div>
 
           {/* Search: one full-width bar, clipped to the 42px circle while closed */}
           <div

@@ -17,6 +17,9 @@ import PhotoCropper from '../components/PhotoCropper';
 import PhotoMenu from '../components/PhotoMenu';
 import ProfileStats from '../components/ProfileStats';
 import ProfileDesktop, { DESK_BANNER_RATIO } from './ProfileDesktop';
+import FriendsSheet from '../components/FriendsSheet';
+import ShareSheet from '../components/ShareSheet';
+import { profileLink, socialEnabled } from '../social';
 import { useIsDesktop } from '../lib/useIsDesktop';
 
 // All coordinates below are taken 1:1 from the Figma mockup (390 × 844 frame).
@@ -75,7 +78,10 @@ const PersonIcon = ({ size }) => (
   </svg>
 );
 
-export default function ProfilePage({ user, profile, onClose, onOpenCategory, refreshKey }) {
+export default function ProfilePage({ user, profile, onClose, onOpenCategory, refreshKey, social = { friends: [], inbox: [] }, onOpenPublic }) {
+  const [sheet, setSheet] = useState(null); // 'friends' | 'share'
+  const friendsCount = social.friends.filter((f) => f.status === 'friends').length;
+  const pending = social.friends.filter((f) => f.status === 'incoming').length + social.inbox.length;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(null);
   const [error, setError] = useState('');
@@ -217,6 +223,7 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
           user={user} name={name} view={view} editing={editing} draft={draft} setDraft={setDraft}
           error={error} busy={busy} refreshKey={refreshKey}
           onPhotoTap={onPhotoTap} onBack={goBack} onEdit={startEdit} onSave={save} onLogout={logout} onOpenCategory={onOpenCategory}
+          social={socialEnabled ? { friendsCount, pending } : null} onFriends={() => setSheet('friends')} onShare={() => setSheet('share')}
         />
       ) : (
       <div style={desktop
@@ -275,6 +282,15 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
             <div style={desktop
               ? { position: 'absolute', top: at(340), left: 0, right: 0, display: 'flex', flexDirection: 'column', minHeight: `calc(max(var(--app-h), ${B} + 787px) - ${B} - 340px)`, paddingBottom: 130 }
               : { position: 'absolute', top: 466, left: 0, right: 0, padding: '0 24px 26.2px', display: 'flex', flexDirection: 'column', minHeight: `calc(max(var(--app-h), ${FRAME_H}px) - 466px)` }}>
+              {socialEnabled && (
+                <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
+                  <button type="button" className="d-btn" onClick={() => setSheet('friends')} style={{ position: 'relative' }}>
+                    Друзья{friendsCount ? ` · ${friendsCount}` : ''}
+                    {pending > 0 && <span style={{ minWidth: 20, height: 20, padding: '0 6px', borderRadius: 10, background: '#FF3B30', fontSize: 12, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{pending}</span>}
+                  </button>
+                  <button type="button" className="d-btn" onClick={() => setSheet('share')}>Поделиться</button>
+                </div>
+              )}
               <ProfileStats desktop={desktop} onOpenCategory={onOpenCategory} refreshKey={refreshKey} />
               <div style={{ marginTop: 'auto', paddingTop: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14.8 }}>
                 <button style={{ ...purpleBtn({}), position: 'static', transform: 'none' }} onClick={startEdit}>Редактировать профиль</button>
@@ -318,6 +334,12 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
       )}
 
       <input ref={fileRef} type="file" accept="image/*" hidden onChange={onFile} />
+
+      {sheet === 'friends' && <FriendsSheet me={user.uid} social={social} onOpenPublic={onOpenPublic} onClose={() => setSheet(null)} />}
+      {sheet === 'share' && (
+        <ShareSheet title="Мой профиль" url={profileLink(user.uid)} onClose={() => setSheet(null)}
+          subtitle="По ссылке видно имя, фото, статистику и категории, которые ты сделал публичными" />
+      )}
 
       {photoMenu && (
         <PhotoMenu

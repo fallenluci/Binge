@@ -4,10 +4,13 @@ import RatingPicker from '../components/RatingPicker';
 import CoverPicker from '../components/CoverPicker';
 import PosterPicker from '../components/PosterPicker';
 import FilmSheet from '../components/FilmSheet';
+import CategoryShareSheet from '../components/CategoryShareSheet';
+import { socialEnabled } from '../social';
 import { coverCrop } from '../lib/cover';
 import { useIsDesktop } from '../lib/useIsDesktop';
 
-export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh }) {
+export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh, user, social = { friends: [], inbox: [] } }) {
+  const [showShare, setShowShare] = useState(false);
   // Read synchronously: with an empty first render the screen underneath flashed for a frame
   const [cat, setCat] = useState(() => getCategories().find(c => c.id === categoryId) || null);
   const desktop = useIsDesktop();
@@ -112,6 +115,11 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
         <div style={{ display: 'flex', gap: desktop ? 5 : 10 }}>
+          {socialEnabled && user && (
+            <button onClick={() => setShowShare(true)} aria-label="Поделиться" className="glass" style={{ borderRadius: '50%', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: 'none' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v13" /><path d="m7 8 5-5 5 5" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" /></svg>
+            </button>
+          )}
           <button onClick={openAppearance} className="glass" style={{ borderRadius: '50%', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="var(--text)"/><circle cx="17.5" cy="10.5" r=".5" fill="var(--text)"/><circle cx="8.5" cy="7.5" r=".5" fill="var(--text)"/><circle cx="6.5" cy="12.5" r=".5" fill="var(--text)"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
           </button>
@@ -131,6 +139,11 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
         ) : (
           <>
             <span style={{ fontSize: 36, fontWeight: 700, color: 'var(--text)', letterSpacing: '-1px' }}>{cat.name}</span>
+            {socialEnabled && cat.visibility && cat.visibility !== 'private' && (
+              <span onClick={() => setShowShare(true)} style={{ cursor: 'pointer', fontSize: 12, fontWeight: 800, color: cat.visibility === 'public' ? '#30D158' : '#8E8E93', background: '#1C1C1E', borderRadius: 999, padding: '4px 10px', whiteSpace: 'nowrap' }}>
+                {cat.visibility === 'public' ? 'Публичная' : 'По ссылке'}
+              </span>
+            )}
             <button onClick={() => { setEditingName(true); setCatName(cat.name); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </button>
@@ -217,6 +230,10 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
             <button className="d-btn primary" onClick={saveAppearance}>Сохранить</button>
           </div>
         </>
+      )}
+
+      {showShare && user && (
+        <CategoryShareSheet cat={cat} user={user} social={social} onChanged={() => { refresh(); onRefresh(); }} onClose={() => setShowShare(false)} />
       )}
 
       {posterFor && (
