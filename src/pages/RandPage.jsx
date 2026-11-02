@@ -30,7 +30,7 @@ const CatFace = ({ size = 220 }) => (
 );
 
 const ANIM_URL = '/dori-roll.webp';
-const ANIM_MS = 7000; // length of the animation (plays once)
+const ANIM_MS = 7000; // length of the animation (plays once, 60 fps)
 
 export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile }) {
   const desktop = useIsDesktop();
