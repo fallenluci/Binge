@@ -51,7 +51,7 @@ export default function PhotoCropper({ src, shape, title, initialPos, onDone, on
   let frame;
   if (shape === 'circle') frame = { width: 'min(280px, calc(100vw - 96px))', aspectRatio: '1 / 1', borderRadius: '50%' };
   else if (shape === 'banner') frame = desktop
-    ? { width: 'min(710px, calc(100vw - 96px))', aspectRatio: '710 / 198', borderRadius: '37.5px 37.5px 0 0' }
+    ? { width: 'min(1100px, calc(100vw - 96px))', aspectRatio: '1100 / 280', borderRadius: '37.5px 37.5px 0 0' }
     : { width: 'calc(100vw - 48px)', maxWidth: 382, aspectRatio: '390 / 360', borderRadius: 28 };
   else { const t = tileAspect(desktop); frame = { width: desktop ? 'min(375px, calc(100vw - 96px))' : 'calc(min(100vw, 430px) - 32px)', aspectRatio: t.ratio, borderRadius: t.radius }; }
 

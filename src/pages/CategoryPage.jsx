@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { getCategories, addFilm, deleteFilm, updateFilm, updateCategory, deleteCategory, CATEGORY_COLORS, ratingColor } from '../store';
 import RatingPicker from '../components/RatingPicker';
 import CoverPicker from '../components/CoverPicker';
+import PosterPicker from '../components/PosterPicker';
+import { posterUrl } from '../lib/posters';
 import { coverCrop } from '../lib/cover';
 import { useIsDesktop } from '../lib/useIsDesktop';
 
@@ -46,7 +48,8 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
   const saveFilmName = () => {
     if (!editFilm) return; // Enter already saved; the blur that follows is a no-op
     const name = editFilmName.trim();
-    if (name) updateFilm(categoryId, editFilm.id, { name });
+    // A new name may be a different film: look the poster up again (unless picked by hand)
+    if (name) updateFilm(categoryId, editFilm.id, name !== editFilm.name && !editFilm.posterManual ? { name, poster: null, posterChecked: false } : { name });
     setEditFilm(null);
     if (name) setMenuFilm(prev => prev ? { ...prev, name } : null);
     refresh();
@@ -81,6 +84,9 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
     }
     setAppearanceDragY(0);
   };
+
+  // "Выбрать постер" from the film menu
+  const [posterFor, setPosterFor] = useState(null);
 
   // "+" in the header: styled sheet instead of the browser's prompt()
   const [showAddFilm, setShowAddFilm] = useState(false);
@@ -176,7 +182,10 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
           <div className="sheet-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 300 }} onClick={() => { setMenuFilm(null); setEditFilm(null); }} />
           <div className="glass sheet-panel" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 430, borderRadius: '28px 28px 0 0', padding: '14px 0 40px', zIndex: 301, animation: 'slideUp 0.32s cubic-bezier(0.34,1.26,0.64,1)', borderBottom: 'none' }}>
             <div className="sheet-handle" style={{ width: 36, height: 4, borderRadius: 2, background: 'rgb(86,86,88)', margin: '0 auto 18px' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 22px', marginBottom: 18 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '0 22px', marginBottom: 18 }}>
+              {menuFilm.poster && editFilm?.id !== menuFilm.id && (
+                <img src={posterUrl(menuFilm.poster, 'w92')} alt="" style={{ width: 46, height: 69, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
+              )}
               {editFilm?.id === menuFilm.id ? (
                 <input autoFocus className="d-field" value={editFilmName} onChange={e => setEditFilmName(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && saveFilmName()} onBlur={saveFilmName} style={{ flex: 1 }} />
@@ -193,6 +202,10 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
               <button className="d-btn primary" onClick={() => { setShowRating(menuFilm); setMenuFilm(null); }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                 {menuFilm.rating != null ? `Изменить оценку · ${menuFilm.rating}` : 'Оценить'}
+              </button>
+              <button className="d-btn" onClick={() => { setPosterFor(menuFilm); setMenuFilm(null); }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="3" /><path d="m4 16 4.5-4.5a2 2 0 0 1 2.8 0L18 18" /><circle cx="15" cy="7.5" r="1.5" /></svg>
+                {menuFilm.poster ? 'Сменить постер' : 'Выбрать постер'}
               </button>
               <button className="d-btn danger" onClick={() => handleDelete(menuFilm.id)}>Удалить фильм</button>
             </div>
@@ -232,6 +245,14 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
             <button className="d-btn primary" onClick={saveAppearance}>Сохранить</button>
           </div>
         </>
+      )}
+
+      {posterFor && (
+        <PosterPicker
+          film={posterFor}
+          onPick={(path) => { updateFilm(categoryId, posterFor.id, { poster: path, posterChecked: true, posterManual: true }); setPosterFor(null); refresh(); onRefresh(); }}
+          onClose={() => setPosterFor(null)}
+        />
       )}
 
       {showAddFilm && (

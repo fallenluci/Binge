@@ -13,6 +13,7 @@ import { subscribeProfile } from './profile';
 import { auth, firebaseEnabled } from './firebase';
 import { startSync, stopSync } from './sync';
 import { replaceDataFromRemote } from './store';
+import { fillMissingPosters } from './lib/posters';
 
 const SPLASH_MIN_MS = 1000;
 // Launch splash only on phones (touch screen or narrow window).
@@ -68,6 +69,11 @@ export default function App() {
     });
   }, []);
 
+  // Find TMDB posters for films that don't have one yet (new films, old lists), in the background
+  useEffect(() => {
+    if (dataReady) fillMissingPosters(refresh);
+  }, [dataReady, tick]);
+
   // Count the 1 s from the moment the splash is actually on screen (after its image decoded).
   const splashTimer = useRef(null);
   const onSplashShown = () => {
@@ -108,7 +114,7 @@ export default function App() {
         <RandPage onOpenCategory={id => setCatId(id)} onProfile={openAccount} onRefresh={refresh} profile={profile} refreshKey={tick} />
       </div>
       {catId && <CategoryPage categoryId={catId} refreshKey={tick} onBack={() => setCatId(null)} onRefresh={refresh} />}
-      {showProfile && user && <ProfilePage user={user} profile={profile} onClose={() => setShowProfile(false)} onOpenCategory={id => { setShowProfile(false); setCatId(id); }} />}
+      {showProfile && user && <ProfilePage user={user} profile={profile} refreshKey={tick} onClose={() => setShowProfile(false)} onOpenCategory={id => { setShowProfile(false); setCatId(id); }} />}
       {!catId && !showProfile && <Island activePage={page} onChangePage={setPage} onRefresh={refresh} />}
       {showAccount && <AccountSheet user={user} syncStatus={syncStatus} onClose={() => setShowAccount(false)} />}
       {splashLayer}

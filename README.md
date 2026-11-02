@@ -33,3 +33,12 @@ If you are developing a production application, we recommend using TypeScript wi
 
 Данные лежат в Firestore по путям `users/{uid}/categories/{id}` и `users/{uid}/profile/main` (имя, аватар, баннер); правила разрешают
 каждому пользователю доступ только к своим данным.
+
+## Постеры фильмов (TMDB)
+
+Постеры подтягиваются из [TMDB](https://www.themoviedb.org) через серверную функцию `api/tmdb.js`
+на Vercel (TMDB недоступен из России напрямую, серверы Vercel — доступны; ключ остаётся на сервере).
+
+1. Зарегистрируйся на themoviedb.org → Settings → API → получи ключ (подойдёт и «API Key», и «API Read Access Token»).
+2. Vercel → проект → Settings → Environment Variables → `TMDB_API_KEY` = ключ (без приставки `VITE_`).
+3. Redeploy. Постеры для всех фильмов найдутся сами в фоне; неверный можно поменять в меню фильма → «Выбрать постер».

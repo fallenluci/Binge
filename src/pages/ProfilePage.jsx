@@ -16,6 +16,7 @@ import CroppedImage, { DEFAULT_POS } from '../components/CroppedImage';
 import PhotoCropper from '../components/PhotoCropper';
 import PhotoMenu from '../components/PhotoMenu';
 import ProfileStats from '../components/ProfileStats';
+import ProfileDesktop, { DESK_BANNER_RATIO } from './ProfileDesktop';
 import { useIsDesktop } from '../lib/useIsDesktop';
 
 // All coordinates below are taken 1:1 from the Figma mockup (390 × 844 frame).
@@ -74,7 +75,7 @@ const PersonIcon = ({ size }) => (
   </svg>
 );
 
-export default function ProfilePage({ user, profile, onClose, onOpenCategory }) {
+export default function ProfilePage({ user, profile, onClose, onOpenCategory, refreshKey }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(null);
   const [error, setError] = useState('');
@@ -211,6 +212,13 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory }) 
   return (
     <div className="page profile-page" style={{ position: 'absolute', inset: 0, zIndex: 30, background: '#000' }}
       onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      {desktop ? (
+        <ProfileDesktop
+          user={user} name={name} view={view} editing={editing} draft={draft} setDraft={setDraft}
+          error={error} busy={busy} refreshKey={refreshKey}
+          onPhotoTap={onPhotoTap} onBack={goBack} onEdit={startEdit} onSave={save} onLogout={logout} onOpenCategory={onOpenCategory}
+        />
+      ) : (
       <div style={desktop
         ? { position: 'relative', width: 710, maxWidth: 'calc(100% - 48px)', margin: '0 auto', minHeight: `max(var(--app-h), calc(${B} + 787px))` }
         : { position: 'relative', maxWidth: 430, margin: '0 auto', minHeight: `max(var(--app-h), ${FRAME_H}px)` }}>
@@ -267,7 +275,7 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory }) 
             <div style={desktop
               ? { position: 'absolute', top: at(340), left: 0, right: 0, display: 'flex', flexDirection: 'column', minHeight: `calc(max(var(--app-h), ${B} + 787px) - ${B} - 340px)`, paddingBottom: 130 }
               : { position: 'absolute', top: 466, left: 0, right: 0, padding: '0 24px 26.2px', display: 'flex', flexDirection: 'column', minHeight: `calc(max(var(--app-h), ${FRAME_H}px) - 466px)` }}>
-              <ProfileStats desktop={desktop} onOpenCategory={onOpenCategory} />
+              <ProfileStats desktop={desktop} onOpenCategory={onOpenCategory} refreshKey={refreshKey} />
               <div style={{ marginTop: 'auto', paddingTop: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14.8 }}>
                 <button style={{ ...purpleBtn({}), position: 'static', transform: 'none' }} onClick={startEdit}>Редактировать профиль</button>
                 <button onClick={logout} disabled={busy} style={{
@@ -307,6 +315,7 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory }) 
           </form>
         )}
       </div>
+      )}
 
       <input ref={fileRef} type="file" accept="image/*" hidden onChange={onFile} />
 
@@ -315,7 +324,7 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory }) 
           title={photoMenu === 'avatar' ? 'Аватар' : 'Баннер'}
           preview={photoMenu === 'avatar'
             ? <CroppedImage src={draft.avatar} pos={draft.avatarPos} style={{ width: 96, height: 96, borderRadius: '50%' }} />
-            : <CroppedImage src={draft.banner} pos={draft.bannerPos} style={{ width: desktop ? 240 : 150, aspectRatio: desktop ? '710 / 198' : '390 / 360', borderRadius: 18 }} />}
+            : <CroppedImage src={draft.banner} pos={draft.bannerPos} style={{ width: desktop ? 240 : 150, aspectRatio: desktop ? DESK_BANNER_RATIO : '390 / 360', borderRadius: 18 }} />}
           onAdjust={() => { const k = photoMenu; setPhotoMenu(null); setCropper({ kind: k, src: draft[k], pos: draft[`${k}Pos`] }); }}
           onReplace={() => { const k = photoMenu; setPhotoMenu(null); pickFile(k); }}
           onRemove={() => { const k = photoMenu; setPhotoMenu(null); setDraft((d) => ({ ...d, [k]: null, [`${k}Pos`]: DEFAULT_POS })); }}
