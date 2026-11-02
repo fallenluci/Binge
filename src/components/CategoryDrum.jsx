@@ -60,7 +60,7 @@ export default function CategoryDrum({ items, selectedIndex, onSelect, onDone })
         onClick={onDone}
         style={{
           background: 'rgb(141,141,146)', border: 'none', borderRadius: 999,
-          padding: '14px 44px', color: '#515151', fontSize: 16, fontWeight: 700,
+          padding: '14px 44px', color: '#fff', fontSize: 16, fontWeight: 700,
           cursor: 'pointer',
         }}
       >Готово</button>

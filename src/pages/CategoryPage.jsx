@@ -91,6 +91,17 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
     setAppearanceDragY(0);
   };
 
+  // "+" in the header: styled sheet instead of the browser's prompt()
+  const [showAddFilm, setShowAddFilm] = useState(false);
+  const [newFilmName, setNewFilmName] = useState('');
+  const submitNewFilm = () => {
+    const name = newFilmName.trim();
+    if (!name) return;
+    addFilm(categoryId, name);
+    setShowAddFilm(false);
+    refresh();
+  };
+
   // Styled confirmation sheet instead of the browser's confirm()
   const [confirmDelCat, setConfirmDelCat] = useState(false);
   const handleDeleteCategory = () => setConfirmDelCat(true);
@@ -120,7 +131,7 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
           <button onClick={handleDeleteCategory} className="glass" style={{ borderRadius: '50%', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF453A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>
           </button>
-          <button onClick={() => { const n = prompt('Название фильма:'); if (n?.trim()) { addFilm(categoryId, n.trim()); refresh(); } }}
+          <button aria-label="Добавить фильм" onClick={() => { setNewFilmName(''); setShowAddFilm(true); }}
             style={{ background: 'rgb(30,30,32)', border: 'none', borderRadius: '50%', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white', fontSize: 22, fontWeight: 300 }}>+</button>
         </div>
       </div>
@@ -246,6 +257,26 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
               ))}
             </div>
             <button className="d-btn primary" onClick={saveAppearance}>Сохранить</button>
+          </div>
+        </>
+      )}
+
+      {showAddFilm && (
+        <>
+          <div className="sheet-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 398 }} onClick={() => setShowAddFilm(false)} />
+          <div className="glass sheet-panel" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 430, borderRadius: '28px 28px 0 0', padding: '20px 22px 32px', zIndex: 399, animation: 'slideUp 0.32s cubic-bezier(0.34,1.26,0.64,1)' }}>
+            <div className="sheet-handle" style={{ width: 36, height: 4, borderRadius: 2, margin: '0 auto 20px' }} />
+            <div className="d-title">Новый фильм</div>
+            <div className="d-label" style={{ textAlign: 'center', margin: '8px 0 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              <span style={{ width: 12, height: 12, borderRadius: '50%', flexShrink: 0, background: cat.image ? `url(${cat.image}) center/cover` : cat.color }} />
+              {cat.name}
+            </div>
+            <input autoFocus className="d-field" placeholder="Название фильма" value={newFilmName}
+              onChange={e => setNewFilmName(e.target.value)} onKeyDown={e => e.key === 'Enter' && submitNewFilm()} style={{ marginBottom: 18 }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <button className="d-btn primary" onClick={submitNewFilm} style={{ opacity: newFilmName.trim() ? 1 : 0.5 }}>Добавить</button>
+              <button className="d-btn ghost" onClick={() => setShowAddFilm(false)}>Отмена</button>
+            </div>
           </div>
         </>
       )}

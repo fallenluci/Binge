@@ -1,12 +1,10 @@
 import { useRef } from 'react';
 import { ratingColor } from '../store';
-import { useIsDesktop } from '../lib/useIsDesktop';
 import { useDrum } from '../lib/useDrum';
 
 const ITEM_H = 74;
 const RATINGS = [1,2,3,4,5,6,7,8,9,10];
 export default function RatingPicker({ film, onRate, onClose }) {
-  const desktop = useIsDesktop();
   // Close on a click that both starts and ends on the free area (not after dragging the drum out)
   const downOnBackdrop = useRef(false);
   const init = film.rating ?? 7;
@@ -27,7 +25,7 @@ export default function RatingPicker({ film, onRate, onClose }) {
       onPointerDown={e => { downOnBackdrop.current = e.target === e.currentTarget; }}
       onClick={e => { if (downOnBackdrop.current && e.target === e.currentTarget) onClose(); }}
     >
-      {!desktop && <button onClick={onClose} className="nav-solid" style={{ position: 'fixed', top: 'calc(60px + var(--top-shift))', right: 'max(22px, calc(50% - 193px))', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text)', fontSize: 16, border: 'none' }}>✕</button>}
+      {/* No close button: a tap on the free area closes the picker */}
 
       <div className="d-title" style={{ padding: '0 40px', marginBottom: 32 }}>{film.name}</div>
 
@@ -36,7 +34,7 @@ export default function RatingPicker({ film, onRate, onClose }) {
           position: 'relative', width: 140, height: 220, overflow: 'hidden', cursor: 'grab', userSelect: 'none',
           borderRadius: 70,
           border: `4px solid ${color}`,
-          background: `${color}26`,
+          background: '#000', // the drum itself is black; the blurred page around it stays as is
           boxShadow: `0 0 60px 10px ${color}55`,
           transition: 'border-color 0.25s, background 0.25s, box-shadow 0.25s',
         }}
@@ -54,7 +52,7 @@ export default function RatingPicker({ film, onRate, onClose }) {
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, transparent 35%, transparent 65%, rgba(0,0,0,0.35) 100%)', pointerEvents: 'none' }}/>
       </div>
 
-      <button className="d-btn primary" onClick={() => onRate(selected)} style={{ marginTop: 44, width: 254.5 }}>Оценить</button>
+      <button onClick={() => onRate(selected)} style={{ marginTop: 44, background: color, border: 'none', borderRadius: 100, padding: '16px 60px', color: 'white', fontSize: 18, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.2s' }}>Оценить</button>
     </div>
   );
 }
