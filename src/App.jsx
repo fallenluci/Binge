@@ -68,25 +68,27 @@ export default function App() {
     });
   }, []);
 
-  useEffect(() => {
-    if (!IS_MOBILE) return;
-    const t = setTimeout(() => setSplashMinDone(true), SPLASH_MIN_MS);
-    return () => clearTimeout(t);
-  }, []);
+  // Count the 1 s from the moment the splash is actually on screen (after its image decoded).
+  const splashTimer = useRef(null);
+  const onSplashShown = () => {
+    clearTimeout(splashTimer.current);
+    splashTimer.current = setTimeout(() => setSplashMinDone(true), SPLASH_MIN_MS);
+  };
+  useEffect(() => () => clearTimeout(splashTimer.current), []);
 
   // The next screen is ready once we know who is signed in (and, if someone is, their list loaded).
   const nextScreenReady = authReady && (!user || dataReady);
   useEffect(() => {
     if (splash !== 'shown' || !splashMinDone || !nextScreenReady) return;
     setSplash('leaving');
-    const t = setTimeout(() => setSplash('gone'), 400);
+    const t = setTimeout(() => setSplash('gone'), 450);
     return () => clearTimeout(t);
   }, [splash, splashMinDone, nextScreenReady]);
 
   // With accounts the avatar opens the profile page; local-only mode keeps the info sheet.
   const openAccount = () => (firebaseEnabled ? setShowProfile(true) : setShowAccount(true));
 
-  const splashLayer = splash !== 'gone' && <Splash leaving={splash === 'leaving'} />;
+  const splashLayer = splash !== 'gone' && <Splash leaving={splash === 'leaving'} onShown={onSplashShown} />;
 
   // Firebase restores the session asynchronously — show a blank screen for that
   // split second instead of flashing the login form at a signed-in user.

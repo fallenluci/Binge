@@ -116,16 +116,14 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
   -webkit-text-fill-color: #fff;
   caret-color: #fff;
 }
-.auth-reveal { animation: apple-reveal 0.7s cubic-bezier(0.22,1,0.36,1) both; }
+.auth-reveal { animation: fade-in 0.5s ease both; will-change: opacity; }
 .auth-mascot {
   transform: translate(-50%, 50%) rotate(11.2deg);
-  animation: auth-mascot-in 1s cubic-bezier(0.22,1,0.36,1) 0.15s both;
+  animation: fade-in 0.5s ease both;
+  will-change: opacity;
 }
-.auth-mascot.is-static { animation: none; }
-@keyframes auth-mascot-in {
-  from { transform: translate(-50%, calc(50% + 180px)) rotate(11.2deg); }
-  to { transform: translate(-50%, 50%) rotate(11.2deg); }
-}
+.auth-mascot.is-static, .auth-reveal.is-static { animation: none; }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
   .auth-reveal, .auth-mascot { animation: none; }
 }

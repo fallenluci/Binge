@@ -1,10 +1,13 @@
 // The tilted, bottom-cropped mascot shared by the splash and the sign-in screen.
 // Position is 1:1 with the Figma mockup on an 844pt-tall screen; on shorter
 // phones it slides down so the sign-in card never covers it.
-export default function Mascot({ animate = true }) {
+export default function Mascot({ animate = true, onReady }) {
   return (
     <img
-      src="/dori2.png"
+      src="/dori-mascot.webp"
+      decoding="sync"
+      onLoad={onReady}
+      onError={onReady}
       alt=""
       aria-hidden="true"
       draggable="false"
