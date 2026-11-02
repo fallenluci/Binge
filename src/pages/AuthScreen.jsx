@@ -7,6 +7,7 @@ import {
 import { auth } from '../firebase';
 import { authErrorMessage } from '../authErrors';
 import Mascot from '../components/Mascot';
+import { useIsDesktop } from '../lib/useIsDesktop';
 
 // Measurements taken 1:1 from the Figma mockup (390 × 844 frame).
 const PURPLE = '#351E88';
@@ -28,6 +29,7 @@ export default function AuthScreen({ fromSplash: fromSplashProp = false }) {
   // Remember it at mount: under the launch splash the mascot is already in place,
   // and the logo/card should appear as the splash fades out.
   const [fromSplash] = useState(fromSplashProp);
+  const desktop = useIsDesktop();
   const reveal = fromSplash ? 'auth-reveal is-static' : 'auth-reveal';
   const [mode, setMode] = useState('login'); // login | register
   const [email, setEmail] = useState('');
@@ -71,7 +73,7 @@ export default function AuthScreen({ fromSplash: fromSplashProp = false }) {
 
       <div style={{ position: 'relative', zIndex: 1 }}>
         <div className={reveal} style={{
-          paddingTop: 'min(119.5px, 14.16dvh)', textAlign: 'center', color: '#fff',
+          paddingTop: desktop ? 'min(200.5px, 19.6dvh)' : 'min(119.5px, 14.16dvh)', textAlign: 'center', color: '#fff',
           fontSize: 96, fontWeight: 800, lineHeight: '96px', letterSpacing: '-1.2px',
         }}>Dori</div>
 
@@ -79,7 +81,7 @@ export default function AuthScreen({ fromSplash: fromSplashProp = false }) {
           onSubmit={submit}
           className={reveal}
           style={{
-            width: 298, margin: 'min(68.5px, 8.12dvh) auto 0', borderRadius: 33, background: CARD,
+            width: 298, margin: desktop ? 'min(84px, 8.2dvh) auto 0' : 'min(68.5px, 8.12dvh) auto 0', borderRadius: 33, background: CARD,
             padding: '18.5px 22px 24px', animationDelay: '0.08s',
           }}
         >

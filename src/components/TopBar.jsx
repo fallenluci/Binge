@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getCategories } from '../store';
 import CroppedImage from './CroppedImage';
+import { useIsDesktop } from '../lib/useIsDesktop';
 
 const EASE = 'cubic-bezier(0.4,0,0.2,1)';
 
@@ -17,6 +18,7 @@ export default function TopBar({ onOpenCategory, onProfile, profile, floatingRes
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const searchInputRef = useRef(null);
+  const desktop = useIsDesktop();
 
   useEffect(() => {
     if (searchMode) {
@@ -40,8 +42,8 @@ export default function TopBar({ onOpenCategory, onProfile, profile, floatingRes
 
   const resultsBlock = searchMode && query && (
     <div style={floatingResults
-      ? { position: 'absolute', top: '100%', left: 0, right: 0, padding: '10px 24px 0', maxHeight: '55dvh', overflowY: 'auto' }
-      : { padding: '10px 24px 0' }}>
+      ? { position: 'absolute', top: '100%', left: 0, right: 0, padding: desktop ? '10px 0 0' : '10px 24px 0', maxHeight: '55dvh', overflowY: 'auto' }
+      : { padding: desktop ? '12px 0 0' : '10px 24px 0' }}>
       {results.length > 0 ? (
         <div className="glass" style={{ borderRadius: 16, overflow: 'hidden' }}>
           {results.map(({ film, cat }) => (
@@ -64,14 +66,15 @@ export default function TopBar({ onOpenCategory, onProfile, profile, floatingRes
   );
 
   return (
-    <div style={{ position: 'relative', zIndex: 5 }}>
+    // Desktop (Figma 1440 frame): 769px column, buttons 147px from the top, larger logo
+    <div style={{ position: 'relative', zIndex: 5, ...(desktop && { maxWidth: 769, margin: '0 auto' }) }}>
       {/* Top bar — search pill morphs from a small circle into the full bar */}
-      <div style={{ display: 'flex', alignItems: 'center', padding: '56px 24px 0', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', alignItems: 'center', padding: desktop ? 'calc(min(147px, 14.4dvh) - 15px) 0 0' : '56px 24px 0', overflow: 'hidden' }}>
         {/* Logo — collapses away smoothly when searching */}
         <div style={{
-          flexBasis: searchMode ? 0 : 120, flexGrow: 0, flexShrink: 0,
+          flexBasis: searchMode ? 0 : (desktop ? 170 : 120), flexGrow: 0, flexShrink: 0,
           overflow: 'hidden', whiteSpace: 'nowrap',
-          fontSize: 40, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px',
+          fontSize: desktop ? 60 : 40, fontWeight: 800, color: 'var(--text)', letterSpacing: desktop ? '-0.75px' : '-0.5px',
           opacity: searchMode ? 0 : 1,
           marginRight: searchMode ? 0 : 10,
           transition: `flex-basis 0.4s ${EASE}, opacity 0.22s ease, margin 0.4s ${EASE}`,

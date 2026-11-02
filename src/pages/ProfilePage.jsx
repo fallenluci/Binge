@@ -174,8 +174,9 @@ export default function ProfilePage({ user, profile, onClose }) {
   };
 
   return (
-    <div className="page profile-page" style={{ position: 'fixed', inset: 0, zIndex: 30, background: '#000', maxWidth: 430, margin: '0 auto', animation: 'slideInRight 0.36s cubic-bezier(0.25,0.46,0.45,0.94)' }}>
-      <div style={{ position: 'relative', minHeight: `max(100dvh, ${FRAME_H}px)` }}>
+    <div className="page profile-page" style={{ position: 'fixed', inset: 0, zIndex: 30, background: '#000', animation: 'slideInRight 0.36s cubic-bezier(0.25,0.46,0.45,0.94)' }}>
+      {/* Phone-width column; on desktop it sits centred on a black backdrop */}
+      <div style={{ position: 'relative', maxWidth: 430, margin: '0 auto', minHeight: `max(100dvh, ${FRAME_H}px)` }}>
         {/* Banner */}
         <CroppedImage
           src={view.banner}

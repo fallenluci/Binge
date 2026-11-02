@@ -3,9 +3,11 @@ import { getCategories, addFilm, deleteFilm, updateFilm, updateCategory, deleteC
 import { compressImage } from '../lib/image';
 import RatingPicker from '../components/RatingPicker';
 import ImagePositionEditor from '../components/ImagePositionEditor';
+import { useIsDesktop } from '../lib/useIsDesktop';
 
 export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh }) {
   const [cat, setCat] = useState(null);
+  const desktop = useIsDesktop();
   const [menuFilm, setMenuFilm] = useState(null);
   const [showRating, setShowRating] = useState(null);
   const [editingName, setEditingName] = useState(false);
@@ -105,11 +107,11 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
       className={`cat-page ${exiting ? 'screen-exit' : 'screen-enter'}`}
       onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '60px 22px 0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: desktop ? 'min(147px, 14.4dvh) 22px 0' : '60px 22px 0' }}>
         <button onClick={goBack} className="glass" style={{ borderRadius: '50%', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', gap: desktop ? 5 : 10 }}>
           <button onClick={openAppearance} className="glass" style={{ borderRadius: '50%', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="var(--text)"/><circle cx="17.5" cy="10.5" r=".5" fill="var(--text)"/><circle cx="8.5" cy="7.5" r=".5" fill="var(--text)"/><circle cx="6.5" cy="12.5" r=".5" fill="var(--text)"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
           </button>
@@ -121,7 +123,7 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '26px 24px 20px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: desktop ? '5px 24px 9px' : '26px 24px 20px' }}>
         {editingName ? (
           <input autoFocus value={catName} onChange={e => setCatName(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && saveCatName()} onBlur={saveCatName}
@@ -136,7 +138,7 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
         )}
       </div>
 
-      <div className="cat-list" style={{ padding: '0 28px 40px' }}>
+      <div className="cat-list" style={{ padding: desktop ? '0 20px 40px' : '0 28px 40px' }}>
         {cat.films.length === 0 && (
           <div style={{ padding: '20px 4px', color: 'var(--text-dim)', fontSize: 15 }}>Нажми + чтобы добавить фильм</div>
         )}
@@ -144,21 +146,21 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
           const rc = film.rating !== null ? ratingColor(film.rating) : null;
           return (
             <div key={film.id} style={{
-              display: 'flex', alignItems: 'center', gap: 14,
+              display: 'flex', alignItems: 'center', gap: desktop ? 12 : 14,
               padding: '13px 0',
               borderBottom: 'none',
             }}>
-              <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-dim)', minWidth: 20, flexShrink: 0 }}>{idx + 1}</span>
-              <span style={{ fontSize: 17, fontWeight: 500, color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{film.name}</span>
+              <span style={{ fontSize: desktop ? 19 : 15, fontWeight: desktop ? 600 : 500, color: 'var(--text-dim)', minWidth: desktop ? 0 : 20, flexShrink: 0 }}>{idx + 1}</span>
+              <span style={{ fontSize: desktop ? 19 : 17, fontWeight: desktop ? 700 : 500, color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{film.name}</span>
               {rc && (
                 <span onClick={() => setShowRating(film)} className="rating-pill" style={{
-                  fontSize: 13, minWidth: 30, height: 24, padding: '0 9px',
+                  fontSize: desktop ? 18 : 13, minWidth: desktop ? 44 : 30, height: desktop ? 27 : 24, padding: desktop ? '0 10px' : '0 9px',
                   color: rc, border: 'none',
                   background: `${rc}20`,
                   flexShrink: 0, cursor: 'pointer',
                 }}>{film.rating}</span>
               )}
-              <button onClick={() => setMenuFilm(film)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', fontSize: 18, padding: '0 2px', flexShrink: 0 }}>⋯</button>
+              <button onClick={() => setMenuFilm(film)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', fontSize: desktop ? 22 : 18, padding: '0 2px', flexShrink: 0 }}>⋯</button>
             </div>
           );
         })}

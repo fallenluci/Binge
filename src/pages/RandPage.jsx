@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { getCategories } from '../store';
 import CategoryDrum from '../components/CategoryDrum';
 import TopBar from '../components/TopBar';
+import { useIsDesktop } from '../lib/useIsDesktop';
 
 const GLOW = '#311C7E';
 
@@ -29,6 +30,9 @@ const CatFace = ({ size = 220 }) => (
 );
 
 export default function RandPage({ onOpenCategory, onProfile, profile }) {
+  const desktop = useIsDesktop();
+  // Figma desktop: 375px mascot, 52px result title; phone keeps 220 / 38
+  const CAT = desktop ? 375 : 220;
   const [cats, setCats] = useState([]);
   const [phase, setPhase] = useState('idle'); // idle | playing | result
   const [result, setResult] = useState(null);
@@ -115,11 +119,11 @@ export default function RandPage({ onOpenCategory, onProfile, profile }) {
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        padding: '0 24px', gap: 28,
+        padding: desktop ? '11.5px 24px 0' : '0 24px', gap: desktop ? 0 : 28,
       }}>
         {/* Ambient glow behind the cat */}
         <div style={{
-          position: 'absolute', width: 320, height: 320, borderRadius: '50%',
+          position: 'absolute', width: desktop ? 545 : 320, height: desktop ? 545 : 320, borderRadius: '50%',
           background: `radial-gradient(circle, ${GLOW}aa 0%, ${GLOW}33 45%, transparent 72%)`,
           filter: 'blur(10px)',
           animation: phase === 'playing' ? 'rand-glow-pulse 1.1s ease-in-out infinite' : 'none',
@@ -133,7 +137,7 @@ export default function RandPage({ onOpenCategory, onProfile, profile }) {
           onClick={start}
           disabled={phase === 'playing'}
           style={{
-            position: 'relative', width: 220, height: 220, background: 'none', border: 'none',
+            position: 'relative', width: CAT, height: CAT, background: 'none', border: 'none',
             cursor: phase === 'playing' ? 'default' : 'pointer', padding: 0,
             transition: 'transform 0.15s',
           }}
@@ -151,7 +155,7 @@ export default function RandPage({ onOpenCategory, onProfile, profile }) {
               }}
             />
           )}
-          {!imgOk && phase !== 'playing' && <CatFace size={220} />}
+          {!imgOk && phase !== 'playing' && <CatFace size={CAT} />}
           {videoOk && (
             <video
               ref={videoRef}
@@ -170,8 +174,8 @@ export default function RandPage({ onOpenCategory, onProfile, profile }) {
 
         {/* Result film name */}
         {phase === 'result' && result && (
-          <div style={{ textAlign: 'center', animation: 'apple-reveal 0.7s cubic-bezier(0.22,1,0.36,1)' }} onClick={tapAgain}>
-            <div style={{ fontSize: 38, fontWeight: 700, color: 'var(--text)', letterSpacing: '-1px', lineHeight: 1.15 }}>
+          <div style={{ textAlign: 'center', animation: 'apple-reveal 0.7s cubic-bezier(0.22,1,0.36,1)', marginTop: desktop ? 2.3 : 0 }} onClick={tapAgain}>
+            <div style={{ fontSize: desktop ? 52 : 38, fontWeight: 700, color: 'var(--text)', letterSpacing: '-1px', lineHeight: 1.15 }}>
               {result.film.name}
             </div>
           </div>
@@ -183,7 +187,7 @@ export default function RandPage({ onOpenCategory, onProfile, profile }) {
         )}
 
         {/* Настроить button — opens the vertical category drum overlay */}
-        <div style={{ minHeight: 64, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ minHeight: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: desktop ? 45.4 : 0 }}>
           {phase !== 'playing' && (
             <button
               type="button"

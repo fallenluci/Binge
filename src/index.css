@@ -137,3 +137,10 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
   -webkit-text-fill-color: #fff;
   caret-color: #fff;
 }
+
+/* ---------- Desktop (Figma desktop mockup, 1440 × 1024) ---------- */
+@media (min-width: 900px) {
+  .app { max-width: none; }
+  /* Category page: black full-screen backdrop, content in an 816px column */
+  .cat-page { max-width: none; left: 0; margin-left: 0; padding: 0 max(0px, calc(50% - 408px)); }
+}
