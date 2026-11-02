@@ -36,7 +36,10 @@ export default function CroppedImage({ src, pos, style, className, onMeasure, ch
     if (!el) return;
     const ro = new ResizeObserver(([entry]) => {
       const { width, height } = entry.contentRect;
-      setBox({ w: width, h: height });
+      // A hidden tab (display: none) measures 0×0 — keep the last real size, otherwise
+      // the photo would be laid out again and jump when the tab is shown.
+      if (width === 0 || height === 0) return;
+      setBox((b) => (b && b.w === width && b.h === height ? b : { w: width, h: height }));
     });
     ro.observe(el);
     return () => ro.disconnect();
