@@ -100,10 +100,10 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
             pointerEvents: 'none',
           }} />
           <DockBtn active={activePage === 'home'} onClick={() => onChangePage('home')} label="Home" icon={
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 11l9-8 9 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M5 10v10h14V10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <MaskIcon src="/icons/home.png" />
           } />
           <DockBtn active={activePage === 'rand'} onClick={() => onChangePage('rand')} label="Random" icon={
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="15.5" cy="8.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="8.5" cy="15.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>
+            <MaskIcon src="/icons/random.png" />
           } />
         </div>
 
@@ -216,6 +216,13 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
       )}
     </>
   );
+}
+
+// Icon from Figma used as a mask, so it takes the button's text colour
+// (white when active, grey when not). Swap the file for an .svg to make it vector.
+function MaskIcon({ src, size = 24 }) {
+  const mask = `url(${src}) center / contain no-repeat`;
+  return <span aria-hidden="true" style={{ display: 'block', width: size, height: size, backgroundColor: 'currentColor', WebkitMask: mask, mask }} />;
 }
 
 function DockBtn({ active, onClick, icon, label }) {
