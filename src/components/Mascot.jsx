@@ -20,7 +20,7 @@ export default function Mascot({ animate = true, onReady }) {
       className={animate ? 'auth-mascot' : 'auth-mascot is-static'}
       style={{
         position: 'absolute', left: `calc(50% + ${frame.dx}px)`,
-        bottom: `calc(${frame.bottom}px - max(0px, (${frame.frameH}px - 100dvh) * 0.72))`,
+        bottom: `calc(${frame.bottom}px - max(0px, (${frame.frameH}px - var(--app-h)) * 0.72))`,
         width: frame.size, height: frame.size, maxWidth: 'none',
         pointerEvents: 'none', userSelect: 'none', zIndex: 0,
       }}

@@ -194,10 +194,10 @@ export default function ProfilePage({ user, profile, onClose }) {
   const t = (phone, deskKey) => (desktop ? at(DK[deskKey]) : phone);
 
   return (
-    <div className="page profile-page" style={{ position: 'fixed', inset: 0, zIndex: 30, background: '#000' }}>
+    <div className="page profile-page" style={{ position: 'absolute', inset: 0, zIndex: 30, background: '#000' }}>
       <div style={desktop
-        ? { position: 'relative', width: 710, maxWidth: 'calc(100% - 48px)', margin: '0 auto', minHeight: `max(100dvh, calc(${B} + 787px))` }
-        : { position: 'relative', maxWidth: 430, margin: '0 auto', minHeight: `max(100dvh, ${FRAME_H}px)` }}>
+        ? { position: 'relative', width: 710, maxWidth: 'calc(100% - 48px)', margin: '0 auto', minHeight: `max(var(--app-h), calc(${B} + 787px))` }
+        : { position: 'relative', maxWidth: 430, margin: '0 auto', minHeight: `max(var(--app-h), ${FRAME_H}px)` }}>
         {/* Banner */}
         <CroppedImage
           src={view.banner}

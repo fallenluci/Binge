@@ -67,7 +67,7 @@ export default function AuthScreen({ fromSplash: fromSplashProp = false }) {
   };
 
   return (
-    <div className="auth-screen" style={{ position: 'relative', height: '100dvh', overflow: 'hidden', background: '#000' }}>
+    <div className="auth-screen" style={{ position: 'relative', height: 'var(--app-h)', overflow: 'hidden', background: '#000' }}>
       {/* Mascot — same art as on Random, tilted and cropped by the bottom edge */}
       <Mascot animate={!fromSplash} />
 

@@ -67,7 +67,7 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
         <>
           <div style={{ position: 'fixed', inset: 0, zIndex: 50 }} onClick={() => setPlusOpen(false)} />
           <div className="menu-solid" style={{
-            position: 'fixed', bottom: `calc(${dockBottom} + 80px)`, left: '50%', transform: 'translateX(-50%)',
+            position: 'absolute', bottom: `calc(${dockBottom} + 80px)`, left: '50%', transform: 'translateX(-50%)',
             borderRadius: 22, overflow: 'hidden', zIndex: 200, width: 224,
             animation: 'popIn 0.28s cubic-bezier(0.34,1.4,0.64,1)',
           }}>
@@ -90,7 +90,8 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
       )}
 
       {/* Bottom nav: main dock (Home/Rand) + separate "+" island */}
-      <div style={{ position: 'fixed', bottom: dockBottom, left: '50%', transform: 'translateX(-50%)', zIndex: 100, display: 'flex', alignItems: 'center', gap: 10 }}>
+      {/* absolute in .app: sits 30px above the real bottom of the app screen */}
+      <div style={{ position: 'absolute', bottom: dockBottom, left: '50%', transform: 'translateX(-50%)', zIndex: 100, display: 'flex', alignItems: 'center', gap: 10 }}>
         <div className="nav-solid" style={{ height: 62, padding: 6, display: 'flex', alignItems: 'stretch', gap: 4, position: 'relative' }}>
           {/* Sliding active indicator — glides between Home/Rand like iOS segmented control */}
           <div style={{
