@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { getCategories, updateFilm } from '../store';
-import RatingPicker from '../components/RatingPicker';
+import { getCategories } from '../store';
 import { posterUrl } from '../lib/posters';
 import CategoryDrum from '../components/CategoryDrum';
 import TopBar from '../components/TopBar';
@@ -114,28 +113,12 @@ export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile
 
   // Result with a poster: the poster takes Dori's place and tints the whole screen
   const poster = phase === 'result' && result?.film.poster ? result.film.poster : null;
-  const [rating, setRating] = useState(null); // film being rated from the result
-  const rateResult = (r) => {
-    updateFilm(result.cat.id, result.film.id, { rating: r });
-    setResult({ ...result, film: { ...result.film, rating: r } });
-    setRating(null);
-    onRefresh?.();
-  };
+
   // Poster as tall as Dori, but on short desktop windows it shrinks so the result still fits
   const POSTER_H = desktop ? 'min(375px, 34dvh)' : `${CAT}px`;
 
   return (
     <div className="rand-frame dotted-bg">
-      {/* Ambient background from the poster (blurred, darkened), like Apple Music */}
-      {poster && (
-        <div key={poster} aria-hidden="true" style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', animation: 'fadeIn 0.8s ease' }}>
-          <img src={posterUrl(poster, 'w185')} alt="" style={{
-            position: 'absolute', inset: '-15%', width: '130%', height: '130%', objectFit: 'cover',
-            filter: 'blur(60px) saturate(1.5)', opacity: 0.55,
-          }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.65) 75%)' }} />
-        </div>
-      )}
       {/* Same header as Home — identical icons, working search */}
       <TopBar onOpenCategory={onOpenCategory} onProfile={onProfile} onRefresh={onRefresh} profile={profile} floatingResults />
 
@@ -151,7 +134,7 @@ export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile
           background: `radial-gradient(circle, ${GLOW}aa 0%, ${GLOW}33 45%, transparent 72%)`,
           filter: 'blur(10px)',
           animation: phase === 'playing' ? 'rand-glow-pulse 1.1s ease-in-out infinite' : 'none',
-          opacity: phase === 'playing' ? 1 : poster ? 0 : 0.6,
+          opacity: phase === 'playing' ? 1 : 0.6,
           transition: 'opacity 0.4s ease',
           pointerEvents: 'none',
         }} />
@@ -209,14 +192,10 @@ export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile
             <div style={{ fontSize: poster ? (desktop ? 40 : 28) : (desktop ? 52 : 38), fontWeight: 700, color: 'var(--text)', letterSpacing: '-1px', lineHeight: 1.15 }}>
               {result.film.name}
             </div>
-            <div style={{ color: poster ? 'rgba(255,255,255,0.6)' : 'var(--text-dim)', fontSize: 14, fontWeight: 700, marginTop: 6 }}>
+            <div style={{ color: 'var(--text-dim)', fontSize: 14, fontWeight: 700, marginTop: 6 }}>
               {result.cat.name}{result.film.rating != null && ` · оценка ${result.film.rating}`}
             </div>
-            <div style={{ display: 'flex', gap: 8, marginTop: desktop ? 22 : 18 }}>
-              <button type="button" className="d-btn primary" onClick={start}>Ещё раз</button>
-              <button type="button" className="d-btn" onClick={() => onOpenCategory?.(result.cat.id)}>Открыть</button>
-              <button type="button" className="d-btn" onClick={() => setRating(result.film)}>Оценить</button>
-            </div>
+            <button type="button" className="d-btn primary" onClick={start} style={{ width: 200, margin: `${desktop ? 22 : 18}px auto 0` }}>Ещё раз</button>
           </div>
         )}
         {phase === 'result' && !result && (
@@ -239,8 +218,6 @@ export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile
           )}
         </div>
       </div>
-
-      {rating && <RatingPicker film={rating} onRate={rateResult} onClose={() => setRating(null)} />}
 
       {showDrum && (
         <CategoryDrum
