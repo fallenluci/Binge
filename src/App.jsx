@@ -7,11 +7,17 @@ import CategoryPage from './pages/CategoryPage';
 import Island from './components/Island';
 import AccountSheet from './components/AccountSheet';
 import AuthScreen from './pages/AuthScreen';
+import Splash from './components/Splash';
 import ProfilePage from './pages/ProfilePage';
 import { subscribeProfile } from './profile';
 import { auth, firebaseEnabled } from './firebase';
 import { startSync, stopSync } from './sync';
 import { replaceDataFromRemote } from './store';
+
+const SPLASH_MIN_MS = 1000;
+// Launch splash only on phones (touch screen or narrow window).
+const IS_MOBILE = typeof window !== 'undefined' &&
+  (window.matchMedia?.('(pointer: coarse)').matches || window.innerWidth < 768);
 
 export default function App() {
   const [page, setPage] = useState('home');
@@ -26,6 +32,8 @@ export default function App() {
   const [profile, setProfile] = useState(null);
   const unsubProfile = useRef(null);
   const hadUser = useRef(false);
+  const [splash, setSplash] = useState(IS_MOBILE ? 'shown' : 'gone'); // shown | leaving | gone
+  const [splashMinDone, setSplashMinDone] = useState(!IS_MOBILE);
   const refresh = () => setTick(t => t + 1);
 
   useEffect(() => {
@@ -60,15 +68,32 @@ export default function App() {
     });
   }, []);
 
+  useEffect(() => {
+    if (!IS_MOBILE) return;
+    const t = setTimeout(() => setSplashMinDone(true), SPLASH_MIN_MS);
+    return () => clearTimeout(t);
+  }, []);
+
+  // The next screen is ready once we know who is signed in (and, if someone is, their list loaded).
+  const nextScreenReady = authReady && (!user || dataReady);
+  useEffect(() => {
+    if (splash !== 'shown' || !splashMinDone || !nextScreenReady) return;
+    setSplash('leaving');
+    const t = setTimeout(() => setSplash('gone'), 400);
+    return () => clearTimeout(t);
+  }, [splash, splashMinDone, nextScreenReady]);
+
   // With accounts the avatar opens the profile page; local-only mode keeps the info sheet.
   const openAccount = () => (firebaseEnabled ? setShowProfile(true) : setShowAccount(true));
 
+  const splashLayer = splash !== 'gone' && <Splash leaving={splash === 'leaving'} />;
+
   // Firebase restores the session asynchronously — show a blank screen for that
   // split second instead of flashing the login form at a signed-in user.
-  if (!authReady) return <div className="app" style={{ background: '#000' }} />;
+  if (!authReady) return <div className="app" style={{ background: '#000' }}>{splashLayer}</div>;
   // Welcome screen: sign in or register before using the app.
-  if (firebaseEnabled && !user) return <div className="app"><AuthScreen /></div>;
-  if (!dataReady) return <div className="app" style={{ background: '#000' }} />;
+  if (firebaseEnabled && !user) return <div className="app"><AuthScreen fromSplash={splash !== 'gone'} />{splashLayer}</div>;
+  if (!dataReady) return <div className="app" style={{ background: '#000' }}>{splashLayer}</div>;
 
   return (
     <div className="app">
@@ -78,6 +103,7 @@ export default function App() {
       {showProfile && user && <ProfilePage user={user} profile={profile} onClose={() => setShowProfile(false)} />}
       {!catId && !showProfile && <Island activePage={page} onChangePage={setPage} onRefresh={refresh} />}
       {showAccount && <AccountSheet user={user} syncStatus={syncStatus} onClose={() => setShowAccount(false)} />}
+      {splashLayer}
     </div>
   );
 }

@@ -121,6 +121,7 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
   transform: translate(-50%, 50%) rotate(11.2deg);
   animation: auth-mascot-in 1s cubic-bezier(0.22,1,0.36,1) 0.15s both;
 }
+.auth-mascot.is-static { animation: none; }
 @keyframes auth-mascot-in {
   from { transform: translate(-50%, calc(50% + 180px)) rotate(11.2deg); }
   to { transform: translate(-50%, 50%) rotate(11.2deg); }

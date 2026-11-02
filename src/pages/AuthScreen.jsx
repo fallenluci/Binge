@@ -6,6 +6,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '../firebase';
 import { authErrorMessage } from '../authErrors';
+import Mascot from '../components/Mascot';
 
 // Measurements taken 1:1 from the Figma mockup (390 × 844 frame).
 const PURPLE = '#351E88';
@@ -23,7 +24,11 @@ const link = {
   fontFamily: 'inherit', fontSize: 12, fontWeight: 700, lineHeight: '12px',
 };
 
-export default function AuthScreen() {
+export default function AuthScreen({ fromSplash: fromSplashProp = false }) {
+  // Remember it at mount: under the launch splash the mascot is already in place,
+  // and the logo/card should appear as the splash fades out.
+  const [fromSplash] = useState(fromSplashProp);
+  const revealDelay = fromSplash ? 1 : 0;
   const [mode, setMode] = useState('login'); // login | register
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -62,23 +67,11 @@ export default function AuthScreen() {
   return (
     <div className="auth-screen" style={{ position: 'relative', height: '100dvh', overflow: 'hidden', background: '#000' }}>
       {/* Mascot — same art as on Random, tilted and cropped by the bottom edge */}
-      <img
-        src="/dori2.png"
-        alt=""
-        aria-hidden="true"
-        draggable="false"
-        className="auth-mascot"
-        style={{
-          // Exact mockup position on an 844pt-tall screen; on shorter phones the mascot
-          // slides down so the card never covers it (only the ears peek out).
-          position: 'absolute', left: 'calc(50% + 6px)', bottom: 'calc(10.6px - max(0px, (844px - 100dvh) * 0.72))',
-          width: 567, height: 567, maxWidth: 'none',
-          pointerEvents: 'none', userSelect: 'none', zIndex: 0,
-        }}
-      />
+      <Mascot animate={!fromSplash} />
 
       <div style={{ position: 'relative', zIndex: 1 }}>
         <div className="auth-reveal" style={{
+          animationDelay: `${revealDelay}s`,
           paddingTop: 'min(119.5px, 14.16dvh)', textAlign: 'center', color: '#fff',
           fontSize: 96, fontWeight: 800, lineHeight: '96px', letterSpacing: '-1.2px',
         }}>Dori</div>
@@ -88,7 +81,7 @@ export default function AuthScreen() {
           className="auth-reveal"
           style={{
             width: 298, margin: 'min(68.5px, 8.12dvh) auto 0', borderRadius: 33, background: CARD,
-            padding: '18.5px 22px 24px', animationDelay: '0.08s',
+            padding: '18.5px 22px 24px', animationDelay: `${revealDelay + 0.08}s`,
           }}
         >
           <div style={{ textAlign: 'center', color: '#fff', fontSize: 24, fontWeight: 700, lineHeight: '24px' }}>
