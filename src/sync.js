@@ -1,6 +1,6 @@
 import { collection, doc, getDocsFromServer, onSnapshot, writeBatch } from 'firebase/firestore';
 import { db } from './firebase';
-import { getData, onLocalSave, replaceDataFromRemote } from './store';
+import { getData, hasStoredData, onLocalSave, replaceDataFromRemote } from './store';
 
 // Layout in Firestore: users/{uid}/categories/{categoryId}
 // Each category doc holds the category fields, its films array and its `order`
@@ -113,7 +113,13 @@ export async function startSync(uid, { onRemoteChange, onStatus }) {
     const initial = await getDocsFromServer(col);
     if (initial.empty) {
       lastRemote = new Map();
-      await pushNow(uid, getData(), onStatus); // first login: keep what's on this device
+      if (hasStoredData()) {
+        await pushNow(uid, getData(), onStatus); // first login: keep the list saved on this device
+      } else {
+        replaceDataFromRemote({ categories: [] }); // new account on a fresh device: start empty, not with the sample
+        onRemoteChange?.();
+        onStatus?.('synced');
+      }
     } else {
       const remote = fromSnapshot(initial);
       lastRemote = toSerializedMap(initial);

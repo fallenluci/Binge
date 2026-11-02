@@ -1,3 +1,5 @@
+import { firebaseEnabled } from './firebase';
+
 const STORAGE_KEY = 'filmlog_data';
 
 const defaultData = {
@@ -34,8 +36,9 @@ const defaultData = {
 export function getData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : defaultData;
-  } catch { return defaultData; }
+    if (raw) return JSON.parse(raw);
+    return firebaseEnabled ? { categories: [] } : defaultData;
+  } catch { return firebaseEnabled ? { categories: [] } : defaultData; }
 }
 
 // Cloud sync subscribes here to push every local change (see sync.js).
@@ -61,6 +64,11 @@ export function saveData(data) {
 // Used when data arrives from the cloud: update the local copy without echoing it back.
 export function replaceDataFromRemote(data) {
   writeLocal(data);
+}
+
+// True only if this device has a list the user actually saved (not the built-in sample).
+export function hasStoredData() {
+  try { return localStorage.getItem(STORAGE_KEY) !== null; } catch { return false; }
 }
 
 export function getCategories() { return getData().categories; }

@@ -106,3 +106,25 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
 }
 .cat-list { flex: 1; overflow-y: auto; scrollbar-width: none; }
 .cat-list::-webkit-scrollbar { display: none; }
+
+/* ---------- Auth (welcome) screen ---------- */
+.auth-input::placeholder { color: #515151; opacity: 1; }
+/* Keep browser autofill from painting the fields yellow/blue */
+.auth-input:-webkit-autofill,
+.auth-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 100px #2C2C2C inset;
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
+}
+.auth-reveal { animation: apple-reveal 0.7s cubic-bezier(0.22,1,0.36,1) both; }
+.auth-mascot {
+  transform: translate(-50%, 50%) rotate(11.2deg);
+  animation: auth-mascot-in 1s cubic-bezier(0.22,1,0.36,1) 0.15s both;
+}
+@keyframes auth-mascot-in {
+  from { transform: translate(-50%, calc(50% + 180px)) rotate(11.2deg); }
+  to { transform: translate(-50%, 50%) rotate(11.2deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-reveal, .auth-mascot { animation: none; }
+}

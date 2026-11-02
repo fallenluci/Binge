@@ -6,6 +6,7 @@ import RandPage from './pages/RandPage';
 import CategoryPage from './pages/CategoryPage';
 import Island from './components/Island';
 import AccountSheet from './components/AccountSheet';
+import AuthScreen from './pages/AuthScreen';
 import { auth, firebaseEnabled } from './firebase';
 import { startSync, stopSync } from './sync';
 import { replaceDataFromRemote } from './store';
@@ -15,6 +16,8 @@ export default function App() {
   const [catId, setCatId] = useState(null);
   const [tick, setTick] = useState(0);
   const [user, setUser] = useState(null);
+  const [authReady, setAuthReady] = useState(!firebaseEnabled);
+  const [dataReady, setDataReady] = useState(!firebaseEnabled);
   const [syncStatus, setSyncStatus] = useState('synced');
   const [showAccount, setShowAccount] = useState(false);
   const hadUser = useRef(false);
@@ -24,9 +27,14 @@ export default function App() {
     if (!firebaseEnabled) return;
     return onAuthStateChanged(auth, (u) => {
       setUser(u);
+      setAuthReady(true);
       if (u) {
         hadUser.current = true;
-        startSync(u.uid, { onRemoteChange: refresh, onStatus: setSyncStatus });
+        setDataReady(false);
+        // Wait for the first download so a new device doesn't flash a stale/empty list;
+        // give up after 3 s (slow or no network) and show the offline copy.
+        const sync = startSync(u.uid, { onRemoteChange: refresh, onStatus: setSyncStatus });
+        Promise.race([sync, new Promise(r => setTimeout(r, 3000))]).finally(() => { setDataReady(true); refresh(); });
       } else {
         stopSync();
         if (hadUser.current) {
@@ -42,6 +50,13 @@ export default function App() {
   }, []);
 
   const openAccount = () => setShowAccount(true);
+
+  // Firebase restores the session asynchronously — show a blank screen for that
+  // split second instead of flashing the login form at a signed-in user.
+  if (!authReady) return <div className="app" style={{ background: '#000' }} />;
+  // Welcome screen: sign in or register before using the app.
+  if (firebaseEnabled && !user) return <div className="app"><AuthScreen /></div>;
+  if (!dataReady) return <div className="app" style={{ background: '#000' }} />;
 
   return (
     <div className="app">
