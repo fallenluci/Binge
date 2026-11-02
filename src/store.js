@@ -73,9 +73,9 @@ export function hasStoredData() {
 
 export function getCategories() { return getData().categories; }
 
-export function addCategory(name, color, image = null, imagePosition = { x: 50, y: 50, scale: 100 }) {
+export function addCategory(name, color, image = null, imageCrop = null) {
   const data = getData();
-  const newCat = { id: Date.now().toString(), name, color, image, imagePosition, films: [] };
+  const newCat = { id: Date.now().toString(), name, color, image, imageCrop: image ? imageCrop : null, films: [] };
   data.categories.push(newCat);
   saveData(data);
   return newCat;

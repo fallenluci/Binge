@@ -206,3 +206,19 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
   box-shadow: 0 0 0 0 #fff; transition: box-shadow 0.2s, transform 0.2s;
 }
 .d-swatch.on { box-shadow: 0 0 0 3px #171717, 0 0 0 5px #fff; }
+
+/* Zoom slider of the photo editor: purple fill on the dark track, white knob */
+.d-range {
+  flex: 1; min-width: 0; height: 6px; border-radius: 3px; margin: 0;
+  -webkit-appearance: none; appearance: none; outline: none; cursor: pointer;
+  background: linear-gradient(#351E88, #351E88) 0 / var(--fill, 0%) 100% no-repeat, #2C2C2C;
+}
+.d-range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%;
+  background: #fff; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+.d-range::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: #fff; border: none; }
+.d-zoom {
+  width: 36px; height: 36px; border-radius: 50%; border: none; background: #2C2C2C; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}

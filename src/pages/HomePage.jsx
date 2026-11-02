@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getCategories } from '../store';
 import TopBar from '../components/TopBar';
+import CroppedImage from '../components/CroppedImage';
+import { coverCrop } from '../lib/cover';
 import { useIsDesktop } from '../lib/useIsDesktop';
 
 export default function HomePage({ onOpenCategory, onProfile, onRefresh, profile, refreshKey }) {
@@ -26,8 +28,6 @@ export default function HomePage({ onOpenCategory, onProfile, onRefresh, profile
         )}
 
         {cats.map(cat => {
-          const pos = cat.imagePosition || { x: 50, y: 50, scale: 100 };
-          const scale = pos.scale ?? 100;
           return (
             <div
               key={cat.id}
@@ -42,13 +42,13 @@ export default function HomePage({ onOpenCategory, onProfile, onRefresh, profile
                 justifyContent: 'center',
                 position: 'relative',
                 transition: 'transform 0.2s cubic-bezier(0.25,0.46,0.45,0.94)',
-                background: cat.image
-                  ? `url(${cat.image}) ${pos.x}% ${pos.y}%/${scale}% no-repeat`
-                  : cat.color,
+                background: cat.color,
               }}
               onTouchStart={e => e.currentTarget.style.transform = 'scale(0.97)'}
               onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
             >
+              {/* Cover photo: same crop model and editor as the profile photos */}
+              {cat.image && <CroppedImage src={cat.image} pos={coverCrop(cat)} style={{ position: 'absolute', inset: 0 }} />}
               <div style={{
                 position: 'absolute', inset: 0,
                 background: cat.image ? 'rgba(0,0,0,0.4)' : 'linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.25))',

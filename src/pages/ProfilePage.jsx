@@ -14,6 +14,7 @@ import { authErrorMessage } from '../authErrors';
 import { compressImage } from '../lib/image';
 import CroppedImage, { DEFAULT_POS } from '../components/CroppedImage';
 import PhotoCropper from '../components/PhotoCropper';
+import PhotoMenu from '../components/PhotoMenu';
 import ProfileStats from '../components/ProfileStats';
 import { useIsDesktop } from '../lib/useIsDesktop';
 
@@ -311,7 +312,11 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory }) 
 
       {photoMenu && (
         <PhotoMenu
-          onReposition={() => { const k = photoMenu; setPhotoMenu(null); setCropper({ kind: k, src: draft[k], pos: draft[`${k}Pos`] }); }}
+          title={photoMenu === 'avatar' ? 'Аватар' : 'Баннер'}
+          preview={photoMenu === 'avatar'
+            ? <CroppedImage src={draft.avatar} pos={draft.avatarPos} style={{ width: 96, height: 96, borderRadius: '50%' }} />
+            : <CroppedImage src={draft.banner} pos={draft.bannerPos} style={{ width: desktop ? 240 : 150, aspectRatio: desktop ? '710 / 198' : '390 / 360', borderRadius: 18 }} />}
+          onAdjust={() => { const k = photoMenu; setPhotoMenu(null); setCropper({ kind: k, src: draft[k], pos: draft[`${k}Pos`] }); }}
           onReplace={() => { const k = photoMenu; setPhotoMenu(null); pickFile(k); }}
           onRemove={() => { const k = photoMenu; setPhotoMenu(null); setDraft((d) => ({ ...d, [k]: null, [`${k}Pos`]: DEFAULT_POS })); }}
           onClose={() => setPhotoMenu(null)}
@@ -322,6 +327,7 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory }) 
         <PhotoCropper
           src={cropper.src}
           shape={cropper.kind === 'avatar' ? 'circle' : 'banner'}
+          title={cropper.kind === 'avatar' ? 'Аватар' : 'Баннер'}
           initialPos={cropper.pos}
           onDone={onCropDone}
           onCancel={() => setCropper(null)}
@@ -360,17 +366,6 @@ function Sheet({ children, onClose }) {
         {children}
       </div>
     </>
-  );
-}
-
-function PhotoMenu({ onReposition, onReplace, onRemove, onClose }) {
-  return (
-    <Sheet onClose={onClose}>
-      <button style={sheetBtn} onClick={onReposition}>Изменить размер и положение</button>
-      <button style={sheetBtn} onClick={onReplace}>Выбрать другое фото</button>
-      <button style={{ ...sheetBtn, color: '#FF453A' }} onClick={onRemove}>Удалить фото</button>
-      <button style={{ ...sheetBtn, background: 'none', color: '#8E8E93' }} onClick={onClose}>Отмена</button>
-    </Sheet>
   );
 }
 

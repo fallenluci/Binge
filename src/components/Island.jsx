@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { getCategories, addFilm, addCategory, CATEGORY_COLORS } from '../store';
-import { compressImage } from '../lib/image';
-import ImagePositionEditor from './ImagePositionEditor';
+import CoverPicker from './CoverPicker';
 
 export default function Island({ activePage, onChangePage, onRefresh }) {
   const [plusOpen, setPlusOpen] = useState(false);
@@ -16,10 +15,8 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
   const [catName, setCatName] = useState('');
   const [selCatId, setSelCatId] = useState('');
   const [selColor, setSelColor] = useState(CATEGORY_COLORS[0]);
-  const [catImage, setCatImage] = useState(null);
-  const [catImagePos, setCatImagePos] = useState({ x: 50, y: 50 });
+  const [catCover, setCatCover] = useState({ image: null, crop: null });
   const [cats, setCats] = useState([]);
-  const fileInputRef = useRef(null);
 
   const refreshCats = () => setCats(getCategories());
   useEffect(() => { refreshCats(); }, []);
@@ -41,25 +38,18 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
   };
   const handleAddCatTouchEnd = () => {
     addCatDragging.current = false;
-    if (addCatDragY > 100) { setShowAddCat(false); setCatImage(null); }
+    if (addCatDragY > 100) { setShowAddCat(false); setCatCover({ image: null, crop: null }); }
     setAddCatDragY(0);
   };
 
   const submitCat = () => {
     if (!catName.trim()) return;
-    addCategory(catName.trim(), selColor, catImage, catImagePos);
-    setCatName(''); setCatImage(null); setCatImagePos({ x: 50, y: 50 }); setShowAddCat(false);
+    addCategory(catName.trim(), selColor, catCover.image, catCover.crop);
+    setCatName(''); setCatCover({ image: null, crop: null }); setShowAddCat(false);
     refreshCats(); onRefresh();
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    e.target.value = ''; // allow re-picking the same file
-    compressImage(file)
-      .then((url) => { setCatImage(url); setCatImagePos({ x: 50, y: 50 }); })
-      .catch((err) => alert(err.message));
-  };
+
 
   return (
     <>
@@ -178,27 +168,10 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
             <input autoFocus value={catName} onChange={e => setCatName(e.target.value)} onKeyDown={e => e.key === 'Enter' && submitCat()}
               placeholder="Название категории" className="d-field" style={{ marginBottom: 16 }} />
 
-            {catImage ? (
-              <div style={{ marginBottom: 16 }}>
-                <ImagePositionEditor image={catImage} position={catImagePos} onChange={setCatImagePos} />
-              </div>
-            ) : (
-              <div style={{
-                width: '100%', height: 100, borderRadius: 28, marginBottom: 16, background: selColor,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <span style={{ color: 'white', fontWeight: 700, fontSize: 18, textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>{catName || 'Превью'}</span>
-              </div>
-            )}
+            <CoverPicker name={catName} color={selColor} value={catCover} onChange={setCatCover} />
 
-            <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
-            <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
-              <button className="d-btn" onClick={() => fileInputRef.current?.click()}>{catImage ? 'Заменить фото' : 'Загрузить фото'}</button>
-              {catImage && <button className="d-btn danger" style={{ width: 'auto', padding: '0 20px' }} onClick={() => setCatImage(null)}>Убрать</button>}
-            </div>
-
-            <div className="d-label" style={{ marginBottom: 12, opacity: catImage ? 0.4 : 1 }}>Или выбери цвет</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 12, marginBottom: 22, opacity: catImage ? 0.4 : 1, pointerEvents: catImage ? 'none' : 'auto' }}>
+            <div className="d-label" style={{ marginBottom: 12, opacity: catCover.image ? 0.4 : 1 }}>Или выбери цвет</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 12, marginBottom: 22, opacity: catCover.image ? 0.4 : 1, pointerEvents: catCover.image ? 'none' : 'auto' }}>
               {CATEGORY_COLORS.map(c => (
                 <div key={c} onClick={() => setSelColor(c)} className={`d-swatch${selColor === c ? ' on' : ''}`} style={{ background: c }} />
               ))}

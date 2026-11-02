@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import { getCategories, ratingColor } from '../store';
+import CroppedImage from './CroppedImage';
+import { coverCrop } from '../lib/cover';
 
 // Profile statistics in the app's own style: #171717 cards, bold white numbers,
 // grey #515151 labels, rating pills in the rating colours.
@@ -34,12 +36,10 @@ export function computeStats(cats) {
 }
 
 function Tile({ cat, size }) {
-  const pos = cat.imagePosition || { x: 50, y: 50, scale: 100 };
   return (
-    <div style={{
-      width: size, height: size, borderRadius: size * 0.3, flexShrink: 0,
-      background: cat.image ? `url(${cat.image}) ${pos.x}% ${pos.y}%/cover no-repeat` : cat.color,
-    }} />
+    <div style={{ position: 'relative', overflow: 'hidden', width: size, height: size, borderRadius: size * 0.3, flexShrink: 0, background: cat.color }}>
+      {cat.image && <CroppedImage src={cat.image} pos={coverCrop(cat)} style={{ position: 'absolute', inset: 0 }} />}
+    </div>
   );
 }
 

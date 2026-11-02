@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { getCategories, addFilm, deleteFilm, updateFilm, updateCategory, deleteCategory, CATEGORY_COLORS, ratingColor } from '../store';
-import { compressImage } from '../lib/image';
 import RatingPicker from '../components/RatingPicker';
-import ImagePositionEditor from '../components/ImagePositionEditor';
+import CoverPicker from '../components/CoverPicker';
+import { coverCrop } from '../lib/cover';
 import { useIsDesktop } from '../lib/useIsDesktop';
 
 export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh }) {
@@ -20,11 +20,9 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
   const appearanceDragging = useRef(false);
   const appearanceStartY = useRef(0);
   const [tempColor, setTempColor] = useState('');
-  const [tempImage, setTempImage] = useState(null);
-  const [tempImagePos, setTempImagePos] = useState({ x: 50, y: 50 });
+  const [tempCover, setTempCover] = useState({ image: null, crop: null });
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
-  const fileInputRef = useRef(null);
 
   const refresh = () => setCat(getCategories().find(c => c.id === categoryId));
   useEffect(() => { refresh(); }, [categoryId]);
@@ -56,24 +54,16 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
 
   const openAppearance = () => {
     setTempColor(cat.color);
-    setTempImage(cat.image);
-    setTempImagePos(cat.imagePosition || { x: 50, y: 50 });
+    setTempCover({ image: cat.image || null, crop: coverCrop(cat) });
     setShowAppearance(true);
   };
   const saveAppearance = () => {
-    updateCategory(categoryId, { color: tempColor, image: tempImage, imagePosition: tempImagePos });
+    updateCategory(categoryId, { color: tempColor, image: tempCover.image, imageCrop: tempCover.image ? tempCover.crop : null, imagePosition: null });
     setShowAppearance(false);
     refresh();
     onRefresh();
   };
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    e.target.value = ''; // allow re-picking the same file
-    compressImage(file)
-      .then((url) => { setTempImage(url); setTempImagePos({ x: 50, y: 50 }); })
-      .catch((err) => alert(err.message));
-  };
+
 
   const handleAppearanceTouchStart = (e) => {
     appearanceDragging.current = true;
@@ -231,28 +221,10 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
             <div className="sheet-handle" style={{ width: 36, height: 4, borderRadius: 2, background: 'rgb(86,86,88)', margin: '0 auto 20px' }} />
             <div className="d-title" style={{ marginBottom: 20 }}>Оформление</div>
 
-            {tempImage ? (
-              <div style={{ marginBottom: 16 }}>
-                <ImagePositionEditor image={tempImage} position={tempImagePos} onChange={setTempImagePos} />
-              </div>
-            ) : (
-              <div style={{
-                width: '100%', height: 100, borderRadius: 28, marginBottom: 16,
-                background: tempColor,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <span style={{ color: 'white', fontWeight: 700, fontSize: 18, textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>{cat.name}</span>
-              </div>
-            )}
+            <CoverPicker name={cat.name} color={tempColor} value={tempCover} onChange={setTempCover} />
 
-            <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
-            <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
-              <button className="d-btn" onClick={() => fileInputRef.current?.click()}>{tempImage ? 'Заменить фото' : 'Загрузить фото'}</button>
-              {tempImage && <button className="d-btn danger" style={{ width: 'auto', padding: '0 20px' }} onClick={() => setTempImage(null)}>Убрать</button>}
-            </div>
-
-            <div className="d-label" style={{ marginBottom: 12, opacity: tempImage ? 0.4 : 1 }}>Или выбери цвет</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 12, marginBottom: 22, opacity: tempImage ? 0.4 : 1, pointerEvents: tempImage ? 'none' : 'auto' }}>
+            <div className="d-label" style={{ marginBottom: 12, opacity: tempCover.image ? 0.4 : 1 }}>Или выбери цвет</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 12, marginBottom: 22, opacity: tempCover.image ? 0.4 : 1, pointerEvents: tempCover.image ? 'none' : 'auto' }}>
               {CATEGORY_COLORS.map(c => (
                 <div key={c} onClick={() => setTempColor(c)} className={`d-swatch${tempColor === c ? ' on' : ''}`} style={{ background: c }} />
               ))}
