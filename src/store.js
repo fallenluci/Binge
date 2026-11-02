@@ -97,7 +97,7 @@ export function addFilm(categoryId, name) {
   const data = getData();
   const cat = data.categories.find(c => c.id === categoryId);
   if (!cat) return;
-  const newFilm = { id: Date.now().toString(), name, rating: null };
+  const newFilm = { id: Date.now().toString(), name, rating: null, addedAt: Date.now() };
   cat.films.push(newFilm);
   saveData(data);
   return newFilm;
@@ -107,7 +107,13 @@ export function updateFilm(categoryId, filmId, updates) {
   const data = getData();
   const cat = data.categories.find(c => c.id === categoryId);
   if (!cat) return;
-  cat.films = cat.films.map(f => f.id === filmId ? { ...f, ...updates } : f);
+  cat.films = cat.films.map(f => {
+    if (f.id !== filmId) return f;
+    const next = { ...f, ...updates };
+    // When the film was (re)rated — drives "Недавно посмотрел" and the recent top-5
+    if ('rating' in updates && updates.rating !== f.rating) next.ratedAt = updates.rating == null ? null : Date.now();
+    return next;
+  });
   saveData(data);
 }
 
@@ -144,7 +150,7 @@ export function importCategories(groups, { dryRun = false } = {}) {
     }
     const have = new Set(cat.films.map(f => f.name.trim().toLowerCase()));
     const fresh = g.films.filter(n => !have.has(n.toLowerCase()));
-    fresh.forEach(name => cat.films.push({ id: newId(), name, rating: null }));
+    fresh.forEach(name => cat.films.push({ id: newId(), name, rating: null, addedAt: stamp }));
     summary.push({ name: cat.name, color: cat.color, isNew, added: fresh.length, skipped: g.films.length - fresh.length });
   }
   if (!dryRun) saveData(data);

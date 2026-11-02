@@ -20,8 +20,15 @@ export function computeStats(cats) {
   const rated = films.filter((f) => f.rating != null);
   const avg = rated.length ? rated.reduce((s, f) => s + f.rating, 0) / rated.length : null;
 
-  // Top 5: highest rating first; equal ratings keep the order they were added in
-  const top = [...rated].sort((a, b) => b.rating - a.rating).slice(0, 5);
+  // Recently watched = recently rated, newest first
+  const recent = rated.filter((f) => f.ratedAt).sort((a, b) => b.ratedAt - a.ratedAt).slice(0, 10);
+
+  // Top 5 of what was watched in the last 30 days, so it keeps changing;
+  // when nothing was rated lately — the all-time top. Equal ratings: the newer first.
+  const monthAgo = Date.now() - 30 * 24 * 3600 * 1000;
+  const fresh = rated.filter((f) => f.ratedAt && f.ratedAt >= monthAgo);
+  const topFresh = fresh.length > 0;
+  const top = [...(topFresh ? fresh : rated)].sort((a, b) => b.rating - a.rating || (b.ratedAt || 0) - (a.ratedAt || 0)).slice(0, 5);
 
   // Favourite category: best average among categories with rated films
   // (needs 2+ rated films when any category has them); otherwise the biggest one.
@@ -33,7 +40,7 @@ export function computeStats(cats) {
   const ranked = perCat.filter((p) => p.rated >= minRated).sort((a, b) => b.avg - a.avg || b.rated - a.rated);
   const favorite = ranked[0] || [...perCat].sort((a, b) => b.count - a.count).find((p) => p.count > 0) || null;
 
-  return { total: films.length, rated: rated.length, avg, top, favorite };
+  return { total: films.length, rated: rated.length, avg, top, topFresh, recent, favorite };
 }
 
 function Tile({ cat, size }) {
@@ -84,7 +91,7 @@ export default function ProfileStats({ desktop, onOpenCategory, refreshKey }) {
 
   const top = (
     <div>
-      <div style={label}>Топ-5</div>
+      <div style={label}>{s.topFresh ? 'Топ-5 за месяц' : 'Топ-5 за всё время'}</div>
       <div style={{ background: CARD, borderRadius: 22, padding: '6px 14px' }}>
         {s.top.length === 0 ? (
           <div style={{ color: GREY, fontSize: 14, fontWeight: 700, textAlign: 'center', padding: '18px 8px', lineHeight: '19px' }}>
@@ -123,6 +130,7 @@ export default function ProfileStats({ desktop, onOpenCategory, refreshKey }) {
   return (
     <div>
       {statRow}
+      <Recent films={s.recent} label={label} onOpenCategory={onOpenCategory} />
       {(
         <>
           {fav}
@@ -149,6 +157,7 @@ function Wide({ s, statRow, label, onOpenCategory }) {
   return (
     <div>
       {statRow}
+      <Recent films={s.recent} label={label} onOpenCategory={onOpenCategory} desktop />
       <div style={{ display: 'grid', gridTemplateColumns: fav ? '300px 1fr' : '1fr', gap: 16, marginTop: 6 }}>
         {fav && (
           <div>
@@ -167,7 +176,7 @@ function Wide({ s, statRow, label, onOpenCategory }) {
           </div>
         )}
         <div>
-          <div style={label}>Топ-5</div>
+          <div style={label}>{s.topFresh ? 'Топ-5 за месяц' : 'Топ-5 за всё время'}</div>
           {s.top.length === 0 ? (
             <div style={{ height: 200, borderRadius: 26, background: CARD, display: 'flex', alignItems: 'center', justifyContent: 'center', color: GREY, fontSize: 15, fontWeight: 700 }}>
               Оцени пару фильмов — здесь появится твой топ
@@ -200,6 +209,49 @@ function TopCard({ f, rank, onClick }) {
       <div style={{ position: 'relative', color: '#fff', fontSize: 17, lineHeight: '20px', fontWeight: 800, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textShadow: has ? '0 1px 8px rgba(0,0,0,0.6)' : 'none' }}>{f.name}</div>
       <div style={{ position: 'relative', color: has ? 'rgba(255,255,255,0.65)' : GREY, fontSize: 12, fontWeight: 700, margin: '4px 0 10px' }}>{f.cat.name}</div>
       <span className="rating-pill" style={{ position: 'relative', alignSelf: 'flex-start', fontSize: 13, minWidth: 30, height: 24, padding: '0 9px', color: rc, background: has ? 'rgba(0,0,0,0.55)' : `${rc}20` }}>{f.rating}</span>
+    </div>
+  );
+}
+
+const when = (t) => {
+  const d0 = new Date(); d0.setHours(0, 0, 0, 0);
+  const days = Math.floor((d0.getTime() - new Date(t).setHours(0, 0, 0, 0)) / 86400000);
+  if (days <= 0) return 'сегодня';
+  if (days === 1) return 'вчера';
+  if (days < 7) return `${days} ${plural(days, 'день', 'дня', 'дней')} назад`;
+  return new Date(t).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }).replace('.', '');
+};
+
+// "Недавно посмотрел": the last rated films as a row of posters (scrolls sideways on the phone)
+function Recent({ films, label, onOpenCategory, desktop }) {
+  if (!films.length) return null;
+  const stop = (e) => e.stopPropagation(); // sideways scrolling must not trigger the swipe-back
+  return (
+    <div>
+      <div style={label}>Недавно посмотрел</div>
+      <div
+        className="no-scrollbar"
+        onTouchStart={stop} onTouchEnd={stop}
+        style={desktop
+          ? { display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 12 }
+          : { display: 'flex', gap: 10, overflowX: 'auto', margin: '0 -24px', padding: '0 24px', scrollPadding: '0 24px', scrollSnapType: 'x mandatory' }}
+      >
+        {films.slice(0, desktop ? 8 : 10).map((f) => {
+          const rc = ratingColor(f.rating);
+          return (
+            <div key={`${f.cat.id}-${f.id}`} onClick={() => onOpenCategory?.(f.cat.id)} style={{ cursor: 'pointer', flex: desktop ? undefined : '0 0 96px', scrollSnapAlign: 'start', minWidth: 0 }}>
+              <div style={{ position: 'relative', aspectRatio: '2 / 3', borderRadius: 14, overflow: 'hidden', background: CARD }}>
+                {f.poster
+                  ? <img src={posterUrl(f.poster, 'w185')} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 8, textAlign: 'center', color: GREY, fontSize: 13, fontWeight: 800, lineHeight: '16px' }}>{f.name}</div>}
+                <span className="rating-pill" style={{ position: 'absolute', left: 6, bottom: 6, fontSize: 12, minWidth: 26, height: 22, padding: '0 8px', color: rc, background: 'rgba(0,0,0,0.7)' }}>{f.rating}</span>
+              </div>
+              <div style={{ color: '#fff', fontSize: 13, fontWeight: 700, lineHeight: '16px', marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
+              <div style={{ color: GREY, fontSize: 11, fontWeight: 700 }}>{when(f.ratedAt)}</div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

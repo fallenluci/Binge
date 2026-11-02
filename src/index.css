@@ -222,3 +222,6 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
   width: 36px; height: 36px; border-radius: 50%; border: none; background: #2C2C2C; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center; cursor: pointer;
 }
+
+.no-scrollbar { scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
