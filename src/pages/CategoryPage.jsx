@@ -169,9 +169,9 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
       {/* Film action sheet */}
       {menuFilm && (
         <>
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 300 }} onClick={() => { setMenuFilm(null); setEditFilm(null); }} />
-          <div className="glass" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 430, borderRadius: '28px 28px 0 0', padding: '14px 0 46px', zIndex: 301, animation: 'slideUp 0.32s cubic-bezier(0.34,1.26,0.64,1)', borderBottom: 'none' }}>
-            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgb(86,86,88)', margin: '0 auto 18px' }} />
+          <div className="sheet-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 300 }} onClick={() => { setMenuFilm(null); setEditFilm(null); }} />
+          <div className="glass sheet-panel" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 430, borderRadius: '28px 28px 0 0', padding: '14px 0 46px', zIndex: 301, animation: 'slideUp 0.32s cubic-bezier(0.34,1.26,0.64,1)', borderBottom: 'none' }}>
+            <div className="sheet-handle" style={{ width: 36, height: 4, borderRadius: 2, background: 'rgb(86,86,88)', margin: '0 auto 18px' }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 28px 18px', marginBottom: 8 }}>
               {editFilm?.id === menuFilm.id ? (
                 <input autoFocus value={editFilmName} onChange={e => setEditFilmName(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveFilmName()}
@@ -202,9 +202,9 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
       {/* Appearance editor sheet */}
       {showAppearance && (
         <>
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 398 }} onClick={() => setShowAppearance(false)} />
+          <div className="sheet-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 398 }} onClick={() => setShowAppearance(false)} />
           <div
-            className="glass"
+            className="glass sheet-panel"
             style={{
               position: 'fixed', bottom: 0, left: '50%',
               transform: `translateX(-50%) translateY(${appearanceDragY}px)`,
@@ -217,7 +217,7 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
             onTouchMove={handleAppearanceTouchMove}
             onTouchEnd={handleAppearanceTouchEnd}
           >
-            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgb(86,86,88)', margin: '0 auto 20px' }} />
+            <div className="sheet-handle" style={{ width: 36, height: 4, borderRadius: 2, background: 'rgb(86,86,88)', margin: '0 auto 20px' }} />
             <div style={{ fontSize: 20, fontWeight: 500, textAlign: 'center', color: 'var(--text)', marginBottom: 20 }}>Оформление</div>
 
             {tempImage ? (

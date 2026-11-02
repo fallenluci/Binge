@@ -299,13 +299,13 @@ const sheetBtn = {
 function Sheet({ children, onClose }) {
   return (
     <>
-      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 399, animation: 'fadeIn 0.2s ease' }} onClick={onClose} />
-      <div className="glass" style={{
+      <div className="sheet-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 399, animation: 'fadeIn 0.2s ease' }} onClick={onClose} />
+      <div className="glass sheet-panel" style={{
         position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430,
         borderRadius: '28px 28px 0 0', padding: '20px 22px 40px', zIndex: 400,
         animation: 'slideUp 0.35s cubic-bezier(0.34,1.26,0.64,1)', display: 'flex', flexDirection: 'column', gap: 8,
       }}>
-        <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgb(86,86,88)', margin: '0 auto 12px' }} />
+        <div className="sheet-handle" style={{ width: 36, height: 4, borderRadius: 2, background: 'rgb(86,86,88)', margin: '0 auto 12px' }} />
         {children}
       </div>
     </>

@@ -100,7 +100,8 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
 @keyframes fadeIn { from{opacity:0} to{opacity:1} }
 
 .cat-page {
-  position: fixed; inset: 0; max-width: 430px; left: 50%; margin-left: -215px;
+  /* centred 430px column; on screens narrower than 430px it starts at the left edge instead of being shifted off-screen */
+  position: fixed; inset: 0; max-width: 430px; left: max(0px, calc(50% - 215px));
   z-index: 20; display: flex; flex-direction: column; overflow: hidden;
   background: #000;
 }
@@ -142,5 +143,29 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
 @media (min-width: 900px) {
   .app { max-width: none; }
   /* Category page: black full-screen backdrop, content in an 816px column */
-  .cat-page { max-width: none; left: 0; margin-left: 0; padding: 0 max(0px, calc(50% - 408px)); }
+  .cat-page { max-width: none; left: 0; padding: 0 max(0px, calc(50% - 408px)); }
+}
+
+/* Sheets are 430px wide inline — never wider than the screen (iPhones are 375–393px) */
+.sheet-panel { max-width: 100vw; }
+
+/* Bottom sheets become centred windows on desktop (inline styles are the phone layout) */
+@keyframes modal-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (min-width: 900px) {
+  .sheet-backdrop {
+    background: rgba(0,0,0,0.55) !important;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    animation: fadeIn 0.2s ease;
+  }
+  .sheet-panel {
+    top: 50% !important; bottom: auto !important;
+    transform: translate(-50%, -50%) !important;
+    width: 430px !important; max-width: calc(100vw - 48px) !important;
+    border-radius: 28px !important;
+    padding-bottom: 28px !important;
+    max-height: 85vh; overflow-y: auto;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    animation: modal-fade 0.22s ease !important;
+  }
+  .sheet-handle { display: none; }
 }
