@@ -126,23 +126,31 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
       {showAddFilm && (
         <>
           <div className="sheet-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 399 }} onClick={() => setShowAddFilm(false)} />
-          <div className="glass sheet-panel" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 430, borderRadius: '28px 28px 0 0', padding: '20px 22px 48px', zIndex: 400, animation: 'slideUp 0.35s cubic-bezier(0.34,1.26,0.64,1)', borderBottom: 'none' }}>
+          <div className="glass sheet-panel" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 430, borderRadius: '28px 28px 0 0', padding: '20px 22px 32px', zIndex: 400, animation: 'slideUp 0.35s cubic-bezier(0.34,1.26,0.64,1)', borderBottom: 'none' }}>
             <div className="sheet-handle" style={{ width: 36, height: 4, borderRadius: 2, background: 'rgb(86,86,88)', margin: '0 auto 20px' }} />
-            <div style={{ fontSize: 20, fontWeight: 500, textAlign: 'center', color: 'var(--text)', marginBottom: 20 }}>Новый фильм</div>
+            <div className="d-title" style={{ marginBottom: 20 }}>Новый фильм</div>
             <input autoFocus value={filmName} onChange={e => setFilmName(e.target.value)} onKeyDown={e => e.key === 'Enter' && submitFilm()}
-              placeholder="Название фильма"
-              style={{ width: '100%', padding: '15px 16px', borderRadius: 14, border: '1px solid rgb(64,64,66)', background: 'rgb(44,44,46)', fontSize: 16, fontFamily: 'inherit', outline: 'none', color: 'var(--text)', marginBottom: 14 }} />
-            <div style={{ borderRadius: 14, overflow: 'hidden', marginBottom: 16, border: '1px solid rgb(52,52,54)' }}>
-              {cats.map(cat => (
-                <div key={cat.id} onClick={() => setSelCatId(cat.id)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderBottom: '1px solid rgb(48,48,50)', cursor: 'pointer', background: selCatId === cat.id ? 'rgb(27,45,65)' : 'rgb(37,37,39)' }}>
-                  <div style={{ width: 12, height: 12, borderRadius: '50%', background: cat.image ? `url(${cat.image}) center/cover` : cat.color }} />
-                  <span style={{ fontSize: 16, flex: 1, color: 'var(--text)' }}>{cat.name}</span>
-                  {selCatId === cat.id && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>}
-                </div>
-              ))}
+              placeholder="Название фильма" className="d-field" style={{ marginBottom: 18 }} />
+            <div className="d-label" style={{ marginBottom: 10 }}>Категория</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 18, maxHeight: '38dvh', overflowY: 'auto' }}>
+              {cats.map(cat => {
+                const on = selCatId === cat.id;
+                return (
+                  <div key={cat.id} onClick={() => setSelCatId(cat.id)} style={{
+                    display: 'flex', alignItems: 'center', gap: 12, minHeight: 46, padding: '0 14px', borderRadius: 18, cursor: 'pointer', flexShrink: 0,
+                    background: on ? '#351E88' : '#2C2C2C', transition: 'background 0.2s',
+                  }}>
+                    <div style={{ width: 14, height: 14, borderRadius: '50%', flexShrink: 0, background: cat.image ? `url(${cat.image}) center/cover` : cat.color }} />
+                    <span style={{ fontSize: 16, fontWeight: 700, flex: 1, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cat.name}</span>
+                    {on && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                  </div>
+                );
+              })}
             </div>
-            <button onClick={submitFilm} style={{ width: '100%', padding: 16, borderRadius: 14, border: 'none', background: 'var(--accent)', color: 'white', fontSize: 17, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>Добавить</button>
-            <button onClick={() => setShowAddFilm(false)} style={{ width: '100%', padding: 16, borderRadius: 14, border: 'none', background: 'rgb(48,48,50)', color: 'var(--text)', fontSize: 16, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', marginTop: 10 }}>Отмена</button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <button className="d-btn primary" onClick={submitFilm} style={{ opacity: filmName.trim() && selCatId ? 1 : 0.5 }}>Добавить</button>
+              <button className="d-btn ghost" onClick={() => setShowAddFilm(false)}>Отмена</button>
+            </div>
           </div>
         </>
       )}
@@ -156,7 +164,7 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
             style={{
               position: 'fixed', bottom: 0, left: '50%',
               transform: `translateX(-50%) translateY(${addCatDragY}px)`,
-              width: 430, borderRadius: '28px 28px 0 0', padding: '20px 22px 48px', zIndex: 400,
+              width: 430, borderRadius: '28px 28px 0 0', padding: '20px 22px 40px', zIndex: 400,
               animation: addCatDragY === 0 ? 'slideUp 0.35s cubic-bezier(0.34,1.26,0.64,1)' : 'none',
               maxHeight: '85dvh', overflowY: 'auto',
               transition: addCatDragging.current ? 'none' : 'transform 0.25s ease',
@@ -166,10 +174,9 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
             onTouchEnd={handleAddCatTouchEnd}
           >
             <div className="sheet-handle" style={{ width: 36, height: 4, borderRadius: 2, background: 'rgb(86,86,88)', margin: '0 auto 20px' }} />
-            <div style={{ fontSize: 20, fontWeight: 500, textAlign: 'center', color: 'var(--text)', marginBottom: 20 }}>Новая категория</div>
+            <div className="d-title" style={{ marginBottom: 20 }}>Новая категория</div>
             <input autoFocus value={catName} onChange={e => setCatName(e.target.value)} onKeyDown={e => e.key === 'Enter' && submitCat()}
-              placeholder="Название категории"
-              style={{ width: '100%', padding: '15px 16px', borderRadius: 14, border: 'none', background: 'rgb(48,48,50)', fontSize: 16, fontFamily: 'inherit', outline: 'none', color: 'var(--text)', marginBottom: 16 }} />
+              placeholder="Название категории" className="d-field" style={{ marginBottom: 16 }} />
 
             {catImage ? (
               <div style={{ marginBottom: 16 }}>
@@ -185,35 +192,18 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
             )}
 
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
-            <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-              <button onClick={() => fileInputRef.current?.click()} style={{
-                flex: 1, padding: 13, borderRadius: 999, border: 'none',
-                background: 'rgb(52,52,54)', color: 'var(--text)', fontSize: 14, fontWeight: 500,
-                cursor: 'pointer', fontFamily: 'inherit',
-              }}>{catImage ? 'Заменить фото' : 'Загрузить фото'}</button>
-              {catImage && (
-                <button onClick={() => setCatImage(null)} style={{
-                  padding: '13px 20px', borderRadius: 999, border: 'none',
-                  background: 'rgb(64,36,36)', color: '#FF453A', fontSize: 14, fontWeight: 500,
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}>Убрать</button>
-              )}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+              <button className="d-btn" onClick={() => fileInputRef.current?.click()}>{catImage ? 'Заменить фото' : 'Загрузить фото'}</button>
+              {catImage && <button className="d-btn danger" style={{ width: 'auto', padding: '0 20px' }} onClick={() => setCatImage(null)}>Убрать</button>}
             </div>
 
-            <div style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 10, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: catImage ? 0.4 : 1 }}>
-              Или выбери цвет
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 12, marginBottom: 18, opacity: catImage ? 0.4 : 1, pointerEvents: catImage ? 'none' : 'auto' }}>
+            <div className="d-label" style={{ marginBottom: 12, opacity: catImage ? 0.4 : 1 }}>Или выбери цвет</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 12, marginBottom: 22, opacity: catImage ? 0.4 : 1, pointerEvents: catImage ? 'none' : 'auto' }}>
               {CATEGORY_COLORS.map(c => (
-                <div key={c} onClick={() => setSelColor(c)} style={{
-                  width: 38, height: 38, borderRadius: '50%', background: c, cursor: 'pointer', margin: '0 auto',
-                  border: selColor === c ? '3px solid white' : '3px solid transparent',
-                  boxShadow: selColor === c ? `0 0 0 2px ${c}` : 'none',
-                  transform: selColor === c ? 'scale(1.15)' : 'scale(1)', transition: 'all 0.2s',
-                }} />
+                <div key={c} onClick={() => setSelColor(c)} className={`d-swatch${selColor === c ? ' on' : ''}`} style={{ background: c }} />
               ))}
             </div>
-            <button onClick={submitCat} style={{ width: '100%', padding: 16, borderRadius: 999, border: 'none', background: 'var(--accent)', color: 'white', fontSize: 17, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>Создать</button>
+            <button className="d-btn primary" onClick={submitCat} style={{ opacity: catName.trim() ? 1 : 0.5 }}>Создать</button>
           </div>
         </>
       )}

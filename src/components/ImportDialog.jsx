@@ -40,12 +40,13 @@ export default function ImportDialog({ fileName, summary, onConfirm, onClose }) 
         animation: 'fadeIn 0.2s ease',
       }}
     >
-      <div className="glass" style={{
+      <div style={{
+        background: '#171717',
         width: 430, maxWidth: 'calc(100vw - 48px)', maxHeight: '85vh', display: 'flex', flexDirection: 'column',
         borderRadius: 28, padding: '22px 22px 24px', boxShadow: '0 30px 80px rgba(0,0,0,0.6)',
         animation: 'modal-fade 0.22s ease',
       }}>
-        <div style={{ textAlign: 'center', color: '#fff', fontSize: 20, fontWeight: 700 }}>Импорт из файла</div>
+        <div className="d-title">Импорт из файла</div>
         <div style={{ textAlign: 'center', color: 'var(--text-dim)', fontSize: 13, fontWeight: 500, marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fileName}</div>
 
         {nothing ? (

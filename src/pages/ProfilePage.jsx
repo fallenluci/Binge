@@ -14,6 +14,7 @@ import { authErrorMessage } from '../authErrors';
 import { compressImage } from '../lib/image';
 import CroppedImage, { DEFAULT_POS } from '../components/CroppedImage';
 import PhotoCropper from '../components/PhotoCropper';
+import ProfileStats from '../components/ProfileStats';
 import { useIsDesktop } from '../lib/useIsDesktop';
 
 // All coordinates below are taken 1:1 from the Figma mockup (390 × 844 frame).
@@ -70,7 +71,7 @@ const PersonIcon = ({ size }) => (
   </svg>
 );
 
-export default function ProfilePage({ user, profile, onClose }) {
+export default function ProfilePage({ user, profile, onClose, onOpenCategory }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(null);
   const [error, setError] = useState('');
@@ -247,17 +248,19 @@ export default function ProfilePage({ user, profile, onClose }) {
         {!editing && (
           <>
             <div style={text(t(402.7, 'name'), 36, '#fff', 800)}>{name}</div>
-            <div style={text(t(539.2, 'empty'), 36, GREY, 800)}>ПУСТО*</div>
-            <div style={{ ...text(t(578.25, 'note'), 11, GREY), lineHeight: '13px', whiteSpace: 'normal' }}>
-              *скоро тут будут новые<br />функции
+            {/* Statistics, then the buttons; on a tall list the page scrolls */}
+            <div style={desktop
+              ? { position: 'absolute', top: at(340), left: 0, right: 0, display: 'flex', flexDirection: 'column', minHeight: `calc(max(var(--app-h), ${B} + 787px) - ${B} - 340px)`, paddingBottom: 130 }
+              : { position: 'absolute', top: 466, left: 0, right: 0, padding: '0 24px 26.2px', display: 'flex', flexDirection: 'column', minHeight: `calc(max(var(--app-h), ${FRAME_H}px) - 466px)` }}>
+              <ProfileStats desktop={desktop} onOpenCategory={onOpenCategory} />
+              <div style={{ marginTop: 'auto', paddingTop: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14.8 }}>
+                <button style={{ ...purpleBtn({}), position: 'static', transform: 'none' }} onClick={startEdit}>Редактировать профиль</button>
+                <button onClick={logout} disabled={busy} style={{
+                  background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit',
+                  fontSize: 16, lineHeight: '16px', fontWeight: 700, color: '#C40000',
+                }}>Выйти</button>
+              </div>
             </div>
-            <button style={purpleBtn(desktop ? { top: at(DK.editBtn) } : { bottom: 57 })} onClick={startEdit}>Редактировать профиль</button>
-            <button onClick={logout} disabled={busy} style={{
-              position: 'absolute', left: '50%', transform: 'translateX(-50%)',
-              ...(desktop ? { top: at(DK.logout) } : { bottom: 26.2 }),
-              background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit',
-              fontSize: 16, lineHeight: '16px', fontWeight: 700, color: '#C40000',
-            }}>Выйти</button>
           </>
         )}
 

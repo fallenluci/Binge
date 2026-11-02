@@ -45,9 +45,11 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
   const handleDelete = (filmId) => { deleteFilm(categoryId, filmId); setMenuFilm(null); refresh(); };
   const saveCatName = () => { if (catName.trim()) updateCategory(categoryId, { name: catName.trim() }); setEditingName(false); refresh(); };
   const saveFilmName = () => {
-    if (editFilmName.trim()) updateFilm(categoryId, editFilm.id, { name: editFilmName.trim() });
+    if (!editFilm) return; // Enter already saved; the blur that follows is a no-op
+    const name = editFilmName.trim();
+    if (name) updateFilm(categoryId, editFilm.id, { name });
     setEditFilm(null);
-    setMenuFilm(prev => prev ? { ...prev, name: editFilmName.trim() } : null);
+    if (name) setMenuFilm(prev => prev ? { ...prev, name } : null);
     refresh();
   };
 
@@ -89,12 +91,13 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
     setAppearanceDragY(0);
   };
 
-  const handleDeleteCategory = () => {
-    if (confirm(`Удалить категорию «${cat.name}» вместе со всеми фильмами?`)) {
-      deleteCategory(categoryId);
-      onRefresh();
-      onBack();
-    }
+  // Styled confirmation sheet instead of the browser's confirm()
+  const [confirmDelCat, setConfirmDelCat] = useState(false);
+  const handleDeleteCategory = () => setConfirmDelCat(true);
+  const reallyDeleteCategory = () => {
+    deleteCategory(categoryId);
+    onRefresh();
+    onBack();
   };
 
   if (!cat) return null;
@@ -169,30 +172,27 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
       {menuFilm && (
         <>
           <div className="sheet-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 300 }} onClick={() => { setMenuFilm(null); setEditFilm(null); }} />
-          <div className="glass sheet-panel" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 430, borderRadius: '28px 28px 0 0', padding: '14px 0 46px', zIndex: 301, animation: 'slideUp 0.32s cubic-bezier(0.34,1.26,0.64,1)', borderBottom: 'none' }}>
+          <div className="glass sheet-panel" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 430, borderRadius: '28px 28px 0 0', padding: '14px 0 40px', zIndex: 301, animation: 'slideUp 0.32s cubic-bezier(0.34,1.26,0.64,1)', borderBottom: 'none' }}>
             <div className="sheet-handle" style={{ width: 36, height: 4, borderRadius: 2, background: 'rgb(86,86,88)', margin: '0 auto 18px' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 28px 18px', marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 22px', marginBottom: 18 }}>
               {editFilm?.id === menuFilm.id ? (
-                <input autoFocus value={editFilmName} onChange={e => setEditFilmName(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveFilmName()}
-                  style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 19, fontWeight: 500, color: 'var(--text)', fontFamily: 'inherit' }} />
+                <input autoFocus className="d-field" value={editFilmName} onChange={e => setEditFilmName(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && saveFilmName()} onBlur={saveFilmName} style={{ flex: 1 }} />
               ) : (
-                <span style={{ flex: 1, fontSize: 19, fontWeight: 500, color: 'var(--text)' }}>{menuFilm.name}</span>
+                <span style={{ flex: 1, minWidth: 0, fontSize: 22, lineHeight: '26px', fontWeight: 700, color: '#fff', overflowWrap: 'anywhere' }}>{menuFilm.name}</span>
               )}
-              <button onClick={() => { setEditFilm(menuFilm); setEditFilmName(menuFilm.name); }} style={{ background: 'none', border: 'none', padding: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              {editFilm?.id !== menuFilm.id && (
+                <button aria-label="Переименовать" onClick={() => { setEditFilm(menuFilm); setEditFilmName(menuFilm.name); }} style={{ background: 'none', border: 'none', padding: 6, display: 'flex', cursor: 'pointer', flexShrink: 0 }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
+                </button>
+              )}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '0 22px' }}>
+              <button className="d-btn primary" onClick={() => { setShowRating(menuFilm); setMenuFilm(null); }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                {menuFilm.rating != null ? `Изменить оценку · ${menuFilm.rating}` : 'Оценить'}
               </button>
-            </div>
-            <div onClick={() => handleDelete(menuFilm.id)} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 28px', cursor: 'pointer' }}>
-              <div style={{ width: 38, height: 38, borderRadius: 12, background: 'rgb(64,36,36)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF453A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>
-              </div>
-              <span style={{ fontSize: 17, color: 'var(--text)' }}>Удалить</span>
-            </div>
-            <div onClick={() => { setShowRating(menuFilm); setMenuFilm(null); }} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 28px', cursor: 'pointer' }}>
-              <div style={{ width: 38, height: 38, borderRadius: 12, background: 'rgb(64,58,29)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFD60A"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-              </div>
-              <span style={{ fontSize: 17, color: 'var(--text)' }}>Оценить</span>
+              <button className="d-btn danger" onClick={() => handleDelete(menuFilm.id)}>Удалить фильм</button>
             </div>
           </div>
         </>
@@ -207,7 +207,7 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
             style={{
               position: 'fixed', bottom: 0, left: '50%',
               transform: `translateX(-50%) translateY(${appearanceDragY}px)`,
-              width: 430, borderRadius: '28px 28px 0 0', padding: '20px 22px 48px', zIndex: 399,
+              width: 430, borderRadius: '28px 28px 0 0', padding: '20px 22px 40px', zIndex: 399,
               animation: appearanceDragY === 0 ? 'slideUp 0.32s cubic-bezier(0.34,1.26,0.64,1)' : 'none',
               maxHeight: '85dvh', overflowY: 'auto',
               transition: appearanceDragging.current ? 'none' : 'transform 0.25s ease',
@@ -217,7 +217,7 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
             onTouchEnd={handleAppearanceTouchEnd}
           >
             <div className="sheet-handle" style={{ width: 36, height: 4, borderRadius: 2, background: 'rgb(86,86,88)', margin: '0 auto 20px' }} />
-            <div style={{ fontSize: 20, fontWeight: 500, textAlign: 'center', color: 'var(--text)', marginBottom: 20 }}>Оформление</div>
+            <div className="d-title" style={{ marginBottom: 20 }}>Оформление</div>
 
             {tempImage ? (
               <div style={{ marginBottom: 16 }}>
@@ -234,24 +234,35 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
             )}
 
             <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
-            <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-              <button onClick={() => fileInputRef.current?.click()} style={{ flex: 1, padding: 13, borderRadius: 999, border: 'none', background: 'rgb(52,52,54)', color: 'var(--text)', fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>{tempImage ? 'Заменить фото' : 'Загрузить фото'}</button>
-              {tempImage && (
-                <button onClick={() => setTempImage(null)} style={{ padding: '13px 20px', borderRadius: 999, border: 'none', background: 'rgb(64,36,36)', color: '#FF453A', fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>Убрать</button>
-              )}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+              <button className="d-btn" onClick={() => fileInputRef.current?.click()}>{tempImage ? 'Заменить фото' : 'Загрузить фото'}</button>
+              {tempImage && <button className="d-btn danger" style={{ width: 'auto', padding: '0 20px' }} onClick={() => setTempImage(null)}>Убрать</button>}
             </div>
 
-            <div style={{ fontSize: 13, color: 'var(--text-dim)', marginBottom: 10, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: tempImage ? 0.4 : 1 }}>Или выбери цвет</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 12, marginBottom: 18, opacity: tempImage ? 0.4 : 1, pointerEvents: tempImage ? 'none' : 'auto' }}>
+            <div className="d-label" style={{ marginBottom: 12, opacity: tempImage ? 0.4 : 1 }}>Или выбери цвет</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 12, marginBottom: 22, opacity: tempImage ? 0.4 : 1, pointerEvents: tempImage ? 'none' : 'auto' }}>
               {CATEGORY_COLORS.map(c => (
-                <div key={c} onClick={() => setTempColor(c)} style={{
-                  width: 38, height: 38, borderRadius: '50%', background: c, cursor: 'pointer', margin: '0 auto',
-                  border: tempColor === c ? '3px solid white' : '3px solid transparent',
-                  transform: tempColor === c ? 'scale(1.15)' : 'scale(1)', transition: 'all 0.2s',
-                }} />
+                <div key={c} onClick={() => setTempColor(c)} className={`d-swatch${tempColor === c ? ' on' : ''}`} style={{ background: c }} />
               ))}
             </div>
-            <button onClick={saveAppearance} style={{ width: '100%', padding: 16, borderRadius: 999, border: 'none', background: 'rgb(57,57,59)', color: 'var(--text)', fontSize: 17, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>Сохранить</button>
+            <button className="d-btn primary" onClick={saveAppearance}>Сохранить</button>
+          </div>
+        </>
+      )}
+
+      {confirmDelCat && (
+        <>
+          <div className="sheet-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 398 }} onClick={() => setConfirmDelCat(false)} />
+          <div className="glass sheet-panel" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 430, borderRadius: '28px 28px 0 0', padding: '20px 22px 32px', zIndex: 399, animation: 'slideUp 0.32s cubic-bezier(0.34,1.26,0.64,1)' }}>
+            <div className="sheet-handle" style={{ width: 36, height: 4, borderRadius: 2, margin: '0 auto 20px' }} />
+            <div className="d-title">Удалить категорию?</div>
+            <div className="d-label" style={{ textAlign: 'center', margin: '10px 10px 22px', lineHeight: '19px' }}>
+              «{cat.name}» и {cat.films.length === 0 ? 'пустой список' : `все фильмы в ней (${cat.films.length})`} удалятся без возможности вернуть
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <button className="d-btn" style={{ background: '#C40000' }} onClick={reallyDeleteCategory}>Удалить</button>
+              <button className="d-btn ghost" onClick={() => setConfirmDelCat(false)}>Отмена</button>
+            </div>
           </div>
         </>
       )}

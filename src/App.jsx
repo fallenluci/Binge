@@ -102,7 +102,7 @@ export default function App() {
       {page === 'home' && <HomePage onOpenCategory={id => setCatId(id)} onProfile={openAccount} onRefresh={refresh} profile={profile} refreshKey={tick} />}
       {page === 'rand' && <RandPage key={tick} onOpenCategory={id => setCatId(id)} onProfile={openAccount} onRefresh={refresh} profile={profile} />}
       {catId && <CategoryPage categoryId={catId} refreshKey={tick} onBack={() => setCatId(null)} onRefresh={refresh} />}
-      {showProfile && user && <ProfilePage user={user} profile={profile} onClose={() => setShowProfile(false)} />}
+      {showProfile && user && <ProfilePage user={user} profile={profile} onClose={() => setShowProfile(false)} onOpenCategory={id => { setShowProfile(false); setCatId(id); }} />}
       {!catId && !showProfile && <Island activePage={page} onChangePage={setPage} onRefresh={refresh} />}
       {showAccount && <AccountSheet user={user} syncStatus={syncStatus} onClose={() => setShowAccount(false)} />}
       {splashLayer}

@@ -29,7 +29,7 @@ export default function RatingPicker({ film, onRate, onClose }) {
     >
       {!desktop && <button onClick={onClose} className="nav-solid" style={{ position: 'fixed', top: 'calc(60px + var(--top-shift))', right: 'max(22px, calc(50% - 193px))', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text)', fontSize: 16, border: 'none' }}>✕</button>}
 
-      <div style={{ fontSize: 22, fontWeight: 500, color: 'var(--text)', textAlign: 'center', padding: '0 40px', marginBottom: 32, lineHeight: 1.3 }}>{film.name}</div>
+      <div className="d-title" style={{ padding: '0 40px', marginBottom: 32 }}>{film.name}</div>
 
       <div
         style={{
@@ -54,7 +54,7 @@ export default function RatingPicker({ film, onRate, onClose }) {
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, transparent 35%, transparent 65%, rgba(0,0,0,0.35) 100%)', pointerEvents: 'none' }}/>
       </div>
 
-      <button onClick={() => onRate(selected)} style={{ marginTop: 44, background: color, border: 'none', borderRadius: 100, padding: '16px 60px', color: 'white', fontSize: 18, fontWeight: 500, cursor: 'pointer', transition: 'background 0.2s' }}>Оценить</button>
+      <button className="d-btn primary" onClick={() => onRate(selected)} style={{ marginTop: 44, width: 254.5 }}>Оценить</button>
     </div>
   );
 }

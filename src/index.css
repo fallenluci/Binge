@@ -178,3 +178,31 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
   }
   .sheet-handle { display: none; }
 }
+
+/* ---- Popup kit in the app's own style (auth card / profile): ----
+   #171717 panel, #2C2C2C fields and buttons 46px high with 18px corners,
+   bold type, purple #351E88 for the main action, grey #515151 labels. */
+.sheet-panel { background: #171717 !important; }
+.sheet-handle { background: #2C2C2C !important; }
+.d-title { color: #fff; font-size: 22px; line-height: 26px; font-weight: 700; text-align: center; }
+.d-label { color: #515151; font-size: 14px; font-weight: 700; }
+.d-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; height: 46px; border-radius: 18px; border: none; cursor: pointer;
+  background: #2C2C2C; color: #fff; font-family: inherit; font-size: 16px; font-weight: 700;
+  transition: transform 0.15s, opacity 0.2s;
+}
+.d-btn:active { transform: scale(0.98); }
+.d-btn.primary { background: #351E88; }
+.d-btn.danger { color: #FF453A; }
+.d-btn.ghost { background: none; color: #8E8E93; }
+.d-field {
+  display: block; width: 100%; height: 46px; border-radius: 18px; border: none; outline: none;
+  background: #2C2C2C; padding: 0 14px; color: #fff; font-family: inherit; font-size: 16px; font-weight: 700;
+}
+.d-field::placeholder { color: #515151; opacity: 1; }
+.d-swatch {
+  width: 38px; height: 38px; border-radius: 50%; cursor: pointer; margin: 0 auto;
+  box-shadow: 0 0 0 0 #fff; transition: box-shadow 0.2s, transform 0.2s;
+}
+.d-swatch.on { box-shadow: 0 0 0 3px #171717, 0 0 0 5px #fff; }
