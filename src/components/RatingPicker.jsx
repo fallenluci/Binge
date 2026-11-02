@@ -1,147 +1,18 @@
-import { useState, useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import { ratingColor } from '../store';
 import { useIsDesktop } from '../lib/useIsDesktop';
+import { useDrum } from '../lib/useDrum';
 
 const ITEM_H = 74;
 const RATINGS = [1,2,3,4,5,6,7,8,9,10];
-const FRICTION = 0.94; // per-frame velocity decay
-const MIN_VELOCITY = 0.02; // px/ms below which we stop and snap
-
 export default function RatingPicker({ film, onRate, onClose }) {
   const desktop = useIsDesktop();
   // Close on a click that both starts and ends on the free area (not after dragging the drum out)
   const downOnBackdrop = useRef(false);
   const init = film.rating ?? 7;
-  const [selected, setSelected] = useState(init);
-  const [offset, setOffset] = useState(-(init - 1) * ITEM_H);
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  const cur = useRef(-(init - 1) * ITEM_H);
-  const startY = useRef(0);
-  const startOffset = useRef(0);
-  const dragging = useRef(false);
-  const lastMove = useRef({ y: 0, t: 0 });
-  const velocity = useRef(0); // px per ms
-  const momentumFrame = useRef(null);
-
-  const clamp = (v) => Math.max(-9 * ITEM_H, Math.min(0, v));
-
-  const updateSelectedFromOffset = (o) => {
-    const idx = Math.max(0, Math.min(9, Math.round(-o / ITEM_H)));
-    setSelected(RATINGS[idx]);
-  };
-
-  const snapTo = (o) => {
-    const idx = Math.max(0, Math.min(9, Math.round(-o / ITEM_H)));
-    const target = -idx * ITEM_H;
-    setSelected(RATINGS[idx]);
-    animateTo(target);
-  };
-
-  // Smooth spring-like settle animation towards a target offset
-  const animateTo = (target) => {
-    cancelMomentum();
-    setIsAnimating(true);
-    const start = cur.current;
-    const startTime = performance.now();
-    const duration = 380;
-    const step = (now) => {
-      const t = Math.min(1, (now - startTime) / duration);
-      // ease-out-back-ish curve for a tactile snap feel
-      const eased = 1 - Math.pow(1 - t, 3);
-      const val = start + (target - start) * eased;
-      cur.current = val;
-      setOffset(val);
-      if (t < 1) {
-        momentumFrame.current = requestAnimationFrame(step);
-      } else {
-        cur.current = target;
-        setOffset(target);
-        setIsAnimating(false);
-      }
-    };
-    momentumFrame.current = requestAnimationFrame(step);
-  };
-
-  const cancelMomentum = () => {
-    if (momentumFrame.current) cancelAnimationFrame(momentumFrame.current);
-  };
-
-  const runMomentum = () => {
-    cancelMomentum();
-    const step = () => {
-      velocity.current *= FRICTION;
-      if (Math.abs(velocity.current) < MIN_VELOCITY) {
-        snapTo(cur.current);
-        return;
-      }
-      let next = cur.current + velocity.current * 16; // approx ms per frame
-      if (next > 0 || next < -9 * ITEM_H) {
-        // hit bounds — stop momentum and snap back
-        next = clamp(next);
-        cur.current = next;
-        setOffset(next);
-        updateSelectedFromOffset(next);
-        snapTo(next);
-        return;
-      }
-      cur.current = next;
-      setOffset(next);
-      updateSelectedFromOffset(next);
-      momentumFrame.current = requestAnimationFrame(step);
-    };
-    momentumFrame.current = requestAnimationFrame(step);
-  };
-
-  const handleStart = (clientY) => {
-    cancelMomentum();
-    setIsAnimating(false);
-    dragging.current = true;
-    startY.current = clientY;
-    startOffset.current = cur.current;
-    lastMove.current = { y: clientY, t: performance.now() };
-    velocity.current = 0;
-  };
-
-  const handleMove = (clientY) => {
-    if (!dragging.current) return;
-    const now = performance.now();
-    const dy = clientY - startY.current;
-    const next = clamp(startOffset.current + dy);
-    cur.current = next;
-    setOffset(next);
-    updateSelectedFromOffset(next);
-
-    const dt = now - lastMove.current.t;
-    if (dt > 0) {
-      const instV = (clientY - lastMove.current.y) / dt;
-      // smooth velocity a bit
-      velocity.current = velocity.current * 0.7 + instV * 0.3;
-    }
-    lastMove.current = { y: clientY, t: now };
-  };
-
-  const handleEnd = () => {
-    if (!dragging.current) return;
-    dragging.current = false;
-    if (Math.abs(velocity.current) > MIN_VELOCITY) {
-      runMomentum();
-    } else {
-      snapTo(cur.current);
-    }
-  };
-
-  useEffect(() => {
-    const up = () => handleEnd();
-    const mv = (e) => handleMove(e.clientY);
-    window.addEventListener('mouseup', up);
-    window.addEventListener('mousemove', mv);
-    return () => {
-      window.removeEventListener('mouseup', up);
-      window.removeEventListener('mousemove', mv);
-      cancelMomentum();
-    };
-  }, []);
+  // Shared drum physics (same as the Random category drum)
+  const { offset, selected: idx, handlers } = useDrum({ count: RATINGS.length, itemH: ITEM_H, initialIndex: init - 1 });
+  const selected = RATINGS[idx];
 
   const color = ratingColor(selected);
 
@@ -169,10 +40,7 @@ export default function RatingPicker({ film, onRate, onClose }) {
           boxShadow: `0 0 60px 10px ${color}55`,
           transition: 'border-color 0.25s, background 0.25s, box-shadow 0.25s',
         }}
-        onTouchStart={e => handleStart(e.touches[0].clientY)}
-        onTouchMove={e => handleMove(e.touches[0].clientY)}
-        onTouchEnd={handleEnd}
-        onMouseDown={e => handleStart(e.clientY)}
+        {...handlers}
       >
         <div style={{ position: 'relative', transform: `translateY(${offset + ITEM_H}px)`, transition: 'none' }}>
           {RATINGS.map(r => {

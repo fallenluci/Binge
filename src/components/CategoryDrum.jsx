@@ -1,55 +1,20 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef } from 'react';
+import { useDrum } from '../lib/useDrum';
 
 // Vertical capsule drum matching the rating-picker visual language:
 // dark fill, gray stroke border, bold white selected item, dim gray item below.
 const ITEM_H = 64;
 
 export default function CategoryDrum({ items, selectedIndex, onSelect, onDone }) {
-  const [offset, setOffset] = useState(-selectedIndex * ITEM_H);
-  const cur = useRef(-selectedIndex * ITEM_H);
-  const startY = useRef(0);
-  const dragging = useRef(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [selected, setSelected] = useState(selectedIndex);
-
-  const maxIdx = Math.max(0, items.length - 1);
-  const clamp = (v) => Math.max(-maxIdx * ITEM_H, Math.min(0, v));
-
-  const snap = (raw) => {
-    const idx = Math.max(0, Math.min(maxIdx, Math.round(-raw / ITEM_H)));
-    const target = -idx * ITEM_H;
-    setOffset(target);
-    cur.current = target;
-    setSelected(idx);
-    onSelect(idx);
-  };
-
-  const handleStart = (y) => { dragging.current = true; setIsDragging(true); startY.current = y; };
-  const handleMove = (y) => {
-    if (!dragging.current) return;
-    setOffset(clamp(cur.current + (y - startY.current)));
-  };
-  const handleEnd = (y) => {
-    if (!dragging.current) return;
-    dragging.current = false;
-    setIsDragging(false);
-    snap(cur.current + (y - startY.current));
-  };
-
-  useEffect(() => {
-    const up = (e) => handleEnd(e.clientY);
-    const mv = (e) => handleMove(e.clientY);
-    window.addEventListener('mouseup', up);
-    window.addEventListener('mousemove', mv);
-    return () => {
-      window.removeEventListener('mouseup', up);
-      window.removeEventListener('mousemove', mv);
-    };
-  }, []);
+  // Same physics as the rating drum: inertia after a flick, friction, smooth settle
+  const { offset, selected, handlers } = useDrum({ count: items.length, itemH: ITEM_H, initialIndex: selectedIndex, onChange: onSelect });
+  // Close on a click on the free area — but not when a drag of the drum ends outside it
+  const downOnBackdrop = useRef(false);
 
   return (
     <div
-      onClick={onDone}
+      onPointerDown={e => { downOnBackdrop.current = e.target === e.currentTarget; }}
+      onClick={e => { if (downOnBackdrop.current && e.target === e.currentTarget) onDone(); }}
       style={{
         position: 'fixed', inset: 0, zIndex: 500,
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -58,21 +23,16 @@ export default function CategoryDrum({ items, selectedIndex, onSelect, onDone })
       }}
     >
       <div
-        onClick={e => e.stopPropagation()}
         style={{
           position: 'relative', width: 150, height: 210, overflow: 'hidden',
           cursor: 'grab', userSelect: 'none', touchAction: 'pan-x',
           background: 'rgb(23,23,23)', borderRadius: 105,
           border: '3px solid #8E8E93',
         }}
-        onTouchStart={e => handleStart(e.touches[0].clientY)}
-        onTouchMove={e => handleMove(e.touches[0].clientY)}
-        onTouchEnd={e => handleEnd(e.changedTouches[0].clientY)}
-        onMouseDown={e => handleStart(e.clientY)}
+        {...handlers}
       >
         <div style={{
           position: 'relative', transform: `translateY(${offset + ITEM_H}px)`,
-          transition: isDragging ? 'none' : 'transform 0.32s cubic-bezier(0.25,0.46,0.45,0.94)',
         }}>
           {items.map((item, idx) => {
             const isCenter = idx === selected;

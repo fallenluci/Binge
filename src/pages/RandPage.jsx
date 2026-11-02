@@ -56,7 +56,8 @@ export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile
       const c = allCats.find(x => x.id === selectedCat.id);
       if (c) c.films.forEach(f => pool.push({ film: f, cat: c }));
     } else {
-      allCats.forEach(c => c.films.forEach(f => pool.push({ film: f, cat: c })));
+      // "Все" — only films that haven't been rated yet
+      allCats.forEach(c => c.films.forEach(f => { if (f.rating == null) pool.push({ film: f, cat: c }); }))
     }
     return pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : null;
   };
@@ -182,7 +183,7 @@ export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile
         )}
         {phase === 'result' && !result && (
           <div style={{ textAlign: 'center', color: 'var(--text-dim)', fontSize: 15 }} onClick={tapAgain}>
-            В этой категории пока нет фильмов
+            {selectedCat ? 'В этой категории пока нет фильмов' : cats.some(c => c.films.length) ? 'Все фильмы уже оценены' : 'Пока нет фильмов'}
           </div>
         )}
 
