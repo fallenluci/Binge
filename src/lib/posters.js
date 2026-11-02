@@ -15,6 +15,21 @@ export async function searchPosters(query) {
   return data.results || [];
 }
 
+// Description, runtime, genres… of a film (cached on the film as `info` after the first load)
+export async function loadInfo(film) {
+  let id = film.tmdbId, type = film.tmdbType;
+  if (!id) {
+    // Films that got their poster before ids were stored: find the same poster again
+    const found = await searchPosters(film.name);
+    const hit = found.find((x) => film.poster && x.poster === film.poster) || found[0];
+    if (!hit) return { id: null, info: null };
+    id = hit.id; type = hit.type;
+  }
+  const r = await fetch(`/api/tmdb?details=${id}&type=${type || 'movie'}`);
+  if (!r.ok) throw new Error('Не удалось загрузить описание');
+  return { id, type, info: await r.json() };
+}
+
 // Background filler: finds posters for films that were never searched, one by one.
 let running = false;
 let disabled = false;
@@ -34,7 +49,8 @@ export async function fillMissingPosters(onUpdate) {
         disabled = true; // no key / offline / TMDB down — try again on the next app start
         break;
       }
-      updateFilm(c.id, f.id, { poster: found.find((x) => x.poster)?.poster || null, posterChecked: true });
+      const hit = found.find((x) => x.poster);
+      updateFilm(c.id, f.id, { poster: hit?.poster || null, tmdbId: hit?.id || null, tmdbType: hit?.type || null, posterChecked: true });
       onUpdate?.();
       await new Promise((r) => setTimeout(r, 250)); // be gentle with TMDB
     }

@@ -4,7 +4,7 @@ import { posterUrl, searchPosters } from '../lib/posters';
 
 /**
  * "Выбрать постер": search TMDB (prefilled with the film's name), tap a poster to use it.
- * onPick(path | null)
+ * onPick(result | null) — result is { id, type, poster, … } from the search
  */
 export default function PosterPicker({ film, onPick, onClose }) {
   const [query, setQuery] = useState(film.name);
@@ -50,7 +50,7 @@ export default function PosterPicker({ film, onPick, onClose }) {
               {state.results.map((r) => {
                 const on = r.poster === film.poster;
                 return (
-                  <button key={`${r.type}-${r.id}`} type="button" onClick={() => onPick(r.poster)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
+                  <button key={`${r.type}-${r.id}`} type="button" onClick={() => onPick(r)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
                     <div style={{ aspectRatio: '2 / 3', borderRadius: 14, overflow: 'hidden', background: '#2C2C2C', boxShadow: on ? '0 0 0 3px #171717, 0 0 0 5px #351E88' : 'none' }}>
                       <img src={posterUrl(r.poster, 'w185')} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                     </div>

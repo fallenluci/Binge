@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { getCategories, importCategories } from '../store';
 import { parseFilmList, readTextFile } from '../lib/importList';
 import ImportDialog from './ImportDialog';

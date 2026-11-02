@@ -6,6 +6,7 @@
  *
  *   GET /api/tmdb?q=Акира            → up to 12 matches: { id, type, title, year, poster }
  *   GET /api/tmdb?img=/abc.jpg&s=w342 → the poster image itself (cached for a year)
+ *   GET /api/tmdb?details=603&type=movie → { overview, runtime, genres, vote, original, year }
  */
 const API = 'https://api.themoviedb.org/3';
 const SIZES = new Set(['w92', 'w154', 'w185', 'w342', 'w500', 'w780']);
@@ -35,8 +36,38 @@ async function search(query, a) {
     }));
 }
 
+async function details(id, type, a) {
+  const r = await fetch(`${API}/${type}/${id}?language=ru-RU${a.param}`, { headers: a.headers });
+  if (!r.ok) throw new Error(`TMDB ${r.status}`);
+  const x = await r.json();
+  return {
+    overview: x.overview || '',
+    // movies have runtime; series — the length of an episode and the number of seasons
+    runtime: type === 'movie' ? (x.runtime || null) : ((x.episode_run_time || [])[0] || null),
+    seasons: type === 'tv' ? (x.number_of_seasons || null) : null,
+    genres: (x.genres || []).map((g) => g.name.toLowerCase()),
+    vote: x.vote_count ? Math.round(x.vote_average * 10) / 10 : null,
+    original: x.original_title || x.original_name || '',
+    year: (x.release_date || x.first_air_date || '').slice(0, 4),
+  };
+}
+
 export default async function handler(req, res) {
   const { q, img, s } = req.query;
+
+  if (req.query.details) {
+    const a = auth();
+    if (!a) return res.status(503).json({ error: 'TMDB_API_KEY is not set' });
+    const id = Number(req.query.details);
+    const type = req.query.type === 'tv' ? 'tv' : 'movie';
+    if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ error: 'bad id' });
+    try {
+      res.setHeader('Cache-Control', 'public, s-maxage=604800');
+      return res.status(200).json(await details(id, type, a));
+    } catch (e) {
+      return res.status(502).json({ error: String(e.message || e) });
+    }
+  }
 
   if (img) {
     const size = SIZES.has(s) ? s : 'w342';
