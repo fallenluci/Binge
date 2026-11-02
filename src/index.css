@@ -128,3 +128,13 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
 @media (prefers-reduced-motion: reduce) {
   .auth-reveal, .auth-mascot { animation: none; }
 }
+
+/* ---------- Profile ---------- */
+.profile-input::placeholder { color: #515151; opacity: 1; }
+.profile-password::placeholder { color: #fff; opacity: 1; letter-spacing: 0; }
+.profile-input:-webkit-autofill,
+.profile-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 100px #000 inset;
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
+}

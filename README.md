@@ -31,5 +31,5 @@ If you are developing a production application, we recommend using TypeScript wi
    → **Deployments → Redeploy**.
 7. Для локального запуска: скопируй `.env.example` в `.env.local` и заполни те же значения.
 
-Данные лежат в Firestore по пути `users/{uid}/categories/{id}`; правила разрешают
+Данные лежат в Firestore по путям `users/{uid}/categories/{id}` и `users/{uid}/profile/main` (имя, аватар, баннер); правила разрешают
 каждому пользователю доступ только к своим данным.

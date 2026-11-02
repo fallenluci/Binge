@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { getCategories } from '../store';
+import CroppedImage from './CroppedImage';
 
 const EASE = 'cubic-bezier(0.4,0,0.2,1)';
 
@@ -11,7 +12,7 @@ const EASE = 'cubic-bezier(0.4,0,0.2,1)';
  * floatingResults — render results as an overlay under the header instead of in
  * the page flow (Random has full-screen centered content that must not shift).
  */
-export default function TopBar({ onOpenCategory, onProfile, floatingResults = false }) {
+export default function TopBar({ onOpenCategory, onProfile, profile, floatingResults = false }) {
   const [searchMode, setSearchMode] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -124,16 +125,20 @@ export default function TopBar({ onOpenCategory, onProfile, floatingResults = fa
         </div>
 
         {/* Profile — collapses away smoothly when searching */}
-        <button onClick={onProfile} className="glass" style={{
+        <button onClick={onProfile} aria-label="Профиль" className="glass" style={{
           flexBasis: searchMode ? 0 : 42, flexGrow: 0, flexShrink: 0,
           height: 42, borderRadius: '50%', border: 'none', padding: 0, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           overflow: 'hidden', opacity: searchMode ? 0 : 1,
           transition: `flex-basis 0.4s ${EASE}, opacity 0.22s ease`,
         }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--text-dim)" style={{ flexShrink: 0 }}>
-            <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
-          </svg>
+          {profile?.avatar ? (
+            <CroppedImage src={profile.avatar} pos={profile.avatarPos} style={{ width: 42, height: 42, borderRadius: '50%', flexShrink: 0 }} />
+          ) : (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--text-dim)" style={{ flexShrink: 0 }}>
+              <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+            </svg>
+          )}
         </button>
       </div>
 

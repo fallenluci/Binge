@@ -2,14 +2,14 @@ import { useState, useEffect } from 'react';
 import { getCategories } from '../store';
 import TopBar from '../components/TopBar';
 
-export default function HomePage({ onOpenCategory, onProfile, refreshKey }) {
+export default function HomePage({ onOpenCategory, onProfile, profile, refreshKey }) {
   const [cats, setCats] = useState([]);
 
   useEffect(() => { setCats(getCategories()); }, [refreshKey]);
 
   return (
     <div className="page dotted-bg" style={{ paddingBottom: 140 }}>
-      <TopBar onOpenCategory={onOpenCategory} onProfile={onProfile} />
+      <TopBar onOpenCategory={onOpenCategory} onProfile={onProfile} profile={profile} />
 
       <div style={{ padding: '20px 16px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {cats.length === 0 && (

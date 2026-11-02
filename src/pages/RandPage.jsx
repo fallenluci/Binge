@@ -28,7 +28,7 @@ const CatFace = ({ size = 220 }) => (
   </svg>
 );
 
-export default function RandPage({ onOpenCategory, onProfile }) {
+export default function RandPage({ onOpenCategory, onProfile, profile }) {
   const [cats, setCats] = useState([]);
   const [phase, setPhase] = useState('idle'); // idle | playing | result
   const [result, setResult] = useState(null);
@@ -109,7 +109,7 @@ export default function RandPage({ onOpenCategory, onProfile }) {
   return (
     <div className="rand-frame dotted-bg">
       {/* Same header as Home — identical icons, working search */}
-      <TopBar onOpenCategory={onOpenCategory} onProfile={onProfile} floatingResults />
+      <TopBar onOpenCategory={onOpenCategory} onProfile={onProfile} profile={profile} floatingResults />
 
       {/* Center content */}
       <div style={{
