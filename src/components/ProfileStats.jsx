@@ -157,58 +157,63 @@ function Wide({ s, statRow, label, onOpenCategory }) {
   return (
     <div>
       {statRow}
+
+      {/* Top-5 across the whole width: the big numbers need the room */}
+      <div style={label}>{s.topFresh ? 'Топ-5 за месяц' : 'Топ-5 за всё время'}</div>
+      {s.top.length === 0 ? (
+        <div style={{ height: 120, borderRadius: 26, background: CARD, display: 'flex', alignItems: 'center', justifyContent: 'center', color: GREY, fontSize: 15, fontWeight: 700 }}>
+          Оцени пару фильмов — здесь появится твой топ
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14 }}>
+          {s.top.map((f, i) => <TopCard key={`${f.cat.id}-${f.id}`} f={f} rank={i + 1} onClick={() => onOpenCategory?.(f.cat.id)} />)}
+        </div>
+      )}
+
       <Recent films={s.recent} label={label} onOpenCategory={onOpenCategory} desktop />
-      <div style={{ display: 'grid', gridTemplateColumns: fav ? '300px 1fr' : '1fr', gap: 16, marginTop: 6 }}>
-        {fav && (
-          <div>
-            <div style={label}>Любимая категория</div>
-            <div onClick={() => onOpenCategory?.(fav.cat.id)} style={{
-              height: 200, borderRadius: 26, position: 'relative', overflow: 'hidden', cursor: 'pointer', background: fav.cat.color,
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 18px',
-            }}>
-              {fav.cat.image && <CroppedImage src={fav.cat.image} pos={coverCrop(fav.cat)} style={{ position: 'absolute', inset: 0 }} />}
-              <div style={{ position: 'absolute', inset: 0, background: fav.cat.image ? 'rgba(0,0,0,0.4)' : 'linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.25))' }} />
-              <div style={{ position: 'relative', color: '#fff', fontSize: 32, lineHeight: '36px', fontWeight: 700, letterSpacing: '-0.5px', textShadow: '0 2px 12px rgba(0,0,0,0.4)' }}>{fav.cat.name}</div>
-              <div style={{ position: 'relative', color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: 700, marginTop: 6 }}>
-                {fav.count} {plural(fav.count, 'фильм', 'фильма', 'фильмов')}{fav.avg != null && ` · средняя ${fmt(fav.avg)}`}
-              </div>
+
+      {fav && (
+        <>
+          <div style={label}>Любимая категория</div>
+          <div onClick={() => onOpenCategory?.(fav.cat.id)} style={{
+            height: 150, borderRadius: 30, position: 'relative', overflow: 'hidden', cursor: 'pointer', background: fav.cat.color,
+            display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 36px',
+          }}>
+            {fav.cat.image && <CroppedImage src={fav.cat.image} pos={coverCrop(fav.cat)} style={{ position: 'absolute', inset: 0 }} />}
+            <div style={{ position: 'absolute', inset: 0, background: fav.cat.image ? 'linear-gradient(90deg, rgba(0,0,0,0.6), rgba(0,0,0,0.15))' : 'linear-gradient(90deg, rgba(0,0,0,0.3), rgba(0,0,0,0))' }} />
+            <div style={{ position: 'relative', color: '#fff', fontSize: 40, lineHeight: '44px', fontWeight: 800, letterSpacing: '-0.5px' }}>{fav.cat.name}</div>
+            <div style={{ position: 'relative', color: 'rgba(255,255,255,0.8)', fontSize: 14, fontWeight: 700, marginTop: 6 }}>
+              {fav.count} {plural(fav.count, 'фильм', 'фильма', 'фильмов')}{fav.avg != null && ` · средняя оценка ${fmt(fav.avg)}`}
             </div>
           </div>
-        )}
-        <div>
-          <div style={label}>{s.topFresh ? 'Топ-5 за месяц' : 'Топ-5 за всё время'}</div>
-          {s.top.length === 0 ? (
-            <div style={{ height: 200, borderRadius: 26, background: CARD, display: 'flex', alignItems: 'center', justifyContent: 'center', color: GREY, fontSize: 15, fontWeight: 700 }}>
-              Оцени пару фильмов — здесь появится твой топ
-            </div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
-              {s.top.map((f, i) => <TopCard key={`${f.cat.id}-${f.id}`} f={f} rank={i + 1} onClick={() => onOpenCategory?.(f.cat.id)} />)}
-            </div>
-          )}
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }
 
+// Top-5 card, "Netflix" style: a huge outlined rank number stands left of the poster
+// on the black background, so it's always readable whatever the poster looks like.
 function TopCard({ f, rank, onClick }) {
   const rc = ratingColor(f.rating);
   const has = !!f.poster;
   return (
-    <div onClick={onClick} style={{
-      height: 200, borderRadius: 22, background: CARD, position: 'relative', overflow: 'hidden', cursor: 'pointer',
-      padding: 14, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
-    }}>
-      {has && <img src={posterUrl(f.poster, 'w342')} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
-      {has && <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0) 30%, rgba(0,0,0,0.85) 100%)' }} />}
+    <div onClick={onClick} style={{ display: 'flex', alignItems: 'flex-end', height: 200, cursor: 'pointer', minWidth: 0 }}>
       <b style={{
-        position: 'absolute', right: -6, top: -34, fontSize: 150, lineHeight: 1, fontWeight: 900, letterSpacing: -8,
-        color: has ? 'rgba(255,255,255,0.22)' : '#232323', pointerEvents: 'none',
+        position: 'relative', zIndex: 1, flexShrink: 0, marginRight: -18,
+        fontSize: 150, lineHeight: 0.8, fontWeight: 900, letterSpacing: -10,
+        color: '#000', WebkitTextStroke: '3px #8E8E93', pointerEvents: 'none',
       }}>{rank}</b>
-      <div style={{ position: 'relative', color: '#fff', fontSize: 17, lineHeight: '20px', fontWeight: 800, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textShadow: has ? '0 1px 8px rgba(0,0,0,0.6)' : 'none' }}>{f.name}</div>
-      <div style={{ position: 'relative', color: has ? 'rgba(255,255,255,0.65)' : GREY, fontSize: 12, fontWeight: 700, margin: '4px 0 10px' }}>{f.cat.name}</div>
-      <span className="rating-pill" style={{ position: 'relative', alignSelf: 'flex-start', fontSize: 13, minWidth: 30, height: 24, padding: '0 9px', color: rc, background: has ? 'rgba(0,0,0,0.55)' : `${rc}20` }}>{f.rating}</span>
+      <div style={{
+        flex: 1, minWidth: 0, height: 200, borderRadius: 18, background: CARD, position: 'relative', overflow: 'hidden',
+        display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '12px 12px 12px 30px',
+      }}>
+        {has && <img src={posterUrl(f.poster, 'w342')} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
+        {has && <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0) 35%, rgba(0,0,0,0.88) 100%)' }} />}
+        <div style={{ position: 'relative', color: '#fff', fontSize: 16, lineHeight: '19px', fontWeight: 800, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textShadow: has ? '0 1px 8px rgba(0,0,0,0.6)' : 'none' }}>{f.name}</div>
+        <div style={{ position: 'relative', color: has ? 'rgba(255,255,255,0.65)' : GREY, fontSize: 12, fontWeight: 700, margin: '3px 0 8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.cat.name}</div>
+        <span className="rating-pill" style={{ position: 'relative', alignSelf: 'flex-start', fontSize: 13, minWidth: 30, height: 24, padding: '0 9px', color: rc, background: has ? 'rgba(0,0,0,0.6)' : `${rc}20` }}>{f.rating}</span>
+      </div>
     </div>
   );
 }
