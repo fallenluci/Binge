@@ -29,6 +29,9 @@ const CatFace = ({ size = 220 }) => (
   </svg>
 );
 
+const ANIM_URL = '/dori-roll.webp';
+const ANIM_MS = 7000; // length of the animation (plays once)
+
 export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile }) {
   const desktop = useIsDesktop();
   // Figma desktop: 375px mascot, 52px result title; phone keeps 220 / 38
@@ -39,8 +42,11 @@ export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile
   const [showDrum, setShowDrum] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState(0); // 0 = all categories
   const [imgOk, setImgOk] = useState(true);
-  const [videoOk, setVideoOk] = useState(true);
-  const videoRef = useRef(null);
+  // Roll animation: an animated WebP with a real transparent background. Unlike a
+  // transparent WebM (which Safari shows on black) it works on iPhone too. It's
+  // loaded once as a blob; every roll gets a fresh object URL so it starts from frame 1.
+  const [animSrc, setAnimSrc] = useState(null);
+  const animBlob = useRef(null);
   const pendingResult = useRef(null);
   const safetyTimeout = useRef(null);
 
@@ -68,20 +74,13 @@ export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile
     clearTimeout(safetyTimeout.current);
   };
 
-  // Video element stays mounted permanently — we only toggle visibility and play/pause it,
-  // matching the reference implementation that's confirmed to work reliably.
   useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    const onEnded = () => finish();
-    const onErr = () => setVideoOk(false);
-    v.addEventListener('ended', onEnded);
-    v.addEventListener('error', onErr);
-    return () => {
-      v.removeEventListener('ended', onEnded);
-      v.removeEventListener('error', onErr);
-    };
+    let alive = true;
+    fetch(ANIM_URL).then(r => (r.ok ? r.blob() : null)).then(b => { if (alive && b) animBlob.current = b; }).catch(() => {});
+    return () => { alive = false; };
   }, []);
+  // Free the last object URL when it's replaced or the page closes
+  useEffect(() => () => { if (animSrc) URL.revokeObjectURL(animSrc); }, [animSrc]);
 
   const start = () => {
     if (phase === 'playing') return;
@@ -90,16 +89,12 @@ export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile
     setPhase('playing');
     setShowDrum(false);
 
-    const v = videoRef.current;
-    if (v && videoOk) {
-      v.currentTime = 0;
-      v.play().catch(() => setVideoOk(false));
-      // Safety net in case 'ended' never fires for some reason
-      clearTimeout(safetyTimeout.current);
-      safetyTimeout.current = setTimeout(finish, 9000);
+    clearTimeout(safetyTimeout.current);
+    if (animBlob.current) {
+      setAnimSrc(URL.createObjectURL(animBlob.current));
+      safetyTimeout.current = setTimeout(finish, ANIM_MS);
     } else {
-      // No video available — fall back to a fixed reveal delay
-      clearTimeout(safetyTimeout.current);
+      // Animation not loaded (offline / slow network) — fall back to a short reveal delay
       safetyTimeout.current = setTimeout(finish, 2200);
     }
   };
@@ -152,23 +147,18 @@ export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile
               onError={() => setImgOk(false)}
               style={{
                 position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain',
-                display: phase === 'playing' && videoOk ? 'none' : 'block',
+                display: phase === 'playing' && animSrc ? 'none' : 'block',
               }}
             />
           )}
           {!imgOk && phase !== 'playing' && <CatFace size={CAT} />}
-          {videoOk && (
-            <video
-              ref={videoRef}
-              src="/dori2.webm"
-              muted
-              playsInline
-              preload="auto"
-              style={{
-                position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain',
-                mixBlendMode: 'screen',
-                display: phase === 'playing' ? 'block' : 'none',
-              }}
+          {phase === 'playing' && animSrc && (
+            <img
+              src={animSrc}
+              alt=""
+              aria-hidden="true"
+              draggable="false"
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }}
             />
           )}
         </button>
