@@ -29,7 +29,7 @@ const CatFace = ({ size = 220 }) => (
   </svg>
 );
 
-export default function RandPage({ onOpenCategory, onProfile, profile }) {
+export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile }) {
   const desktop = useIsDesktop();
   // Figma desktop: 375px mascot, 52px result title; phone keeps 220 / 38
   const CAT = desktop ? 375 : 220;
@@ -113,7 +113,7 @@ export default function RandPage({ onOpenCategory, onProfile, profile }) {
   return (
     <div className="rand-frame dotted-bg">
       {/* Same header as Home — identical icons, working search */}
-      <TopBar onOpenCategory={onOpenCategory} onProfile={onProfile} profile={profile} floatingResults />
+      <TopBar onOpenCategory={onOpenCategory} onProfile={onProfile} onRefresh={onRefresh} profile={profile} floatingResults />
 
       {/* Center content */}
       <div style={{

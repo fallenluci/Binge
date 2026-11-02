@@ -99,8 +99,8 @@ export default function App() {
 
   return (
     <div className="app">
-      {page === 'home' && <HomePage onOpenCategory={id => setCatId(id)} onProfile={openAccount} profile={profile} refreshKey={tick} />}
-      {page === 'rand' && <RandPage key={tick} onOpenCategory={id => setCatId(id)} onProfile={openAccount} profile={profile} />}
+      {page === 'home' && <HomePage onOpenCategory={id => setCatId(id)} onProfile={openAccount} onRefresh={refresh} profile={profile} refreshKey={tick} />}
+      {page === 'rand' && <RandPage key={tick} onOpenCategory={id => setCatId(id)} onProfile={openAccount} onRefresh={refresh} profile={profile} />}
       {catId && <CategoryPage categoryId={catId} refreshKey={tick} onBack={() => setCatId(null)} onRefresh={refresh} />}
       {showProfile && user && <ProfilePage user={user} profile={profile} onClose={() => setShowProfile(false)} />}
       {!catId && !showProfile && <Island activePage={page} onChangePage={setPage} onRefresh={refresh} />}

@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { getCategories } from '../store';
+import { getCategories, importCategories } from '../store';
+import { parseFilmList, readTextFile } from '../lib/importList';
+import ImportDialog from './ImportDialog';
 import CroppedImage from './CroppedImage';
 import { useIsDesktop } from '../lib/useIsDesktop';
 
@@ -13,12 +15,28 @@ const EASE = 'cubic-bezier(0.4,0,0.2,1)';
  * floatingResults — render results as an overlay under the header instead of in
  * the page flow (Random has full-screen centered content that must not shift).
  */
-export default function TopBar({ onOpenCategory, onProfile, profile, floatingResults = false }) {
+export default function TopBar({ onOpenCategory, onProfile, onRefresh, profile, floatingResults = false }) {
   const [searchMode, setSearchMode] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const searchInputRef = useRef(null);
   const desktop = useIsDesktop();
+  // Desktop only: import categories and films from a .txt list
+  const importRef = useRef(null);
+  const [importing, setImporting] = useState(null); // { fileName, groups, summary }
+
+  const onImportFile = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    const groups = parseFilmList(await readTextFile(file));
+    setImporting({ fileName: file.name, groups, summary: groups.length ? importCategories(groups, { dryRun: true }) : null });
+  };
+  const confirmImport = () => {
+    importCategories(importing.groups);
+    setImporting(null);
+    onRefresh?.();
+  };
 
   useEffect(() => {
     if (searchMode) {
@@ -86,6 +104,21 @@ export default function TopBar({ onOpenCategory, onProfile, profile, floatingRes
           transition: `flex-grow 0.4s ${EASE}`,
         }} />
 
+        {/* Import from .txt (desktop only) — collapses away when searching like the profile button */}
+        {desktop && (
+          <button onClick={() => importRef.current?.click()} aria-label="Загрузить список из файла" title="Загрузить список из .txt" className="glass" style={{
+            flexBasis: searchMode ? 0 : 42, flexGrow: 0, flexShrink: 0, marginRight: searchMode ? 0 : 10,
+            height: 42, borderRadius: '50%', border: 'none', padding: 0, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            overflow: 'hidden', opacity: searchMode ? 0 : 1,
+            transition: `flex-basis 0.4s ${EASE}, margin 0.4s ${EASE}, opacity 0.22s ease`,
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <path d="M12 20V5M5.5 11.5 12 5l6.5 6.5" />
+            </svg>
+          </button>
+        )}
+
         {/* Search pill — grows via flex-grow to fill the freed space */}
         <div
           className="glass"
@@ -146,6 +179,16 @@ export default function TopBar({ onOpenCategory, onProfile, profile, floatingRes
       </div>
 
       {resultsBlock}
+
+      {desktop && <input ref={importRef} type="file" accept=".txt,text/plain" hidden onChange={onImportFile} />}
+      {importing && (
+        <ImportDialog
+          fileName={importing.fileName}
+          summary={importing.summary}
+          onConfirm={confirmImport}
+          onClose={() => setImporting(null)}
+        />
+      )}
     </div>
   );
 }

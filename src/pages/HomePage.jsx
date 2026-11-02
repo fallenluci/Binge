@@ -3,7 +3,7 @@ import { getCategories } from '../store';
 import TopBar from '../components/TopBar';
 import { useIsDesktop } from '../lib/useIsDesktop';
 
-export default function HomePage({ onOpenCategory, onProfile, profile, refreshKey }) {
+export default function HomePage({ onOpenCategory, onProfile, onRefresh, profile, refreshKey }) {
   const [cats, setCats] = useState([]);
   const desktop = useIsDesktop();
 
@@ -11,7 +11,7 @@ export default function HomePage({ onOpenCategory, onProfile, profile, refreshKe
 
   return (
     <div className="page dotted-bg" style={{ paddingBottom: 140 }}>
-      <TopBar onOpenCategory={onOpenCategory} onProfile={onProfile} profile={profile} />
+      <TopBar onOpenCategory={onOpenCategory} onProfile={onProfile} onRefresh={onRefresh} profile={profile} />
 
       {/* Phone: one column of wide tiles. Desktop: 2-column grid of 375×200 tiles (Figma desktop). */}
       <div style={desktop

@@ -119,6 +119,38 @@ export function deleteFilm(categoryId, filmId) {
   saveData(data);
 }
 
+/**
+ * Bulk import from a text file: [{ name, films: [names] }].
+ * Categories are matched by name (case-insensitive) — existing ones get only the films
+ * they don't have yet, new ones are created with colours not used yet. One save at the end.
+ * Returns what would change; with dryRun nothing is saved (used for the preview).
+ */
+export function importCategories(groups, { dryRun = false } = {}) {
+  const data = getData();
+  const used = new Set(data.categories.map(c => c.color));
+  const free = CATEGORY_COLORS.filter(c => !used.has(c));
+  let colorIdx = 0;
+  const nextColor = () => free.length ? free[colorIdx++ % free.length] : CATEGORY_COLORS[(data.categories.length + colorIdx++) % CATEGORY_COLORS.length];
+  const stamp = Date.now();
+  let seq = 0;
+  const newId = () => `${stamp}-${seq++}`;
+  const summary = [];
+  for (const g of groups) {
+    let cat = data.categories.find(c => c.name.trim().toLowerCase() === g.name.toLowerCase());
+    const isNew = !cat;
+    if (isNew) {
+      cat = { id: newId(), name: g.name, color: nextColor(), image: null, imagePosition: { x: 50, y: 50, scale: 100 }, films: [] };
+      data.categories.push(cat);
+    }
+    const have = new Set(cat.films.map(f => f.name.trim().toLowerCase()));
+    const fresh = g.films.filter(n => !have.has(n.toLowerCase()));
+    fresh.forEach(name => cat.films.push({ id: newId(), name, rating: null }));
+    summary.push({ name: cat.name, color: cat.color, isNew, added: fresh.length, skipped: g.films.length - fresh.length });
+  }
+  if (!dryRun) saveData(data);
+  return summary;
+}
+
 export const CATEGORY_COLORS = [
   '#B8311A', '#D98E2C', '#6B2D8C', '#3A7D44', '#1F6F78', '#A8492F',
   '#4A4E69', '#8C6A3F', '#2E5A3E', '#9C2C4F', '#5B7B9A', '#7A5230',
