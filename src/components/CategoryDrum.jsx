@@ -54,7 +54,7 @@ export default function CategoryDrum({ items, selectedIndex, onSelect, onDone })
         position: 'fixed', inset: 0, zIndex: 500,
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         gap: 28,
-        background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)',
+        background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
       }}
     >
       <div

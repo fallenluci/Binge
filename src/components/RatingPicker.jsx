@@ -143,11 +143,13 @@ export default function RatingPicker({ film, onRate, onClose }) {
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, maxWidth: 430, left: '50%', marginLeft: -215,
+      // Full-screen blur, same as the Random filter drum
+      position: 'fixed', inset: 0,
       zIndex: 500, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      background: 'rgba(0,0,0,0.96)', backdropFilter: 'blur(40px)',
+      background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+      animation: 'fadeIn 0.2s ease',
     }}>
-      <button onClick={onClose} className="nav-solid" style={{ position: 'fixed', top: 60, right: 22, width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text)', fontSize: 16, border: 'none' }}>✕</button>
+      <button onClick={onClose} className="nav-solid" style={{ position: 'fixed', top: 60, right: 'max(22px, calc(50% - 193px))', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text)', fontSize: 16, border: 'none' }}>✕</button>
 
       <div style={{ fontSize: 22, fontWeight: 500, color: 'var(--text)', textAlign: 'center', padding: '0 40px', marginBottom: 32, lineHeight: 1.3 }}>{film.name}</div>
 
