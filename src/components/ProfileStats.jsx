@@ -94,7 +94,6 @@ export default function ProfileStats({ desktop, onOpenCategory }) {
           return (
             <div key={`${f.cat.id}-${f.id}`} onClick={() => onOpenCategory?.(f.cat.id)} style={{
               display: 'flex', alignItems: 'center', gap: 12, height: 46, cursor: 'pointer',
-              borderTop: i ? '1px solid #222' : 'none',
             }}>
               <span style={{ color: GREY, fontSize: 15, fontWeight: 800, width: 14, textAlign: 'center', flexShrink: 0 }}>{i + 1}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
