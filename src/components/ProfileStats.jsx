@@ -170,23 +170,27 @@ function Wide({ s, statRow, label, onOpenCategory }) {
         </div>
       )}
 
-      <Recent films={s.recent} label={label} onOpenCategory={onOpenCategory} desktop />
-
-      {fav && (
-        <>
-          <div style={label}>Любимая категория</div>
-          <div onClick={() => onOpenCategory?.(fav.cat.id)} style={{
-            height: 150, borderRadius: 30, position: 'relative', overflow: 'hidden', cursor: 'pointer', background: fav.cat.color,
-            display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 36px',
-          }}>
-            {fav.cat.image && <CroppedImage src={fav.cat.image} pos={coverCrop(fav.cat)} style={{ position: 'absolute', inset: 0 }} />}
-            <div style={{ position: 'absolute', inset: 0, background: fav.cat.image ? 'linear-gradient(90deg, rgba(0,0,0,0.6), rgba(0,0,0,0.15))' : 'linear-gradient(90deg, rgba(0,0,0,0.3), rgba(0,0,0,0))' }} />
-            <div style={{ position: 'relative', color: '#fff', fontSize: 40, lineHeight: '44px', fontWeight: 800, letterSpacing: '-0.5px' }}>{fav.cat.name}</div>
-            <div style={{ position: 'relative', color: 'rgba(255,255,255,0.8)', fontSize: 14, fontWeight: 700, marginTop: 6 }}>
-              {fav.count} {plural(fav.count, 'фильм', 'фильма', 'фильмов')}{fav.avg != null && ` · средняя оценка ${fmt(fav.avg)}`}
+      {/* Favourite category (3 columns) + the last 5 watched films, in one row of 8 */}
+      {(fav || s.recent.length > 0) && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', columnGap: 12 }}>
+          {fav && <div style={{ ...label, gridColumn: 'span 3' }}>Любимая категория</div>}
+          {s.recent.length > 0 && <div style={{ ...label, gridColumn: fav ? 'span 5' : 'span 8' }}>Недавно посмотрел</div>}
+          {fav && (
+            <div onClick={() => onOpenCategory?.(fav.cat.id)} style={{
+              gridColumn: 'span 3', alignSelf: 'start', aspectRatio: '2.13', borderRadius: 22, // as tall as the posters next to it
+               position: 'relative', overflow: 'hidden', cursor: 'pointer', background: fav.cat.color,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 18px',
+            }}>
+              {fav.cat.image && <CroppedImage src={fav.cat.image} pos={coverCrop(fav.cat)} style={{ position: 'absolute', inset: 0 }} />}
+              <div style={{ position: 'absolute', inset: 0, background: fav.cat.image ? 'rgba(0,0,0,0.4)' : 'linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.25))' }} />
+              <div style={{ position: 'relative', color: '#fff', fontSize: 36, lineHeight: '40px', fontWeight: 700, letterSpacing: '-0.5px', textShadow: '0 2px 12px rgba(0,0,0,0.4)' }}>{fav.cat.name}</div>
+              <div style={{ position: 'relative', color: 'rgba(255,255,255,0.8)', fontSize: 14, fontWeight: 700, marginTop: 8 }}>
+                {fav.count} {plural(fav.count, 'фильм', 'фильма', 'фильмов')}{fav.avg != null && ` · средняя ${fmt(fav.avg)}`}
+              </div>
             </div>
-          </div>
-        </>
+          )}
+          <Recent films={s.recent} label={null} onOpenCategory={onOpenCategory} desktop inline />
+        </div>
       )}
     </div>
   );
@@ -228,20 +232,22 @@ const when = (t) => {
 };
 
 // "Недавно посмотрел": the last rated films as a row of posters (scrolls sideways on the phone)
-function Recent({ films, label, onOpenCategory, desktop }) {
+function Recent({ films, label, onOpenCategory, desktop, inline }) {
   if (!films.length) return null;
   const stop = (e) => e.stopPropagation(); // sideways scrolling must not trigger the swipe-back
   return (
-    <div>
-      <div style={label}>Недавно посмотрел</div>
+    <div style={inline ? { display: 'contents' } : undefined}>
+      {label && <div style={label}>Недавно посмотрел</div>}
       <div
         className="no-scrollbar"
         onTouchStart={stop} onTouchEnd={stop}
-        style={desktop
+        style={inline
+          ? { display: 'contents' }
+          : desktop
           ? { display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 12 }
           : { display: 'flex', gap: 10, overflowX: 'auto', margin: '0 -24px', padding: '0 24px', scrollPadding: '0 24px', scrollSnapType: 'x mandatory' }}
       >
-        {films.slice(0, desktop ? 8 : 10).map((f) => {
+        {films.slice(0, inline ? 5 : desktop ? 8 : 10).map((f) => {
           const rc = ratingColor(f.rating);
           return (
             <div key={`${f.cat.id}-${f.id}`} onClick={() => onOpenCategory?.(f.cat.id)} style={{ cursor: 'pointer', flex: desktop ? undefined : '0 0 96px', scrollSnapAlign: 'start', minWidth: 0 }}>
