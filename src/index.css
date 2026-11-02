@@ -10,6 +10,10 @@
   --accent: #0A84FF;
   /* Height of the app screen. Pages use it instead of 100dvh — see the iOS note below. */
   --app-h: 100dvh;
+  /* iOS 26 draws a blur under the status bar of the home-screen app that reaches
+     ~45pt below it. Phone headers move down by this much so they stay sharp:
+     ~50px on iPhones with the Dynamic Island, 0 in the browser and on desktop. */
+  --top-shift: max(0px, calc(env(safe-area-inset-top, 0px) - 9px));
 }
 
 /* iOS 26 home-screen app with the translucent status bar: the viewport comes out

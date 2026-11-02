@@ -87,7 +87,7 @@ export default function TopBar({ onOpenCategory, onProfile, onRefresh, profile, 
     // Desktop (Figma 1440 frame): 769px column, buttons 147px from the top, larger logo
     <div style={{ position: 'relative', zIndex: 5, ...(desktop && { maxWidth: 769, margin: '0 auto' }) }}>
       {/* Top bar — search pill morphs from a small circle into the full bar */}
-      <div style={{ display: 'flex', alignItems: 'center', padding: desktop ? 'calc(min(147px, 14.4dvh) - 15px) 0 0' : '56px 24px 0', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', alignItems: 'center', padding: desktop ? 'calc(min(147px, 14.4dvh) - 15px) 0 0' : 'calc(56px + var(--top-shift)) 24px 0', overflow: 'hidden' }}>
         {/* Logo — collapses away smoothly when searching */}
         <div style={{
           flexBasis: searchMode ? 0 : (desktop ? 170 : 120), flexGrow: 0, flexShrink: 0,

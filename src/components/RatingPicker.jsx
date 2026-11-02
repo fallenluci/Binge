@@ -27,7 +27,7 @@ export default function RatingPicker({ film, onRate, onClose }) {
       onPointerDown={e => { downOnBackdrop.current = e.target === e.currentTarget; }}
       onClick={e => { if (downOnBackdrop.current && e.target === e.currentTarget) onClose(); }}
     >
-      {!desktop && <button onClick={onClose} className="nav-solid" style={{ position: 'fixed', top: 60, right: 'max(22px, calc(50% - 193px))', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text)', fontSize: 16, border: 'none' }}>✕</button>}
+      {!desktop && <button onClick={onClose} className="nav-solid" style={{ position: 'fixed', top: 'calc(60px + var(--top-shift))', right: 'max(22px, calc(50% - 193px))', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text)', fontSize: 16, border: 'none' }}>✕</button>}
 
       <div style={{ fontSize: 22, fontWeight: 500, color: 'var(--text)', textAlign: 'center', padding: '0 40px', marginBottom: 32, lineHeight: 1.3 }}>{film.name}</div>
 

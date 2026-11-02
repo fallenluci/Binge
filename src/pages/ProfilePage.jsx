@@ -237,7 +237,7 @@ export default function ProfilePage({ user, profile, onClose }) {
         <button onClick={goBack} aria-label={editing ? 'Отменить' : 'Назад'} className="glass" style={{
           position: 'absolute', borderRadius: '50%', border: 'none',
           display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 2,
-          ...(desktop ? { top: at(-64), left: 0, width: 32, height: 32 } : { top: 60, left: 22, width: 42, height: 42 }),
+          ...(desktop ? { top: at(-64), left: 0, width: 32, height: 32 } : { top: 'calc(60px + var(--top-shift))', left: 22, width: 42, height: 42 }),
         }}>
           <svg width={desktop ? 16 : 18} height={desktop ? 16 : 18} viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth={desktop ? 2.8 : 2.5} strokeLinecap="round" strokeLinejoin="round">
             {editing ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M19 12H5M12 19l-7-7 7-7" />}
@@ -315,7 +315,7 @@ export default function ProfilePage({ user, profile, onClose }) {
 
       {toast && (
         <div className="glass" role="status" style={{
-          position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 600,
+          position: 'fixed', top: 'calc(24px + var(--top-shift))', left: '50%', transform: 'translateX(-50%)', zIndex: 600,
           width: 'min(360px, calc(100% - 32px))', borderRadius: 18, padding: '12px 16px',
           color: '#fff', fontSize: 14, fontWeight: 600, lineHeight: 1.35, textAlign: 'center',
           animation: 'apple-reveal 0.4s cubic-bezier(0.22,1,0.36,1)',

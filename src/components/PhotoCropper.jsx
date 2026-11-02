@@ -57,7 +57,7 @@ export default function PhotoCropper({ src, shape, initialPos, onDone, onCancel 
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 500, background: '#000', display: 'flex', justifyContent: 'center', animation: 'fadeIn 0.2s ease' }}>
-      <div style={{ width: '100%', maxWidth: desktop && !isCircle ? 758 : 430, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 0 40px' }}>
+      <div style={{ width: '100%', maxWidth: desktop && !isCircle ? 758 : 430, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 'calc(60px + var(--top-shift)) 0 40px' }}>
         <div style={{ color: '#fff', fontSize: 24, fontWeight: 700, lineHeight: '24px' }}>{isCircle ? 'Аватар' : 'Баннер'}</div>
         <div style={{ color: '#515151', fontSize: 13, fontWeight: 700, marginTop: 10 }}>Двигай фото и меняй размер</div>
 
