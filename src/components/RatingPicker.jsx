@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { ratingColor } from '../store';
+import { useIsDesktop } from '../lib/useIsDesktop';
 
 const ITEM_H = 74;
 const RATINGS = [1,2,3,4,5,6,7,8,9,10];
@@ -7,6 +8,9 @@ const FRICTION = 0.94; // per-frame velocity decay
 const MIN_VELOCITY = 0.02; // px/ms below which we stop and snap
 
 export default function RatingPicker({ film, onRate, onClose }) {
+  const desktop = useIsDesktop();
+  // Close on a click that both starts and ends on the free area (not after dragging the drum out)
+  const downOnBackdrop = useRef(false);
   const init = film.rating ?? 7;
   const [selected, setSelected] = useState(init);
   const [offset, setOffset] = useState(-(init - 1) * ITEM_H);
@@ -148,8 +152,11 @@ export default function RatingPicker({ film, onRate, onClose }) {
       zIndex: 500, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
       animation: 'fadeIn 0.2s ease',
-    }}>
-      <button onClick={onClose} className="nav-solid" style={{ position: 'fixed', top: 60, right: 'max(22px, calc(50% - 193px))', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text)', fontSize: 16, border: 'none' }}>✕</button>
+    }}
+      onPointerDown={e => { downOnBackdrop.current = e.target === e.currentTarget; }}
+      onClick={e => { if (downOnBackdrop.current && e.target === e.currentTarget) onClose(); }}
+    >
+      {!desktop && <button onClick={onClose} className="nav-solid" style={{ position: 'fixed', top: 60, right: 'max(22px, calc(50% - 193px))', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text)', fontSize: 16, border: 'none' }}>✕</button>}
 
       <div style={{ fontSize: 22, fontWeight: 500, color: 'var(--text)', textAlign: 'center', padding: '0 40px', marginBottom: 32, lineHeight: 1.3 }}>{film.name}</div>
 

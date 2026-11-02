@@ -194,7 +194,7 @@ export default function ProfilePage({ user, profile, onClose }) {
   const t = (phone, deskKey) => (desktop ? at(DK[deskKey]) : phone);
 
   return (
-    <div className="page profile-page" style={{ position: 'fixed', inset: 0, zIndex: 30, background: '#000', animation: 'slideInRight 0.36s cubic-bezier(0.25,0.46,0.45,0.94)' }}>
+    <div className="page profile-page" style={{ position: 'fixed', inset: 0, zIndex: 30, background: '#000' }}>
       <div style={desktop
         ? { position: 'relative', width: 710, maxWidth: 'calc(100% - 48px)', margin: '0 auto', minHeight: `max(100dvh, calc(${B} + 787px))` }
         : { position: 'relative', maxWidth: 430, margin: '0 auto', minHeight: `max(100dvh, ${FRAME_H}px)` }}>

@@ -2,13 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { getCategories, addFilm, addCategory, CATEGORY_COLORS } from '../store';
 import { compressImage } from '../lib/image';
 import ImagePositionEditor from './ImagePositionEditor';
-import { useIsDesktop } from '../lib/useIsDesktop';
 
 export default function Island({ activePage, onChangePage, onRefresh }) {
   const [plusOpen, setPlusOpen] = useState(false);
-  const desktop = useIsDesktop();
-  // Desktop dock (Figma desktop): icon-only, 160×65 pill + 65px "+", 124px above the bottom edge
-  const dockBottom = desktop ? 'min(124.5px, 12.2dvh)' : '30px';
+  // The same dock on every screen size
+  const dockBottom = '30px';
   const [showAddFilm, setShowAddFilm] = useState(false);
   const [showAddCat, setShowAddCat] = useState(false);
   const [addCatDragY, setAddCatDragY] = useState(0);
@@ -92,20 +90,7 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
       )}
 
       {/* Bottom nav: main dock (Home/Rand) + separate "+" island */}
-      <div style={{ position: 'fixed', bottom: dockBottom, left: '50%', transform: 'translateX(-50%)', zIndex: 100, display: 'flex', alignItems: 'center', gap: desktop ? 7 : 10 }}>
-        {desktop ? (
-          <div className="nav-solid" style={{ width: 160, height: 65, position: 'relative' }}>
-            <div style={{
-              position: 'absolute', top: 4.5, left: 7.5, width: 80, height: 56, borderRadius: 999,
-              background: 'rgb(58,58,60)',
-              transform: `translateX(${activePage === 'rand' ? 66 : 0}px)`,
-              transition: 'transform 0.35s cubic-bezier(0.34,1.15,0.64,1)',
-              pointerEvents: 'none',
-            }} />
-            <DockBtn desktop left={7.5} active={activePage === 'home'} onClick={() => onChangePage('home')} label="Home" icon={<MaskIcon src="/icons/home.svg" size={30} />} />
-            <DockBtn desktop left={73.5} active={activePage === 'rand'} onClick={() => onChangePage('rand')} label="Random" icon={<MaskIcon src="/icons/random.svg" size={30} />} />
-          </div>
-        ) : (
+      <div style={{ position: 'fixed', bottom: dockBottom, left: '50%', transform: 'translateX(-50%)', zIndex: 100, display: 'flex', alignItems: 'center', gap: 10 }}>
         <div className="nav-solid" style={{ height: 62, padding: 6, display: 'flex', alignItems: 'stretch', gap: 4, position: 'relative' }}>
           {/* Sliding active indicator — glides between Home/Rand like iOS segmented control */}
           <div style={{
@@ -123,14 +108,13 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
             <MaskIcon src="/icons/random.svg" />
           } />
         </div>
-        )}
 
         {/* Separate "+" island — rotates into an "×" when open */}
         <button onClick={() => { setPlusOpen(!plusOpen); refreshCats(); }} aria-label="Добавить" className="nav-solid" style={{
-          width: desktop ? 65 : 62, height: desktop ? 65 : 62,
+          width: 62, height: 62,
           display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: 'none', padding: 0,
         }}>
-          <svg width={desktop ? 25 : 24} height={desktop ? 25 : 24} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round"
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round"
             style={{ transform: plusOpen ? 'rotate(45deg)' : 'rotate(0deg)', transition: 'transform 0.3s cubic-bezier(0.34,1.4,0.64,1)' }}>
             <line x1="12" y1="4" x2="12" y2="20"/><line x1="4" y1="12" x2="20" y2="12"/>
           </svg>
@@ -243,21 +227,9 @@ function MaskIcon({ src, size = 24 }) {
   return <span aria-hidden="true" style={{ display: 'block', width: size, height: size, backgroundColor: 'currentColor', WebkitMask: mask, mask }} />;
 }
 
-function DockBtn({ active, onClick, icon, label, desktop, left }) {
-  if (desktop) {
-    return (
-      <button onClick={onClick} aria-label={label} title={label} style={{
-        position: 'absolute', top: 4.5, left, width: 80, height: 56, borderRadius: 999,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'none', border: 'none', padding: 0, cursor: 'pointer', zIndex: 1,
-        color: active ? 'var(--text)' : 'var(--text-dim)', transition: 'color 0.2s',
-      }}>
-        {icon}
-      </button>
-    );
-  }
+function DockBtn({ active, onClick, icon, label }) {
   return (
-    <button onClick={onClick} style={{
+    <button onClick={onClick} aria-label={label} style={{
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
       background: 'none',
       border: 'none',

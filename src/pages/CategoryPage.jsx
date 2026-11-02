@@ -14,7 +14,6 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
   const [catName, setCatName] = useState('');
   const [editFilm, setEditFilm] = useState(null);
   const [editFilmName, setEditFilmName] = useState('');
-  const [exiting, setExiting] = useState(false);
   const [showAppearance, setShowAppearance] = useState(false);
   const [appearanceDragY, setAppearanceDragY] = useState(0);
   const appearanceDragging = useRef(false);
@@ -35,7 +34,7 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
     if (fresh) setCat(fresh);
     else onBack(); // the category was deleted on another device
   }, [refreshKey]);
-  const goBack = () => { setExiting(true); setTimeout(() => { onBack(); onRefresh(); }, 300); };
+  const goBack = () => { onBack(); onRefresh(); };
   const handleTouchStart = e => { touchStartX.current = e.touches[0].clientX; touchStartY.current = e.touches[0].clientY; };
   const handleTouchEnd = e => {
     const dx = e.changedTouches[0].clientX - touchStartX.current;
@@ -104,7 +103,7 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
 
   return (
     <div
-      className={`cat-page ${exiting ? 'screen-exit' : 'screen-enter'}`}
+      className="cat-page"
       onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: desktop ? 'min(147px, 14.4dvh) 22px 0' : '60px 22px 0' }}>
