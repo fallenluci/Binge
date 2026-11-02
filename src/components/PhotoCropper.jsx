@@ -52,7 +52,7 @@ export default function PhotoCropper({ src, shape, initialPos, onDone, onCancel 
   const onWheel = (e) => apply({ ...pos, scale: pos.scale * Math.exp(-e.deltaY * 0.0015) });
 
   const isCircle = shape === 'circle';
-  // The banner frame has the proportions of the banner on this layout (phone 390×320, desktop 710×198)
+  // The banner frame has the proportions of the banner on this layout (phone 390×360, desktop 710×198)
   const desktop = useIsDesktop();
 
   return (
@@ -75,7 +75,7 @@ export default function PhotoCropper({ src, shape, initialPos, onDone, onCancel 
               touchAction: 'none', cursor: 'grab', background: '#171717',
               ...(isCircle
                 ? { width: 280, height: 280, borderRadius: '50%' }
-                : desktop ? { width: 'calc(100% - 48px)', aspectRatio: '710 / 198', borderRadius: '37.5px 37.5px 0 0' } : { width: '100%', aspectRatio: '390 / 320' }),
+                : desktop ? { width: 'calc(100% - 48px)', aspectRatio: '710 / 198', borderRadius: '37.5px 37.5px 0 0' } : { width: '100%', aspectRatio: '390 / 360' }),
               boxShadow: '0 0 0 1px #2C2C2C',
             }}
           />

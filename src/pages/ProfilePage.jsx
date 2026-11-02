@@ -23,7 +23,9 @@ const GREY = '#515151';
 const FRAME_H = 844;
 
 // Banner fades into black between 235pt and 320pt (sampled from the mockup)
-const BANNER_FADE = 'linear-gradient(to bottom, rgba(0,0,0,0.23) 0px, rgba(0,0,0,0) 26px, rgba(0,0,0,0) 235px, rgba(0,0,0,0.045) 240px, rgba(0,0,0,0.14) 250px, rgba(0,0,0,0.26) 260px, rgba(0,0,0,0.43) 270px, rgba(0,0,0,0.63) 280px, rgba(0,0,0,0.8) 290px, rgba(0,0,0,0.913) 300px, rgba(0,0,0,0.976) 310px, #000 320px)';
+// Phone banner: 360px tall (was 320 in the mockup), the photo is visible 40px lower
+const BANNER_H = 360;
+const BANNER_FADE = 'linear-gradient(to bottom, rgba(0,0,0,0.23) 0px, rgba(0,0,0,0) 26px, rgba(0,0,0,0) 275px, rgba(0,0,0,0.045) 280px, rgba(0,0,0,0.14) 290px, rgba(0,0,0,0.26) 300px, rgba(0,0,0,0.43) 310px, rgba(0,0,0,0.63) 320px, rgba(0,0,0,0.8) 330px, rgba(0,0,0,0.913) 340px, rgba(0,0,0,0.976) 350px, #000 360px)';
 const EDIT_DIM = 'rgba(0,0,0,0.53)';
 
 // Desktop (Figma 1440 × 1024 frame): a 710px column with a rounded 198px banner.
@@ -107,6 +109,17 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory }) 
     setEditing(true);
   };
   const goBack = () => (editing ? setEditing(false) : onClose());
+
+  // Swipe right to go back (in edit mode: cancel editing), like on the category page
+  const swipe = useRef(null);
+  const onTouchStart = (e) => { swipe.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; };
+  const onTouchEnd = (e) => {
+    if (!swipe.current || cropper || confirmPw || photoMenu) return;
+    const dx = e.changedTouches[0].clientX - swipe.current.x;
+    const dy = Math.abs(e.changedTouches[0].clientY - swipe.current.y);
+    swipe.current = null;
+    if (dx > 80 && dy < 60) goBack();
+  };
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape' && !cropper && !confirmPw && !photoMenu) goBack(); };
@@ -195,7 +208,8 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory }) 
   const t = (phone, deskKey) => (desktop ? at(DK[deskKey]) : phone);
 
   return (
-    <div className="page profile-page" style={{ position: 'absolute', inset: 0, zIndex: 30, background: '#000' }}>
+    <div className="page profile-page" style={{ position: 'absolute', inset: 0, zIndex: 30, background: '#000' }}
+      onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       <div style={desktop
         ? { position: 'relative', width: 710, maxWidth: 'calc(100% - 48px)', margin: '0 auto', minHeight: `max(var(--app-h), calc(${B} + 787px))` }
         : { position: 'relative', maxWidth: 430, margin: '0 auto', minHeight: `max(var(--app-h), ${FRAME_H}px)` }}>
@@ -208,12 +222,12 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory }) 
             position: 'absolute', left: 0, right: 0, background: view.banner ? '#000' : '#171717', cursor: editing ? 'pointer' : 'default',
             ...(desktop
               ? { top: B, height: DESK_BANNER_H, borderRadius: '37.5px 37.5px 0 0' }
-              : { top: 0, height: 320 }),
+              : { top: 0, height: BANNER_H }),
           }}
         >
           {editing && <div style={{ position: 'absolute', inset: 0, background: EDIT_DIM }} />}
           <div style={{ position: 'absolute', inset: 0, background: desktop ? DESK_BANNER_FADE : BANNER_FADE, pointerEvents: 'none' }} />
-          {editing && <Pencil top={desktop ? DESK_BANNER_H / 2 : 153} />}
+          {editing && <Pencil top={desktop ? DESK_BANNER_H / 2 : 173} />}
         </CroppedImage>
 
         {/* Avatar — on desktop its centre sits on the banner's bottom edge */}
@@ -234,8 +248,8 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory }) 
           {editing && <Pencil top={desktop ? DESK_AVATAR / 2 : 77.5} />}
         </CroppedImage>
 
-        {/* Back */}
-        <button onClick={goBack} aria-label={editing ? 'Отменить' : 'Назад'} className="glass" style={{
+        {/* Back — desktop only; on the phone a swipe to the right goes back */}
+        {desktop && <button onClick={goBack} aria-label={editing ? 'Отменить' : 'Назад'} className="glass" style={{
           position: 'absolute', borderRadius: '50%', border: 'none',
           display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 2,
           ...(desktop ? { top: at(-64), left: 0, width: 32, height: 32 } : { top: 'calc(60px + var(--top-shift))', left: 22, width: 42, height: 42 }),
@@ -243,7 +257,7 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory }) 
           <svg width={desktop ? 16 : 18} height={desktop ? 16 : 18} viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth={desktop ? 2.8 : 2.5} strokeLinecap="round" strokeLinejoin="round">
             {editing ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M19 12H5M12 19l-7-7 7-7" />}
           </svg>
-        </button>
+        </button>}
 
         {!editing && (
           <>
