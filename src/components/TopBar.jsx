@@ -5,7 +5,8 @@ import ImportDialog from './ImportDialog';
 import CroppedImage from './CroppedImage';
 import { useIsDesktop } from '../lib/useIsDesktop';
 
-const EASE = 'cubic-bezier(0.4,0,0.2,1)';
+const EASE = 'cubic-bezier(0.32,0.72,0,1)'; // iOS-like: quick start, long soft finish
+const DUR = '0.42s';
 
 /**
  * Shared header for Home and Random: logo, morphing search pill, profile button
@@ -38,14 +39,6 @@ export default function TopBar({ onOpenCategory, onProfile, onRefresh, profile, 
     onRefresh?.();
   };
 
-  useEffect(() => {
-    if (searchMode) {
-      // Focus once the morph animation has mostly settled, for a smoother feel
-      const t = setTimeout(() => searchInputRef.current?.focus(), 200);
-      return () => clearTimeout(t);
-    }
-  }, [searchMode]);
-
   const doSearch = (q) => {
     setQuery(q);
     if (!q.trim()) { setResults([]); return; }
@@ -56,7 +49,9 @@ export default function TopBar({ onOpenCategory, onProfile, onRefresh, profile, 
     setResults(res);
   };
 
-  const closeSearch = () => { setSearchMode(false); setQuery(''); setResults([]); };
+  // Focus right inside the tap (iOS only opens the keyboard from a user gesture)
+  const openSearch = () => { if (searchMode) return; setSearchMode(true); searchInputRef.current?.focus({ preventScroll: true }); };
+  const closeSearch = () => { searchInputRef.current?.blur(); setSearchMode(false); setQuery(''); setResults([]); };
 
   const resultsBlock = searchMode && query && (
     <div style={floatingResults
@@ -86,87 +81,41 @@ export default function TopBar({ onOpenCategory, onProfile, onRefresh, profile, 
   return (
     // Desktop (Figma 1440 frame): 769px column, buttons 147px from the top, larger logo
     <div style={{ position: 'relative', zIndex: 5, ...(desktop && { maxWidth: 769, margin: '0 auto' }) }}>
-      {/* Top bar — search pill morphs from a small circle into the full bar */}
-      <div style={{ display: 'flex', alignItems: 'center', padding: desktop ? 'calc(min(147px, 14.4dvh) - 15px) 0 0' : 'calc(56px + var(--top-shift)) 24px 0', overflow: 'hidden' }}>
-        {/* Logo — collapses away smoothly when searching */}
-        <div style={{
-          flexBasis: searchMode ? 0 : (desktop ? 170 : 120), flexGrow: 0, flexShrink: 0,
-          overflow: 'hidden', whiteSpace: 'nowrap',
-          fontSize: desktop ? 60 : 40, fontWeight: 800, color: 'var(--text)', letterSpacing: desktop ? '-0.75px' : '-0.5px',
-          opacity: searchMode ? 0 : 1,
-          marginRight: searchMode ? 0 : 10,
-          transition: `flex-basis 0.4s ${EASE}, opacity 0.22s ease, margin 0.4s ${EASE}`,
-        }}>Dori</div>
+      {/* Top bar. The row itself never changes size — only opacity and a clip-path
+          animate (both cheap for the browser), so opening search is smooth: the
+          search circle grows into the full bar over the faded logo and buttons. */}
+      <div style={{ padding: desktop ? 'calc(min(147px, 14.4dvh) - 15px) 0 0' : 'calc(56px + var(--top-shift)) 24px 0' }}>
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <div style={{
+            flexShrink: 0, whiteSpace: 'nowrap',
+            fontSize: desktop ? 60 : 40, fontWeight: 800, color: 'var(--text)', letterSpacing: desktop ? '-0.75px' : '-0.5px',
+            opacity: searchMode ? 0 : 1, transition: 'opacity 0.25s ease',
+          }}>Dori</div>
 
-        {/* Spacer — pushes search+profile to the right edge; collapses when searching */}
-        <div style={{
-          flexGrow: searchMode ? 0 : 1, flexShrink: 1, flexBasis: 0,
-          transition: `flex-grow 0.4s ${EASE}`,
-        }} />
+          <div style={{ flex: 1 }} />
 
-        {/* Import from .txt (desktop only) — collapses away when searching like the profile button */}
-        {desktop && (
-          <button onClick={() => importRef.current?.click()} aria-label="Загрузить список из файла" title="Загрузить список из .txt" className="glass" style={{
-            flexBasis: searchMode ? 0 : 42, flexGrow: 0, flexShrink: 0, marginRight: searchMode ? 0 : 10,
-            height: 42, borderRadius: '50%', border: 'none', padding: 0, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            overflow: 'hidden', opacity: searchMode ? 0 : 1,
-            transition: `flex-basis 0.4s ${EASE}, margin 0.4s ${EASE}, opacity 0.22s ease`,
-          }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-              <path d="M12 20V5M5.5 11.5 12 5l6.5 6.5" />
-            </svg>
-          </button>
-        )}
+          {/* Import from .txt (desktop only) */}
+          {desktop && (
+            <button onClick={() => importRef.current?.click()} aria-label="Загрузить список из файла" title="Загрузить список из .txt" className="glass" style={{
+              width: 42, height: 42, flexShrink: 0, marginRight: 10, borderRadius: '50%', border: 'none', padding: 0, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              opacity: searchMode ? 0 : 1, pointerEvents: searchMode ? 'none' : 'auto', transition: 'opacity 0.25s ease',
+            }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20V5M5.5 11.5 12 5l6.5 6.5" />
+              </svg>
+            </button>
+          )}
 
-        {/* Search pill — grows via flex-grow to fill the freed space */}
-        <div
-          className="glass"
-          onClick={() => !searchMode && setSearchMode(true)}
-          style={{
-            display: 'flex', alignItems: 'center', height: 42, borderRadius: 999,
-            flexBasis: 42, flexGrow: searchMode ? 1 : 0, flexShrink: 0,
-            overflow: 'hidden', cursor: searchMode ? 'default' : 'pointer',
-            paddingLeft: searchMode ? 16 : 12, paddingRight: searchMode ? 10 : 12,
-            marginRight: searchMode ? 0 : 10,
-            transition: `flex-grow 0.4s ${EASE}, padding 0.4s ${EASE}, margin 0.4s ${EASE}`,
-          }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0 }}>
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-          </svg>
-          <input
-            ref={searchInputRef}
-            value={query}
-            onChange={e => doSearch(e.target.value)}
-            placeholder="Search"
-            style={{
-              background: 'none', border: 'none', outline: 'none', color: 'var(--text)',
-              fontSize: 16, fontFamily: 'inherit', minWidth: 0,
-              flex: searchMode ? 1 : '0 0 0px',
-              marginLeft: searchMode ? 10 : 0,
-              opacity: searchMode ? 1 : 0,
-              transition: `opacity 0.2s ease ${searchMode ? '0.15s' : '0s'}, flex-basis 0.3s ${EASE}, margin 0.3s ${EASE}`,
-            }}
-          />
-          <button
-            onClick={e => { e.stopPropagation(); closeSearch(); }}
-            style={{
-              background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: 16,
-              flexShrink: 0, width: searchMode ? 20 : 0, overflow: 'hidden',
-              opacity: searchMode ? 1 : 0,
-              transition: `opacity 0.2s ease ${searchMode ? '0.15s' : '0s'}, width 0.3s ${EASE}`,
-            }}
-          >✕</button>
-        </div>
+          {/* Place of the search circle in the row (the real one is the overlay below) */}
+          <div style={{ width: 42, height: 42, flexShrink: 0, marginRight: 10 }} />
 
-        {/* Profile — collapses away smoothly when searching */}
-        <button onClick={onProfile} aria-label="Профиль" className="glass" style={{
-          flexBasis: searchMode ? 0 : 42, flexGrow: 0, flexShrink: 0,
+          <button onClick={onProfile} aria-label="Профиль" className="glass" style={{
+          width: 42, flexShrink: 0,
           height: 42, borderRadius: '50%', border: 'none', padding: 0, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          overflow: 'hidden', opacity: searchMode ? 0 : 1,
-          transition: `flex-basis 0.4s ${EASE}, opacity 0.22s ease`,
+          overflow: 'hidden', opacity: searchMode ? 0 : 1, pointerEvents: searchMode ? 'none' : 'auto',
+          transition: `opacity 0.25s ease`,
         }}>
           {profile?.avatar ? (
             <CroppedImage src={profile.avatar} pos={profile.avatarPos} style={{ width: 42, height: 42, borderRadius: '50%', flexShrink: 0 }} />
@@ -176,6 +125,52 @@ export default function TopBar({ onOpenCategory, onProfile, onRefresh, profile, 
             </svg>
           )}
         </button>
+
+          {/* Search: one full-width bar, clipped to the 42px circle while closed */}
+          <div
+            className="glass"
+            onClick={openSearch}
+            style={{
+              position: 'absolute', left: 0, right: 0, top: '50%', height: 42, marginTop: -21, borderRadius: 21,
+              cursor: searchMode ? 'default' : 'pointer',
+              clipPath: searchMode ? 'inset(0 0 0 0 round 21px)' : 'inset(0 52px 0 calc(100% - 94px) round 21px)',
+              WebkitClipPath: searchMode ? 'inset(0 0 0 0 round 21px)' : 'inset(0 52px 0 calc(100% - 94px) round 21px)',
+              transition: `clip-path ${DUR} ${EASE}, -webkit-clip-path ${DUR} ${EASE}`,
+              willChange: 'clip-path',
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" strokeWidth="2.5" strokeLinecap="round"
+              style={{ position: 'absolute', top: 13, left: searchMode ? 16 : 'calc(100% - 81px)', transition: `left ${DUR} ${EASE}` }}>
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              ref={searchInputRef}
+              value={query}
+              onChange={e => doSearch(e.target.value)}
+              onKeyDown={e => e.key === 'Escape' && closeSearch()}
+              placeholder="Search"
+              tabIndex={searchMode ? 0 : -1}
+              style={{
+                position: 'absolute', left: 42, right: 40, top: 0, height: 42,
+                background: 'none', border: 'none', outline: 'none', color: 'var(--text)',
+                fontSize: 16, fontFamily: 'inherit', padding: 0,
+                opacity: searchMode ? 1 : 0, pointerEvents: searchMode ? 'auto' : 'none',
+                transition: `opacity 0.2s ease ${searchMode ? '0.22s' : '0s'}`,
+              }}
+            />
+            <button
+              aria-label="Закрыть поиск"
+              onClick={e => { e.stopPropagation(); closeSearch(); }}
+              tabIndex={searchMode ? 0 : -1}
+              style={{
+                position: 'absolute', right: 6, top: 6, width: 30, height: 30, borderRadius: '50%',
+                background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: 16,
+                opacity: searchMode ? 1 : 0, pointerEvents: searchMode ? 'auto' : 'none',
+                transition: `opacity 0.2s ease ${searchMode ? '0.22s' : '0s'}`,
+              }}
+            >✕</button>
+          </div>
+        </div>
       </div>
 
       {resultsBlock}

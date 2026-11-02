@@ -32,11 +32,11 @@ const CatFace = ({ size = 220 }) => (
 const ANIM_URL = '/dori-roll.webp';
 const ANIM_MS = 7000; // length of the animation (plays once, 60 fps)
 
-export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile }) {
+export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile, refreshKey }) {
   const desktop = useIsDesktop();
   // Figma desktop: 375px mascot, 52px result title; phone keeps 220 / 38
   const CAT = desktop ? 375 : 220;
-  const [cats, setCats] = useState([]);
+  const [cats, setCats] = useState(getCategories);
   const [phase, setPhase] = useState('idle'); // idle | playing | result
   const [result, setResult] = useState(null);
   const [showDrum, setShowDrum] = useState(false);
@@ -50,7 +50,11 @@ export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile
   const pendingResult = useRef(null);
   const safetyTimeout = useRef(null);
 
-  useEffect(() => { setCats(getCategories()); }, []);
+  useEffect(() => {
+    const fresh = getCategories();
+    setCats(fresh);
+    setSelectedIdx(i => (i > fresh.length ? 0 : i)); // the chosen category may be gone
+  }, [refreshKey]);
 
   const drumItems = [{ id: 'all', label: 'Все' }, ...cats.map(c => ({ id: c.id, label: c.name, color: c.color }))];
   const selectedCat = selectedIdx > 0 ? cats[selectedIdx - 1] : null;

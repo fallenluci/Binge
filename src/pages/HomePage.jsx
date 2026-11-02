@@ -4,7 +4,7 @@ import TopBar from '../components/TopBar';
 import { useIsDesktop } from '../lib/useIsDesktop';
 
 export default function HomePage({ onOpenCategory, onProfile, onRefresh, profile, refreshKey }) {
-  const [cats, setCats] = useState([]);
+  const [cats, setCats] = useState(getCategories); // no empty first frame
   const desktop = useIsDesktop();
 
   useEffect(() => { setCats(getCategories()); }, [refreshKey]);

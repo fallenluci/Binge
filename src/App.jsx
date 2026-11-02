@@ -99,8 +99,14 @@ export default function App() {
 
   return (
     <div className="app">
-      {page === 'home' && <HomePage onOpenCategory={id => setCatId(id)} onProfile={openAccount} onRefresh={refresh} profile={profile} refreshKey={tick} />}
-      {page === 'rand' && <RandPage key={tick} onOpenCategory={id => setCatId(id)} onProfile={openAccount} onRefresh={refresh} profile={profile} />}
+      {/* Both tabs stay mounted and are only shown/hidden: switching is instant,
+          with no re-render of the list and no re-decoding of the mascot image */}
+      <div style={{ display: page === 'home' ? 'block' : 'none' }}>
+        <HomePage onOpenCategory={id => setCatId(id)} onProfile={openAccount} onRefresh={refresh} profile={profile} refreshKey={tick} />
+      </div>
+      <div style={{ display: page === 'rand' ? 'block' : 'none' }}>
+        <RandPage onOpenCategory={id => setCatId(id)} onProfile={openAccount} onRefresh={refresh} profile={profile} refreshKey={tick} />
+      </div>
       {catId && <CategoryPage categoryId={catId} refreshKey={tick} onBack={() => setCatId(null)} onRefresh={refresh} />}
       {showProfile && user && <ProfilePage user={user} profile={profile} onClose={() => setShowProfile(false)} onOpenCategory={id => { setShowProfile(false); setCatId(id); }} />}
       {!catId && !showProfile && <Island activePage={page} onChangePage={setPage} onRefresh={refresh} />}

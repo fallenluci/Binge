@@ -6,7 +6,8 @@ import ImagePositionEditor from '../components/ImagePositionEditor';
 import { useIsDesktop } from '../lib/useIsDesktop';
 
 export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh }) {
-  const [cat, setCat] = useState(null);
+  // Read synchronously: with an empty first render the screen underneath flashed for a frame
+  const [cat, setCat] = useState(() => getCategories().find(c => c.id === categoryId) || null);
   const desktop = useIsDesktop();
   const [menuFilm, setMenuFilm] = useState(null);
   const [showRating, setShowRating] = useState(null);
