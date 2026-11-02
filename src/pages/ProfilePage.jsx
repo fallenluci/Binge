@@ -97,6 +97,7 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
   const name = displayNameOf(profile, user);
   const view = editing ? draft : {
     avatar: profile?.avatar, avatarPos: profile?.avatarPos, banner: profile?.banner, bannerPos: profile?.bannerPos,
+    bio: profile?.bio,
   };
 
   useEffect(() => {
@@ -108,6 +109,7 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
   const startEdit = () => {
     setDraft({
       name: profile?.name || user?.displayName || '',
+      bio: profile?.bio || '',
       email: user?.email || '',
       password: '',
       avatar: profile?.avatar || null, avatarPos: profile?.avatarPos || DEFAULT_POS,
@@ -175,6 +177,7 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
     const newName = draft.name.trim();
     saveProfile(user.uid, {
       name: newName || null,
+      bio: (draft.bio || '').trim().slice(0, 150) || null,
       avatar: draft.avatar, avatarPos: draft.avatar ? draft.avatarPos : null,
       banner: draft.banner, bannerPos: draft.banner ? draft.bannerPos : null,
     });
@@ -282,6 +285,9 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
             <div style={desktop
               ? { position: 'absolute', top: at(340), left: 0, right: 0, display: 'flex', flexDirection: 'column', minHeight: `calc(max(var(--app-h), ${B} + 787px) - ${B} - 340px)`, paddingBottom: 130 }
               : { position: 'absolute', top: 466, left: 0, right: 0, padding: '0 24px 26.2px', display: 'flex', flexDirection: 'column', minHeight: `calc(max(var(--app-h), ${FRAME_H}px) - 466px)` }}>
+              {profile?.bio && (
+                <div style={{ color: '#8E8E93', fontSize: 15, lineHeight: '20px', fontWeight: 600, textAlign: 'center', margin: '-6px 4px 16px', overflowWrap: 'anywhere', whiteSpace: 'pre-line' }}>{profile.bio}</div>
+              )}
               {socialEnabled && (
                 <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
                   <button type="button" className="d-btn" onClick={() => setSheet('friends')} style={{ position: 'relative' }}>
@@ -323,9 +329,19 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
               placeholder="**********" value={draft.password}
               onChange={(e) => setDraft({ ...draft, password: e.target.value })}
             />
+            <div style={text(633.1, 14, GREY)}>О себе</div>
+            <textarea
+              className="profile-input" maxLength={150} rows={3} placeholder="Пара слов о тебе и твоём кино"
+              value={draft.bio} onChange={(e) => setDraft({ ...draft, bio: e.target.value.replace(/\n{2,}/g, '\n') })}
+              style={{
+                position: 'absolute', top: 655, left: 24, right: 24, height: 82, resize: 'none', border: 'none', outline: 'none', background: '#171717',
+                borderRadius: 16, padding: '9px 12px', color: '#fff', caretColor: '#fff', fontFamily: 'inherit', fontSize: 15, lineHeight: '20px', fontWeight: 600, textAlign: 'center',
+              }}
+            />
+            <div style={{ ...text(635, 11, GREY), textAlign: 'right', padding: '0 30px' }}>{(draft.bio || '').length}/150</div>
             {error && <div style={{
               ...text(null, 13, '#FF453A', 500), whiteSpace: 'normal', lineHeight: '17px',
-              ...(desktop ? { top: at(DK.saveBtn - 40) } : { top: 'auto', bottom: 101 }),
+              ...(desktop ? { top: at(DK.saveBtn - 40) } : { top: 'auto', bottom: 10 }),
             }}>{error}</div>}
             <button type="submit" style={purpleBtn(desktop ? { top: at(DK.saveBtn) } : { bottom: 43 })}>Сохранить</button>
           </form>

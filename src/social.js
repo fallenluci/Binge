@@ -38,6 +38,7 @@ function snapshotOf(profile, user) {
   const asItem = (f) => ({ ...shownFilm(f), cat: shownCat(f.cat) });
   return clean({
     name: profile?.name || user?.displayName || (user?.email || '').split('@')[0] || 'Без имени',
+    bio: profile?.bio || null,
     avatar: profile?.avatar || null, avatarPos: profile?.avatarPos || null,
     banner: profile?.banner || null, bannerPos: profile?.bannerPos || null,
     stats: { total: all.total, rated: all.rated, avg: all.avg },

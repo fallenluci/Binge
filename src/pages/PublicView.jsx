@@ -100,6 +100,7 @@ function PublicProfile({ uid, me, onOpen, onClose, onLogin }) {
           </CroppedImage>
           <div style={{ flex: 1, minWidth: 0, textAlign: desktop ? 'left' : 'center', paddingBottom: desktop ? 10 : 0, marginTop: desktop ? 0 : 12 }}>
             <div style={{ color: '#fff', fontSize: desktop ? 48 : 34, lineHeight: desktop ? '52px' : '38px', fontWeight: 800, letterSpacing: '-1px', overflowWrap: 'anywhere' }}>{p.name}</div>
+            {p.bio && <div style={{ color: '#8E8E93', fontSize: 15, lineHeight: '20px', fontWeight: 600, marginTop: 8, maxWidth: desktop ? 520 : 'none', overflowWrap: 'anywhere', whiteSpace: 'pre-line' }}>{p.bio}</div>}
           </div>
           <div style={{ display: 'flex', gap: 8, paddingBottom: desktop ? 16 : 0, marginTop: desktop ? 0 : 16, width: desktop ? 'auto' : '100%' }}>
             <FriendButton me={me} uid={uid} onLogin={onLogin} />

@@ -77,7 +77,9 @@ export default function ProfileDesktop({
             ) : (
               <>
                 <div style={{ color: '#fff', fontSize: 48, lineHeight: '52px', fontWeight: 800, letterSpacing: '-1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</div>
-                <div style={{ color: GREY, fontSize: 15, fontWeight: 700, marginTop: 6 }}>{user.email}</div>
+                {view.bio
+                  ? <div style={{ color: '#8E8E93', fontSize: 15, lineHeight: '20px', fontWeight: 600, marginTop: 8, maxWidth: 520, overflowWrap: 'anywhere', whiteSpace: 'pre-line' }}>{view.bio}</div>
+                  : <div style={{ color: GREY, fontSize: 15, fontWeight: 700, marginTop: 6 }}>{user.email}</div>}
               </>
             )}
           </div>
@@ -117,6 +119,12 @@ export default function ProfileDesktop({
             <label>
               <div className="d-label" style={{ margin: '0 0 8px 4px' }}>Сменить пароль</div>
               <input className="d-field" type="password" autoComplete="new-password" placeholder="Новый пароль" value={draft.password} onChange={(e) => setDraft({ ...draft, password: e.target.value })} />
+            </label>
+            <label style={{ gridColumn: '1 / -1' }}>
+              <div className="d-label" style={{ margin: '0 0 8px 4px', display: 'flex' }}>О себе<span style={{ marginLeft: 'auto' }}>{(draft.bio || '').length}/150</span></div>
+              <textarea className="d-field" maxLength={150} rows={2} placeholder="Пара слов о тебе и твоём кино" value={draft.bio}
+                onChange={(e) => setDraft({ ...draft, bio: e.target.value.replace(/\n{2,}/g, '\n') })}
+                style={{ height: 'auto', minHeight: 70, padding: '12px 14px', resize: 'none', lineHeight: '21px', fontWeight: 600 }} />
             </label>
             {error && <div style={{ gridColumn: '1 / -1', color: '#FF453A', fontSize: 14, fontWeight: 600 }}>{error}</div>}
           </div>
