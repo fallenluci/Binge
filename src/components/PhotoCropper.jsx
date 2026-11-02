@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import CroppedImage, { clampPos, layoutImage, DEFAULT_POS } from './CroppedImage';
+import { useIsDesktop } from '../lib/useIsDesktop';
 
 const PURPLE = '#351E88';
 const btn = {
@@ -51,10 +52,12 @@ export default function PhotoCropper({ src, shape, initialPos, onDone, onCancel 
   const onWheel = (e) => apply({ ...pos, scale: pos.scale * Math.exp(-e.deltaY * 0.0015) });
 
   const isCircle = shape === 'circle';
+  // The banner frame has the proportions of the banner on this layout (phone 390×320, desktop 710×198)
+  const desktop = useIsDesktop();
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 500, background: '#000', display: 'flex', justifyContent: 'center', animation: 'fadeIn 0.2s ease' }}>
-      <div style={{ width: '100%', maxWidth: 430, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 0 40px' }}>
+      <div style={{ width: '100%', maxWidth: desktop && !isCircle ? 758 : 430, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 0 40px' }}>
         <div style={{ color: '#fff', fontSize: 24, fontWeight: 700, lineHeight: '24px' }}>{isCircle ? 'Аватар' : 'Баннер'}</div>
         <div style={{ color: '#515151', fontSize: 13, fontWeight: 700, marginTop: 10 }}>Двигай фото и меняй размер</div>
 
@@ -72,7 +75,7 @@ export default function PhotoCropper({ src, shape, initialPos, onDone, onCancel 
               touchAction: 'none', cursor: 'grab', background: '#171717',
               ...(isCircle
                 ? { width: 280, height: 280, borderRadius: '50%' }
-                : { width: '100%', aspectRatio: '390 / 320' }),
+                : desktop ? { width: 'calc(100% - 48px)', aspectRatio: '710 / 198', borderRadius: '37.5px 37.5px 0 0' } : { width: '100%', aspectRatio: '390 / 320' }),
               boxShadow: '0 0 0 1px #2C2C2C',
             }}
           />

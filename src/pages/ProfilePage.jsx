@@ -14,6 +14,7 @@ import { authErrorMessage } from '../authErrors';
 import { compressImage } from '../lib/image';
 import CroppedImage, { DEFAULT_POS } from '../components/CroppedImage';
 import PhotoCropper from '../components/PhotoCropper';
+import { useIsDesktop } from '../lib/useIsDesktop';
 
 // All coordinates below are taken 1:1 from the Figma mockup (390 × 844 frame).
 const PURPLE = '#351E88';
@@ -23,6 +24,21 @@ const FRAME_H = 844;
 // Banner fades into black between 235pt and 320pt (sampled from the mockup)
 const BANNER_FADE = 'linear-gradient(to bottom, rgba(0,0,0,0.23) 0px, rgba(0,0,0,0) 26px, rgba(0,0,0,0) 235px, rgba(0,0,0,0.045) 240px, rgba(0,0,0,0.14) 250px, rgba(0,0,0,0.26) 260px, rgba(0,0,0,0.43) 270px, rgba(0,0,0,0.63) 280px, rgba(0,0,0,0.8) 290px, rgba(0,0,0,0.913) 300px, rgba(0,0,0,0.976) 310px, #000 320px)';
 const EDIT_DIM = 'rgba(0,0,0,0.53)';
+
+// Desktop (Figma 1440 × 1024 frame): a 710px column with a rounded 198px banner.
+// Everything hangs off the banner top B (237px on a 1024px-tall window), which moves
+// up on shorter windows so the whole page still fits.
+const B = 'clamp(80px, calc(100dvh - 787px), 237px)';
+const at = (n) => `calc(${B} + ${n}px)`;
+const DESK_BANNER_H = 198;
+const DESK_AVATAR = 128;
+// Banner fades into black over its lower 60% (sampled from the desktop mockup)
+const DESK_BANNER_FADE = 'linear-gradient(to bottom, rgba(0,0,0,0) 83px, rgba(0,0,0,0.05) 93px, rgba(0,0,0,0.12) 113px, rgba(0,0,0,0.25) 133px, rgba(0,0,0,0.42) 153px, rgba(0,0,0,0.63) 173px, rgba(0,0,0,0.75) 183px, rgba(0,0,0,0.885) 193px, rgba(0,0,0,0.93) 198px)';
+// Text box tops relative to B
+const DK = {
+  name: 278, empty: 410.5, note: 448.5, editBtn: 582, logout: 643.5,
+  nameLabel: 308.5, nameInput: 338, emailLabel: 392.5, emailInput: 419.5, pwLabel: 456.5, pwInput: 490, saveBtn: 655,
+};
 
 const text = (top, size, color, weight = 700) => ({
   position: 'absolute', top, left: 0, right: 0, padding: '0 24px', textAlign: 'center',
@@ -34,8 +50,8 @@ const bareInput = (top, size) => ({
   height: size, width: '100%', border: 'none', outline: 'none', background: 'transparent',
   fontFamily: 'inherit', caretColor: '#fff',
 });
-const purpleBtn = (bottom) => ({
-  position: 'absolute', bottom, left: '50%', transform: 'translateX(-50%)',
+const purpleBtn = (place) => ({
+  position: 'absolute', ...place, left: '50%', transform: 'translateX(-50%)',
   width: 254.5, height: 46, borderRadius: 18, border: 'none', background: PURPLE, cursor: 'pointer',
   color: '#fff', fontFamily: 'inherit', fontSize: 16, fontWeight: 700,
 });
@@ -66,6 +82,7 @@ export default function ProfilePage({ user, profile, onClose }) {
   const fileRef = useRef(null);
   const pickKind = useRef(null);
 
+  const desktop = useIsDesktop();
   const name = displayNameOf(profile, user);
   const view = editing ? draft : {
     avatar: profile?.avatar, avatarPos: profile?.avatarPos, banner: profile?.banner, bannerPos: profile?.bannerPos,
@@ -173,57 +190,71 @@ export default function ProfilePage({ user, profile, onClose }) {
     await signOut(auth);
   };
 
+  // Phone: absolute coordinates of the 390 × 844 mockup. Desktop: offsets from B.
+  const t = (phone, deskKey) => (desktop ? at(DK[deskKey]) : phone);
+
   return (
     <div className="page profile-page" style={{ position: 'fixed', inset: 0, zIndex: 30, background: '#000', animation: 'slideInRight 0.36s cubic-bezier(0.25,0.46,0.45,0.94)' }}>
-      {/* Phone-width column; on desktop it sits centred on a black backdrop */}
-      <div style={{ position: 'relative', maxWidth: 430, margin: '0 auto', minHeight: `max(100dvh, ${FRAME_H}px)` }}>
+      <div style={desktop
+        ? { position: 'relative', width: 710, maxWidth: 'calc(100% - 48px)', margin: '0 auto', minHeight: `max(100dvh, calc(${B} + 787px))` }
+        : { position: 'relative', maxWidth: 430, margin: '0 auto', minHeight: `max(100dvh, ${FRAME_H}px)` }}>
         {/* Banner */}
         <CroppedImage
           src={view.banner}
           pos={view.bannerPos}
           onClick={() => onPhotoTap('banner')}
-          style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 320, background: view.banner ? '#000' : '#171717', cursor: editing ? 'pointer' : 'default' }}
+          style={{
+            position: 'absolute', left: 0, right: 0, background: view.banner ? '#000' : '#171717', cursor: editing ? 'pointer' : 'default',
+            ...(desktop
+              ? { top: B, height: DESK_BANNER_H, borderRadius: '37.5px 37.5px 0 0' }
+              : { top: 0, height: 320 }),
+          }}
         >
           {editing && <div style={{ position: 'absolute', inset: 0, background: EDIT_DIM }} />}
-          <div style={{ position: 'absolute', inset: 0, background: BANNER_FADE, pointerEvents: 'none' }} />
-          {editing && <Pencil top={153} />}
+          <div style={{ position: 'absolute', inset: 0, background: desktop ? DESK_BANNER_FADE : BANNER_FADE, pointerEvents: 'none' }} />
+          {editing && <Pencil top={desktop ? DESK_BANNER_H / 2 : 153} />}
         </CroppedImage>
 
-        {/* Avatar */}
+        {/* Avatar — on desktop its centre sits on the banner's bottom edge */}
         <CroppedImage
           src={view.avatar}
           pos={view.avatarPos}
           onClick={() => onPhotoTap('avatar')}
           style={{
-            position: 'absolute', top: 237.9, left: '50%', transform: 'translateX(-50%)',
-            width: 155, height: 155, borderRadius: '50%', background: '#2C2C2C', cursor: editing ? 'pointer' : 'default',
+            position: 'absolute', left: '50%', transform: 'translateX(-50%)',
+            borderRadius: '50%', background: '#2C2C2C', cursor: editing ? 'pointer' : 'default',
+            ...(desktop
+              ? { top: at(DESK_BANNER_H - DESK_AVATAR / 2), width: DESK_AVATAR, height: DESK_AVATAR }
+              : { top: 237.9, width: 155, height: 155 }),
           }}
         >
-          {!view.avatar && <PersonIcon size={72} />}
+          {!view.avatar && <PersonIcon size={desktop ? 59 : 72} />}
           {editing && <div style={{ position: 'absolute', inset: 0, background: EDIT_DIM }} />}
-          {editing && <Pencil top={77.5} />}
+          {editing && <Pencil top={desktop ? DESK_AVATAR / 2 : 77.5} />}
         </CroppedImage>
 
         {/* Back */}
         <button onClick={goBack} aria-label={editing ? 'Отменить' : 'Назад'} className="glass" style={{
-          position: 'absolute', top: 60, left: 22, width: 42, height: 42, borderRadius: '50%', border: 'none',
+          position: 'absolute', borderRadius: '50%', border: 'none',
           display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 2,
+          ...(desktop ? { top: at(-64), left: 0, width: 32, height: 32 } : { top: 60, left: 22, width: 42, height: 42 }),
         }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width={desktop ? 16 : 18} height={desktop ? 16 : 18} viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth={desktop ? 2.8 : 2.5} strokeLinecap="round" strokeLinejoin="round">
             {editing ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M19 12H5M12 19l-7-7 7-7" />}
           </svg>
         </button>
 
         {!editing && (
           <>
-            <div style={text(402.7, 36, '#fff', 800)}>{name}</div>
-            <div style={text(539.2, 36, GREY, 800)}>ПУСТО*</div>
-            <div style={{ ...text(578.25, 11, GREY), lineHeight: '13px', whiteSpace: 'normal' }}>
+            <div style={text(t(402.7, 'name'), 36, '#fff', 800)}>{name}</div>
+            <div style={text(t(539.2, 'empty'), 36, GREY, 800)}>ПУСТО*</div>
+            <div style={{ ...text(t(578.25, 'note'), 11, GREY), lineHeight: '13px', whiteSpace: 'normal' }}>
               *скоро тут будут новые<br />функции
             </div>
-            <button style={purpleBtn(57)} onClick={startEdit}>Редактировать профиль</button>
+            <button style={purpleBtn(desktop ? { top: at(DK.editBtn) } : { bottom: 57 })} onClick={startEdit}>Редактировать профиль</button>
             <button onClick={logout} disabled={busy} style={{
-              position: 'absolute', bottom: 26.2, left: '50%', transform: 'translateX(-50%)',
+              position: 'absolute', left: '50%', transform: 'translateX(-50%)',
+              ...(desktop ? { top: at(DK.logout) } : { bottom: 26.2 }),
               background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit',
               fontSize: 16, lineHeight: '16px', fontWeight: 700, color: '#C40000',
             }}>Выйти</button>
@@ -232,26 +263,29 @@ export default function ProfilePage({ user, profile, onClose }) {
 
         {editing && (
           <form onSubmit={(e) => { e.preventDefault(); save(); }}>
-            <div style={text(408.1, 14, GREY)}>Отображаемое имя</div>
+            <div style={text(t(408.1, 'nameLabel'), 14, GREY)}>Отображаемое имя</div>
             <input
-              style={bareInput(437.7, 36)} className="profile-input" maxLength={30}
+              style={bareInput(t(437.7, 'nameInput'), 36)} className="profile-input" maxLength={30}
               value={draft.name} placeholder={displayNameOf(null, user)}
               onChange={(e) => setDraft({ ...draft, name: e.target.value })}
             />
-            <div style={text(491.1, 14, GREY)}>Сменить почту</div>
+            <div style={text(t(491.1, 'emailLabel'), 14, GREY)}>Сменить почту</div>
             <input
-              style={bareInput(518.7, 16)} className="profile-input" type="email" inputMode="email"
+              style={bareInput(t(518.7, 'emailInput'), 16)} className="profile-input" type="email" inputMode="email"
               autoCapitalize="none" autoCorrect="off" autoComplete="email"
               value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })}
             />
-            <div style={text(555.1, 14, GREY)}>Сменить пароль</div>
+            <div style={text(t(555.1, 'pwLabel'), 14, GREY)}>Сменить пароль</div>
             <input
-              style={bareInput(590.1, 16)} className="profile-input profile-password" type="password" autoComplete="new-password"
+              style={bareInput(t(590.1, 'pwInput'), 16)} className="profile-input profile-password" type="password" autoComplete="new-password"
               placeholder="**********" value={draft.password}
               onChange={(e) => setDraft({ ...draft, password: e.target.value })}
             />
-            {error && <div style={{ ...text(null, 13, '#FF453A', 500), top: 'auto', bottom: 101, whiteSpace: 'normal', lineHeight: '17px' }}>{error}</div>}
-            <button type="submit" style={purpleBtn(43)}>Сохранить</button>
+            {error && <div style={{
+              ...text(null, 13, '#FF453A', 500), whiteSpace: 'normal', lineHeight: '17px',
+              ...(desktop ? { top: at(DK.saveBtn - 40) } : { top: 'auto', bottom: 101 }),
+            }}>{error}</div>}
+            <button type="submit" style={purpleBtn(desktop ? { top: at(DK.saveBtn) } : { bottom: 43 })}>Сохранить</button>
           </form>
         )}
       </div>
