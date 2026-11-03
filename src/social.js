@@ -183,11 +183,19 @@ export function subscribeInbox(uid, cb) {
 export const dismissInbox = (uid, id) => deleteDoc(doc(db, 'users', uid, 'inbox', id));
 
 // ---------- chat with friends ----------
+//
+// Message: { from, at, text, film, replyTo: { id, from, text }, forwardedFrom, edited, reactions: { uid: emoji | null } }
+// My chat entry users/{me}/chats/{other}: { lastAt, lastFrom, previewText, previewFilm, previewRating,
+//   unread, readAt (when the friend last read the chat — written by them), pinned: { id, text } | null,
+//   hidden: { msgId: true } — messages I deleted only for myself }
 
 export const chatIdOf = (a, b) => [a, b].sort().join('_');
 const MSG_LIMIT = 300;
+const msgRef = (me, other, id) => doc(db, 'chats', chatIdOf(me, other), 'messages', id);
+const myEntry = (me, other) => doc(db, 'users', me, 'chats', other);
+const theirEntry = (me, other) => doc(db, 'users', other, 'chats', me);
 
-/** My chats, newest first: [{ uid, lastAt, lastFrom, previewText, previewFilm, previewRating, unread }] */
+/** My chats, newest first */
 export function subscribeChats(uid, cb) {
   return onSnapshot(collection(db, 'users', uid, 'chats'),
     (s) => cb(s.docs.map((d) => ({ uid: d.id, ...d.data() })).sort((a, b) => (b.lastAt || 0) - (a.lastAt || 0))), () => cb([]));
@@ -204,14 +212,68 @@ export const filmForChat = (f) => clean({
   tmdbId: f.tmdbId || null, tmdbType: f.tmdbType || null, info: f.info || null,
 });
 
-export async function sendMessage(me, other, { text, film }) {
+/** Short text of a message for previews, quotes and the pinned bar */
+export const messageSummary = (m) => (m.film ? `${m.film.name}${m.film.rating != null ? ` · ${m.film.rating}` : ''}${m.text ? ` — ${m.text}` : ''}` : (m.text || ''));
+
+const previewOf = (m) => ({
+  lastAt: m.at, lastFrom: m.from,
+  previewText: m.film ? (m.text || null) : (m.text || '').slice(0, 120),
+  previewFilm: m.film ? m.film.name : null, previewRating: m.film ? m.film.rating ?? null : null,
+});
+
+/** Builds a message with its id; the chat shows it right away (as "sending") and calls postMessage. */
+export function newMessage(me, { text, film, replyTo, forwardedFrom }) {
   const at = Date.now();
-  const id = `${at}-${Math.random().toString(36).slice(2, 8)}`;
-  const msg = clean({ from: me, at, text: text || null, film: film || null });
-  await setDoc(doc(db, 'chats', chatIdOf(me, other), 'messages', id), msg);
-  const preview = { lastAt: at, lastFrom: me, previewText: film ? null : text.slice(0, 120), previewFilm: film ? film.name : null, previewRating: film ? film.rating ?? null : null };
-  await setDoc(doc(db, 'users', me, 'chats', other), { ...preview, unread: 0 }, { merge: true });
-  await setDoc(doc(db, 'users', other, 'chats', me), { ...preview, unread: increment(1) }, { merge: true });
+  return clean({ id: `${at}-${Math.random().toString(36).slice(2, 8)}`, from: me, at, text: text || null, film: film || null, replyTo: replyTo || null, forwardedFrom: forwardedFrom || null });
+}
+export async function postMessage(me, other, msg) {
+  const { id, ...body } = msg;
+  await setDoc(msgRef(me, other, id), body);
+  const preview = previewOf(msg);
+  await setDoc(myEntry(me, other), { ...preview, unread: 0 }, { merge: true });
+  await setDoc(theirEntry(me, other), { ...preview, unread: increment(1) }, { merge: true });
+}
+export const sendMessage = (me, other, payload) => postMessage(me, other, newMessage(me, payload));
+
+/** I read the chat: my unread counter goes to 0 and the friend sees ✓✓ on their messages */
+export async function markChatRead(me, other, at = Date.now()) {
+  await setDoc(myEntry(me, other), { unread: 0 }, { merge: true });
+  await setDoc(theirEntry(me, other), { readAt: at }, { merge: true });
 }
 
-export const markChatRead = (me, other) => setDoc(doc(db, 'users', me, 'chats', other), { unread: 0 }, { merge: true });
+export async function editMessage(me, other, msg, text, isLast) {
+  await setDoc(msgRef(me, other, msg.id), { text: text || null, edited: true }, { merge: true });
+  if (isLast) {
+    const preview = previewOf({ ...msg, text });
+    await setDoc(myEntry(me, other), preview, { merge: true });
+    await setDoc(theirEntry(me, other), preview, { merge: true });
+  }
+}
+
+export async function reactToMessage(me, other, msg, emoji) {
+  await setDoc(msgRef(me, other, msg.id), { reactions: { [me]: emoji || null } }, { merge: true });
+  if (emoji) {
+    // Shows up in the chat list like in Telegram: "reacted 🔥 to …"
+    const what = messageSummary(msg).slice(0, 60);
+    const preview = { lastAt: Date.now(), lastFrom: me, previewText: `${emoji} на «${what}»`, previewFilm: null, previewRating: null };
+    await setDoc(myEntry(me, other), preview, { merge: true });
+    await setDoc(theirEntry(me, other), preview, { merge: true });
+  }
+}
+
+/** Delete for everyone (only my own messages); `rest` — what stays, to refresh the last-message preview */
+export async function deleteMessagesForAll(me, other, msgs, rest) {
+  for (const m of msgs) await deleteDoc(msgRef(me, other, m.id));
+  const last = rest[rest.length - 1];
+  const preview = last ? previewOf(last) : { previewText: '', previewFilm: null, previewRating: null };
+  await setDoc(myEntry(me, other), preview, { merge: true });
+  await setDoc(theirEntry(me, other), preview, { merge: true });
+}
+export const hideMessages = (me, other, ids) =>
+  setDoc(myEntry(me, other), { hidden: Object.fromEntries(ids.map((id) => [id, true])) }, { merge: true });
+
+export async function pinMessage(me, other, msg) {
+  const pinned = msg ? { id: msg.id, text: messageSummary(msg).slice(0, 120) } : null;
+  await setDoc(myEntry(me, other), { pinned }, { merge: true });
+  await setDoc(theirEntry(me, other), { pinned }, { merge: true });
+}

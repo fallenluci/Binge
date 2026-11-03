@@ -38,11 +38,21 @@ service cloud.firestore {
 
     // Messages between two friends: chats/{a_b} where a_b are the two uids sorted.
     // Both can read; each writes only their own messages, and only while they're friends.
+    // Updates: the author may edit the text; both may set only their own reaction.
+    // Delete ("for everyone"): only the author.
     match /chats/{chatId}/messages/{msgId} {
-      allow read: if signedIn() && me() in chatId.split('_');
-      allow create: if signedIn() && request.resource.data.from == me()
-        && chatId.split('_').size() == 2 && me() in chatId.split('_')
+      function member() { return signedIn() && me() in chatId.split('_'); }
+      allow read: if member();
+      allow create: if member() && request.resource.data.from == me()
+        && chatId.split('_').size() == 2
         && friends(me(), chatId.split('_')[0] == me() ? chatId.split('_')[1] : chatId.split('_')[0]);
+      allow update: if member() && (
+        (resource.data.from == me()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'edited', 'reactions']))
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
+          && request.resource.data.reactions.diff(resource.data.get('reactions', {})).affectedKeys().hasOnly([me()]))
+      );
+      allow delete: if member() && resource.data.from == me();
     }
 
     // Public profile snapshot: anyone (even without an account) can read, only the owner writes.

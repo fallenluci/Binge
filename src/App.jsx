@@ -179,8 +179,9 @@ export default function App() {
       {showProfile && user && <ProfilePage user={user} profile={profile} refreshKey={tick} onClose={() => setShowProfile(false)} onOpenCategory={id => { setShowProfile(false); setCatId(id); }} social={social} onOpenPublic={openPublic} onOpenChat={(uid) => setChatOpen({ with: uid })} />}
       {route && <PublicView uid={route.uid} catId={route.catId} me={user} onOpen={openPublic} onClose={closePublic} onLogin={goLogin} onSaved={refresh} />}
       {chatOpen && user && (
-        <ChatPage me={user.uid} social={social} chats={social.chats} start={chatOpen.with} onClose={() => setChatOpen(null)}
-          onOpenPublic={(uid) => { setChatOpen(null); openPublic(uid); }} onChanged={refresh} />
+        // A friend's profile opens over the chat; "back" returns to the same conversation
+        <ChatPage me={user.uid} meName={profile?.name || user.displayName || (user.email || '').split('@')[0]} social={social} chats={social.chats}
+          start={chatOpen.with} hidden={!!route} onClose={() => setChatOpen(null)} onOpenPublic={openPublic} onChanged={refresh} />
       )}
       {!catId && !showProfile && !route && !chatOpen && <Island activePage={page} onChangePage={setPage} onRefresh={refresh} />}
       {showAccount && <AccountSheet user={user} syncStatus={syncStatus} onClose={() => setShowAccount(false)} />}

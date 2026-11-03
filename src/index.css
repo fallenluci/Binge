@@ -228,3 +228,17 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
 
 /* Category tiles: no iOS text-selection / callout on long press (it opens our menu) */
 .tile { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+
+/* ---- Chat ---- */
+@keyframes msg-out { 0% { opacity: 0; transform: translate(-36px, 34px) scale(0.7); } 60% { opacity: 1; } 100% { opacity: 1; transform: none; } }
+@keyframes msg-in { from { opacity: 0; transform: translateY(14px) scale(0.86); } to { opacity: 1; transform: none; } }
+@keyframes msg-gone { to { opacity: 0; filter: blur(8px); transform: scale(0.7) translateY(-8px); } }
+@keyframes chat-push { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes pop-in { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: none; } }
+@keyframes lift { from { transform: scale(1); } to { transform: scale(1.04); } }
+@keyframes flash { 0%, 100% { filter: none; } 30% { filter: brightness(1.6); } }
+.msg-out { animation: msg-out 0.5s cubic-bezier(0.2, 0.9, 0.25, 1.12) both; transform-origin: 100% 100%; }
+.msg-in { animation: msg-in 0.45s cubic-bezier(0.2, 0.9, 0.25, 1.15) both; transform-origin: 0 100%; }
+.msg-gone { animation: msg-gone 0.4s ease forwards; }
+.msg-flash { animation: flash 1s ease; }
+.chat-menu-item { opacity: 0; animation: fadeIn 0.25s ease forwards; }
