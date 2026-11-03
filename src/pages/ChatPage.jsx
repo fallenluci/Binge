@@ -184,9 +184,14 @@ export default function ChatPage({ me, meName, social, chats, start, hidden, onC
       onBack={desktop ? null : closeConvo} onOpenProfile={() => onOpenPublic(current)} onChanged={onChanged} />
   );
 
+  // Under a friend's profile the chat only becomes invisible: it keeps its scroll position and
+  // doesn't replay its slide-in when you come back (display: none would do both)
+  const hide = hidden ? { visibility: 'hidden', pointerEvents: 'none' } : {};
+  const once = (e) => { if (e.target === e.currentTarget) e.currentTarget.style.animation = 'none'; };
+
   if (desktop) {
     return (
-      <div className="chat-page" style={{ position: 'absolute', inset: 0, zIndex: 50, background: '#000', display: hidden ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.2s ease' }}>
+      <div className="chat-page" onAnimationEnd={once} style={{ position: 'absolute', inset: 0, zIndex: 50, background: '#000', display: 'flex', ...hide, alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.2s ease' }}>
         <div style={{ width: 'min(1100px, calc(100% - 80px))', height: 'min(820px, calc(100dvh - 80px))', display: 'flex', background: '#0b0b0b', borderRadius: 32, overflow: 'hidden' }}>
           <div style={{ width: 330, flexShrink: 0, borderRight: '1px solid #1c1c1c', display: 'flex', flexDirection: 'column' }}>{list}</div>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
@@ -197,10 +202,10 @@ export default function ChatPage({ me, meName, social, chats, start, hidden, onC
     );
   }
   return (
-    <div ref={rootRef} className="chat-page" style={{ position: 'absolute', inset: 0, zIndex: 50, height: 'var(--app-h)', display: hidden ? 'none' : 'block', animation: 'chat-push 0.35s cubic-bezier(0.2,0.8,0.2,1)', boxShadow: '-20px 0 40px rgba(0,0,0,0.6)' }}>
+    <div ref={rootRef} className="chat-page" onAnimationEnd={once} style={{ position: 'absolute', inset: 0, zIndex: 50, height: 'var(--app-h)', ...hide, animation: 'chat-push 0.35s cubic-bezier(0.2,0.8,0.2,1)', boxShadow: '-20px 0 40px rgba(0,0,0,0.6)' }}>
       {list}
       {convo && (
-        <div ref={convoRef} style={{ position: 'absolute', inset: 0, background: '#000', animation: 'chat-push 0.35s cubic-bezier(0.2,0.8,0.2,1)', boxShadow: '-20px 0 40px rgba(0,0,0,0.6)' }}>{convo}</div>
+        <div ref={convoRef} onAnimationEnd={once} style={{ position: 'absolute', inset: 0, background: '#000', animation: 'chat-push 0.35s cubic-bezier(0.2,0.8,0.2,1)', boxShadow: '-20px 0 40px rgba(0,0,0,0.6)' }}>{convo}</div>
       )}
     </div>
   );
