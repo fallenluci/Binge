@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import CroppedImage from '../components/CroppedImage';
 import ProfileStats from '../components/ProfileStats';
 import ShareSheet from '../components/ShareSheet';
+import FilmSheet from '../components/FilmSheet';
 import { useIsDesktop } from '../lib/useIsDesktop';
 import { coverCrop } from '../lib/cover';
 import { posterUrl } from '../lib/posters';
@@ -60,6 +61,7 @@ function PublicProfile({ uid, me, onOpen, onClose, onLogin }) {
   const [p, setP] = useState(undefined); // undefined = loading, null = not found
   const [cats, setCats] = useState([]);
   const [share, setShare] = useState(false);
+  const [film, setFilm] = useState(null);
 
   useEffect(() => subscribePublicProfile(uid, setP), [uid]);
   useEffect(() => { getPublicCategories(uid).then(setCats).catch(() => setCats([])); }, [uid, p?.updatedAt]);
@@ -109,7 +111,7 @@ function PublicProfile({ uid, me, onOpen, onClose, onLogin }) {
         </div>
 
         <div style={{ padding: desktop ? '34px 0 0' : '8px 24px 0' }}>
-          <ProfileStats desktop={desktop} data={stats} onOpenCategory={openCat} emptyText="Пока ни одного фильма" />
+          <ProfileStats desktop={desktop} data={stats} onOpenCategory={openCat} onOpenFilm={setFilm} emptyText="Пока ни одного фильма" />
 
           {cats.length > 0 && (
             <>
@@ -123,6 +125,10 @@ function PublicProfile({ uid, me, onOpen, onClose, onLogin }) {
       </div>
 
       {share && <ShareSheet title="Профиль" subtitle={p.name} url={profileLink(uid)} onClose={() => setShare(false)} />}
+      {film && (
+        <FilmSheet key={film.id} film={film} readOnly categoryName={film.cat?.name}
+          onOpenCategory={() => { setFilm(null); openCat(film.cat.id); }} onClose={() => setFilm(null)} />
+      )}
     </Frame>
   );
 }
@@ -174,6 +180,7 @@ function PublicCategory({ uid, catId, me, onOpen, onClose, onLogin, onSaved }) {
   const [owner, setOwner] = useState(null);
   const [saved, setSaved] = useState(false);
   const [share, setShare] = useState(false);
+  const [film, setFilm] = useState(null);
 
   useEffect(() => { getPublicCategory(uid, catId).then(setCat).catch(() => setCat(null)); }, [uid, catId]);
   useEffect(() => subscribePublicProfile(uid, setOwner), [uid]);
@@ -236,7 +243,7 @@ function PublicCategory({ uid, catId, me, onOpen, onClose, onLogin, onSaved }) {
           {films.map((f, i) => {
             const rc = f.rating != null ? ratingColor(f.rating) : null;
             return (
-              <div key={f.id || i} style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 64 }}>
+              <div key={f.id || i} onClick={() => setFilm(f)} style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 64, cursor: 'pointer' }}>
                 <span style={{ color: GREY, fontSize: 15, fontWeight: 800, width: 22, textAlign: 'center', flexShrink: 0 }}>{i + 1}</span>
                 <div style={{ width: 36, height: 54, borderRadius: 7, background: '#1C1C1E', overflow: 'hidden', flexShrink: 0 }}>
                   {f.poster && <img src={posterUrl(f.poster, 'w92')} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
@@ -250,6 +257,7 @@ function PublicCategory({ uid, catId, me, onOpen, onClose, onLogin, onSaved }) {
       </div>
 
       {share && <ShareSheet title="Категория" subtitle={cat.name} url={categoryLink(uid, catId)} onClose={() => setShare(false)} />}
+      {film && <FilmSheet key={film.id || film.name} film={film} readOnly onClose={() => setFilm(null)} />}
     </Frame>
   );
 }

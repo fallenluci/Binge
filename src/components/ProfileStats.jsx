@@ -52,7 +52,9 @@ function Tile({ cat, size }) {
 }
 
 // data — precomputed stats (someone's public profile); otherwise computed from my own list
-export default function ProfileStats({ desktop, onOpenCategory, refreshKey, data, emptyText }) {
+export default function ProfileStats({ desktop, onOpenCategory, onOpenFilm, refreshKey, data, emptyText }) {
+  // A film opens its info sheet when the page supports it, otherwise its category
+  const openFilm = (f) => (onOpenFilm ? onOpenFilm(f) : onOpenCategory?.(f.cat.id));
   const s = useMemo(() => data || computeStats(getCategories()), [refreshKey, data]); // eslint-disable-line react-hooks/exhaustive-deps
   const label = { color: GREY, fontSize: 14, fontWeight: 700, margin: '20px 0 8px 4px' };
 
@@ -101,7 +103,7 @@ export default function ProfileStats({ desktop, onOpenCategory, refreshKey, data
         ) : s.top.map((f, i) => {
           const rc = ratingColor(f.rating);
           return (
-            <div key={`${f.cat.id}-${f.id}`} onClick={() => onOpenCategory?.(f.cat.id)} style={{
+            <div key={`${f.cat.id}-${f.id}`} onClick={() => openFilm(f)} style={{
               display: 'flex', alignItems: 'center', gap: 12, height: 56, cursor: 'pointer',
             }}>
               <span style={{ color: GREY, fontSize: 15, fontWeight: 800, width: 14, textAlign: 'center', flexShrink: 0 }}>{i + 1}</span>
@@ -126,12 +128,12 @@ export default function ProfileStats({ desktop, onOpenCategory, refreshKey, data
     );
   }
 
-  if (desktop) return <Wide s={s} statRow={statRow} label={label} onOpenCategory={onOpenCategory} isPublic={!!data} />;
+  if (desktop) return <Wide s={s} statRow={statRow} label={label} onOpenCategory={onOpenCategory} openFilm={openFilm} isPublic={!!data} />;
 
   return (
     <div>
       {statRow}
-      <Recent films={s.recent} label={label} onOpenCategory={onOpenCategory} />
+      <Recent films={s.recent} label={label} openFilm={openFilm} />
       {(
         <>
           {fav}
@@ -153,7 +155,7 @@ function Poster({ path, w }) {
 
 // Desktop profile (wide layout): stats row, favourite category as a real home tile,
 // top-5 as poster cards with big rank numbers.
-function Wide({ s, statRow, label, onOpenCategory, isPublic }) {
+function Wide({ s, statRow, label, onOpenCategory, openFilm, isPublic }) {
   const fav = s.favorite;
   return (
     <div>
@@ -167,7 +169,7 @@ function Wide({ s, statRow, label, onOpenCategory, isPublic }) {
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14 }}>
-          {s.top.map((f, i) => <TopCard key={`${f.cat.id}-${f.id}`} f={f} rank={i + 1} onClick={() => onOpenCategory?.(f.cat.id)} />)}
+          {s.top.map((f, i) => <TopCard key={`${f.cat.id}-${f.id}`} f={f} rank={i + 1} onClick={() => openFilm(f)} />)}
         </div>
       )}
 
@@ -190,7 +192,7 @@ function Wide({ s, statRow, label, onOpenCategory, isPublic }) {
               </div>
             </div>
           )}
-          <Recent films={s.recent} label={null} onOpenCategory={onOpenCategory} desktop inline />
+          <Recent films={s.recent} label={null} openFilm={openFilm} desktop inline />
         </div>
       )}
     </div>
@@ -233,7 +235,7 @@ const when = (t) => {
 };
 
 // "Недавно посмотрел": the last rated films as a row of posters (scrolls sideways on the phone)
-function Recent({ films, label, onOpenCategory, desktop, inline }) {
+function Recent({ films, label, openFilm, desktop, inline }) {
   if (!films.length) return null;
   const stop = (e) => e.stopPropagation(); // sideways scrolling must not trigger the swipe-back
   return (
@@ -251,7 +253,7 @@ function Recent({ films, label, onOpenCategory, desktop, inline }) {
         {films.slice(0, inline ? 5 : desktop ? 8 : 10).map((f) => {
           const rc = ratingColor(f.rating);
           return (
-            <div key={`${f.cat.id}-${f.id}`} onClick={() => onOpenCategory?.(f.cat.id)} style={{ cursor: 'pointer', flex: desktop ? undefined : '0 0 96px', scrollSnapAlign: 'start', minWidth: 0 }}>
+            <div key={`${f.cat.id}-${f.id}`} onClick={() => openFilm(f)} style={{ cursor: 'pointer', flex: desktop ? undefined : '0 0 96px', scrollSnapAlign: 'start', minWidth: 0 }}>
               <div style={{ position: 'relative', aspectRatio: '2 / 3', borderRadius: 14, overflow: 'hidden', background: CARD }}>
                 {f.poster
                   ? <img src={posterUrl(f.poster, 'w185')} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />

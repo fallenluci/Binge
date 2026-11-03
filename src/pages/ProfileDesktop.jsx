@@ -23,7 +23,7 @@ const btn = { height: 46, borderRadius: 18, border: 'none', cursor: 'pointer', f
 
 export default function ProfileDesktop({
   user, name, view, editing, draft, setDraft, error, busy, refreshKey,
-  onPhotoTap, onBack, onEdit, onSave, onLogout, onOpenCategory, social, onFriends, onShare,
+  onPhotoTap, onBack, onEdit, onSave, onLogout, onOpenCategory, social, onFriends, onShare, onOpenFilm,
 }) {
   return (
     <div style={{ width: W, margin: '0 auto', padding: '40px 0 70px' }}>
@@ -133,7 +133,7 @@ export default function ProfileDesktop({
 
       {!editing && (
         <div style={{ marginTop: 34 }}>
-          <ProfileStats desktop onOpenCategory={onOpenCategory} refreshKey={refreshKey} />
+          <ProfileStats desktop onOpenCategory={onOpenCategory} onOpenFilm={onOpenFilm} refreshKey={refreshKey} />
         </div>
       )}
     </div>

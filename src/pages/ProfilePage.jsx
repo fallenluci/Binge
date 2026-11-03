@@ -16,6 +16,7 @@ import CroppedImage, { DEFAULT_POS } from '../components/CroppedImage';
 import PhotoCropper from '../components/PhotoCropper';
 import PhotoMenu from '../components/PhotoMenu';
 import ProfileStats from '../components/ProfileStats';
+import FilmSheet from '../components/FilmSheet';
 import ProfileDesktop, { DESK_BANNER_RATIO } from './ProfileDesktop';
 import FriendsSheet from '../components/FriendsSheet';
 import ShareSheet from '../components/ShareSheet';
@@ -64,6 +65,11 @@ const purpleBtn = (place) => ({
   color: '#fff', fontFamily: 'inherit', fontSize: 16, fontWeight: 700,
 });
 
+const roundBtn = {
+  position: 'relative', width: 42, height: 42, borderRadius: '50%', border: 'none', padding: 0, cursor: 'pointer',
+  display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(30,30,32,0.85)',
+};
+
 const Pencil = ({ top }) => (
   <svg width="26.5" height="26.5" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"
     style={{ position: 'absolute', top, left: '50%', transform: 'translate(-50%, -50%)', pointerEvents: 'none' }}>
@@ -80,6 +86,7 @@ const PersonIcon = ({ size }) => (
 
 export default function ProfilePage({ user, profile, onClose, onOpenCategory, refreshKey, social = { friends: [], inbox: [] }, onOpenPublic }) {
   const [sheet, setSheet] = useState(null); // 'friends' | 'share'
+  const [filmView, setFilmView] = useState(null); // film from top-5 / recent, shown read-only
   const friendsCount = social.friends.filter((f) => f.status === 'friends').length;
   const pending = social.friends.filter((f) => f.status === 'incoming').length + social.inbox.length;
   const [editing, setEditing] = useState(false);
@@ -226,7 +233,7 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
           user={user} name={name} view={view} editing={editing} draft={draft} setDraft={setDraft}
           error={error} busy={busy} refreshKey={refreshKey}
           onPhotoTap={onPhotoTap} onBack={goBack} onEdit={startEdit} onSave={save} onLogout={logout} onOpenCategory={onOpenCategory}
-          social={socialEnabled ? { friendsCount, pending } : null} onFriends={() => setSheet('friends')} onShare={() => setSheet('share')}
+          social={socialEnabled ? { friendsCount, pending } : null} onFriends={() => setSheet('friends')} onShare={() => setSheet('share')} onOpenFilm={setFilmView}
         />
       ) : (
       <div style={desktop
@@ -278,6 +285,19 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
           </svg>
         </button>}
 
+        {/* Friends & share — small round buttons in the banner's corner (phone) */}
+        {!editing && socialEnabled && (
+          <div style={{ position: 'absolute', top: 'calc(60px + var(--top-shift))', right: 22, display: 'flex', gap: 10, zIndex: 2 }}>
+            <button type="button" aria-label="Друзья" onClick={() => setSheet('friends')} className="glass" style={roundBtn}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+              {pending > 0 && <span style={{ position: 'absolute', top: -3, right: -3, minWidth: 18, height: 18, padding: '0 5px', borderRadius: 9, background: '#FF3B30', color: '#fff', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 2px #000' }}>{pending}</span>}
+            </button>
+            <button type="button" aria-label="Поделиться профилем" onClick={() => setSheet('share')} className="glass" style={roundBtn}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v13" /><path d="m7 8 5-5 5 5" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" /></svg>
+            </button>
+          </div>
+        )}
+
         {!editing && (
           <>
             <div style={text(t(402.7, 'name'), 36, '#fff', 800)}>{name}</div>
@@ -288,16 +308,7 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
               {profile?.bio && (
                 <div style={{ color: '#8E8E93', fontSize: 15, lineHeight: '20px', fontWeight: 600, textAlign: 'center', margin: '-6px 4px 16px', overflowWrap: 'anywhere', whiteSpace: 'pre-line' }}>{profile.bio}</div>
               )}
-              {socialEnabled && (
-                <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
-                  <button type="button" className="d-btn" onClick={() => setSheet('friends')} style={{ position: 'relative' }}>
-                    Друзья{friendsCount ? ` · ${friendsCount}` : ''}
-                    {pending > 0 && <span style={{ minWidth: 20, height: 20, padding: '0 6px', borderRadius: 10, background: '#FF3B30', fontSize: 12, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{pending}</span>}
-                  </button>
-                  <button type="button" className="d-btn" onClick={() => setSheet('share')}>Поделиться</button>
-                </div>
-              )}
-              <ProfileStats desktop={desktop} onOpenCategory={onOpenCategory} refreshKey={refreshKey} />
+              <ProfileStats desktop={desktop} onOpenCategory={onOpenCategory} onOpenFilm={setFilmView} refreshKey={refreshKey} />
               <div style={{ marginTop: 'auto', paddingTop: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14.8 }}>
                 <button style={{ ...purpleBtn({}), position: 'static', transform: 'none' }} onClick={startEdit}>Редактировать профиль</button>
                 <button onClick={logout} disabled={busy} style={{
@@ -351,6 +362,12 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
 
       <input ref={fileRef} type="file" accept="image/*" hidden onChange={onFile} />
 
+      {filmView && (
+        <FilmSheet key={filmView.id} film={filmView} categoryId={filmView.cat.id} readOnly
+          categoryName={filmView.cat.name}
+          onOpenCategory={() => { setFilmView(null); onOpenCategory?.(filmView.cat.id); }}
+          onClose={() => setFilmView(null)} />
+      )}
       {sheet === 'friends' && <FriendsSheet me={user.uid} social={social} onOpenPublic={onOpenPublic} onClose={() => setSheet(null)} />}
       {sheet === 'share' && (
         <ShareSheet title="Мой профиль" url={profileLink(user.uid)} onClose={() => setSheet(null)}

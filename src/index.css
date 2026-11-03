@@ -225,3 +225,6 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
 
 .no-scrollbar { scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Category tiles: no iOS text-selection / callout on long press (it opens our menu) */
+.tile { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }

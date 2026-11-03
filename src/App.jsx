@@ -31,6 +31,7 @@ const parseRoute = () => {
 export default function App() {
   const [page, setPage] = useState('home');
   const [catId, setCatId] = useState(null);
+  const [catIntent, setCatIntent] = useState(null); // 'appearance' — open the category with its editor
   const [tick, setTick] = useState(0);
   const [user, setUser] = useState(null);
   const [authReady, setAuthReady] = useState(!firebaseEnabled);
@@ -163,12 +164,12 @@ export default function App() {
       {/* Both tabs stay mounted and are only shown/hidden: switching is instant,
           with no re-render of the list and no re-decoding of the mascot image */}
       <div style={{ display: page === 'home' ? 'block' : 'none' }}>
-        <HomePage onOpenCategory={id => setCatId(id)} onProfile={openAccount} onRefresh={refresh} profile={profile} refreshKey={tick} badge={badge} />
+        <HomePage onOpenCategory={(id, intent) => { setCatIntent(intent || null); setCatId(id); }} onProfile={openAccount} onRefresh={refresh} profile={profile} refreshKey={tick} badge={badge} />
       </div>
       <div style={{ display: page === 'rand' ? 'block' : 'none' }}>
         <RandPage onOpenCategory={id => setCatId(id)} onProfile={openAccount} onRefresh={refresh} profile={profile} refreshKey={tick} badge={badge} />
       </div>
-      {catId && <CategoryPage categoryId={catId} refreshKey={tick} onBack={() => setCatId(null)} onRefresh={refresh} user={user} social={social} />}
+      {catId && <CategoryPage key={catId} intent={catIntent} categoryId={catId} refreshKey={tick} onBack={() => setCatId(null)} onRefresh={refresh} user={user} social={social} />}
       {showProfile && user && <ProfilePage user={user} profile={profile} refreshKey={tick} onClose={() => setShowProfile(false)} onOpenCategory={id => { setShowProfile(false); setCatId(id); }} social={social} onOpenPublic={openPublic} />}
       {route && <PublicView uid={route.uid} catId={route.catId} me={user} onOpen={openPublic} onClose={closePublic} onLogin={goLogin} onSaved={refresh} />}
       {!catId && !showProfile && !route && <Island activePage={page} onChangePage={setPage} onRefresh={refresh} />}

@@ -14,7 +14,8 @@ const seasonsWord = (n) => (n % 10 === 1 && n % 100 !== 11 ? 'сезон' : n % 
  * ratings next to it, the TMDB description below, then the actions.
  * Description & co. are loaded from TMDB once and kept on the film (`info`).
  */
-export default function FilmSheet({ film, categoryId, onRate, onPoster, onRename, onDelete, onClose, onChanged }) {
+// readOnly — opened from a profile: just the info, no editing; onOpenCategory adds a link to its category
+export default function FilmSheet({ film, categoryId, onRate, onPoster, onRename, onDelete, onClose, onChanged, readOnly, onOpenCategory, categoryName }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(film.name);
   const [info, setInfo] = useState(film.info || null);
@@ -28,7 +29,8 @@ export default function FilmSheet({ film, categoryId, onRate, onPoster, onRename
       .then(({ id, type, info: i }) => {
         if (!alive) return;
         setInfo(i);
-        if (i) { updateFilm(categoryId, film.id, { info: i, tmdbId: id, tmdbType: type }); onChanged?.(); }
+        // Keep it on my own film; someone else's film (public profile) is only shown
+        if (i && categoryId) { updateFilm(categoryId, film.id, { info: i, tmdbId: id, tmdbType: type }); onChanged?.(); }
       })
       .catch(() => {})
       .finally(() => alive && setLoading(false));
@@ -95,6 +97,13 @@ export default function FilmSheet({ film, categoryId, onRate, onPoster, onRename
           <div style={{ height: 20 }} />
         )}
 
+        {readOnly ? (
+          onOpenCategory ? (
+            <button className="d-btn" onClick={onOpenCategory}>
+              {categoryName ? `Открыть категорию · ${categoryName}` : 'Открыть категорию'}
+            </button>
+          ) : null
+        ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <button className="d-btn primary" onClick={onRate}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
@@ -112,6 +121,7 @@ export default function FilmSheet({ film, categoryId, onRate, onPoster, onRename
           </div>
           <button className="d-btn danger" onClick={onDelete}>Удалить фильм</button>
         </div>
+        )}
       </div>
     </>
   );

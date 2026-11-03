@@ -71,7 +71,7 @@ export function hasStoredData() {
   try { return localStorage.getItem(STORAGE_KEY) !== null; } catch { return false; }
 }
 
-export function getCategories() { return getData().categories; }
+export function getCategories() { return pinnedFirst(getData().categories); }
 
 export function addCategory(name, color, image = null, imageCrop = null) {
   const data = getData();
@@ -84,6 +84,31 @@ export function addCategory(name, color, image = null, imageCrop = null) {
 export function updateCategory(id, updates) {
   const data = getData();
   data.categories = data.categories.map(c => c.id === id ? { ...c, ...updates } : c);
+  saveData(data);
+}
+
+// Pinned categories always come first; inside each group the list order is kept.
+const pinnedFirst = (cats) => [...cats.filter((c) => c.pinned), ...cats.filter((c) => !c.pinned)];
+
+export function togglePin(id) {
+  const data = getData();
+  const cat = data.categories.find((c) => c.id === id);
+  if (!cat) return;
+  cat.pinned = !cat.pinned;
+  // a newly pinned one goes to the end of the pinned group, an unpinned one to the top of the rest
+  const others = data.categories.filter((c) => c.id !== id);
+  const pinned = others.filter((c) => c.pinned), rest = others.filter((c) => !c.pinned);
+  data.categories = cat.pinned ? [...pinned, cat, ...rest] : [...pinned, cat, ...rest];
+  saveData(data);
+}
+
+// New order from the reorder mode (ids in display order)
+export function setCategoryOrder(ids) {
+  const data = getData();
+  const byId = new Map(data.categories.map((c) => [c.id, c]));
+  const ordered = ids.map((id) => byId.get(id)).filter(Boolean);
+  data.categories.forEach((c) => { if (!ids.includes(c.id)) ordered.push(c); });
+  data.categories = pinnedFirst(ordered);
   saveData(data);
 }
 

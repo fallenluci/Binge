@@ -26,7 +26,10 @@ export const categoryLink = (uid, catId) => `${location.origin}/u/${uid}/c/${cat
 
 // ---------- publishing ----------
 
-const shownFilm = (f) => ({ id: f.id, name: f.name, rating: f.rating ?? null, poster: f.poster || null, ratedAt: f.ratedAt || null });
+const shownFilm = (f) => ({
+  id: f.id, name: f.name, rating: f.rating ?? null, poster: f.poster || null, ratedAt: f.ratedAt || null,
+  tmdbId: f.tmdbId || null, tmdbType: f.tmdbType || null, info: f.info || null,
+});
 const shownCat = (c) => ({ id: c.id, name: c.name, color: c.color });
 
 function snapshotOf(profile, user) {

@@ -9,7 +9,7 @@ import { socialEnabled } from '../social';
 import { coverCrop } from '../lib/cover';
 import { useIsDesktop } from '../lib/useIsDesktop';
 
-export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh, user, social = { friends: [], inbox: [] } }) {
+export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh, user, social = { friends: [], inbox: [] }, intent }) {
   const [showShare, setShowShare] = useState(false);
   // Read synchronously: with an empty first render the screen underneath flashed for a frame
   const [cat, setCat] = useState(() => getCategories().find(c => c.id === categoryId) || null);
@@ -100,6 +100,9 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
     onRefresh();
     onBack();
   };
+
+  // Opened from the home tile menu → «Оформление»
+  useEffect(() => { if (intent === 'appearance' && cat) openAppearance(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!cat) return null;
 
