@@ -3,6 +3,7 @@ import { getCategories } from '../store';
 import { posterUrl } from '../lib/posters';
 import CategoryDrum from '../components/CategoryDrum';
 import TopBar from '../components/TopBar';
+import FilmSheet from '../components/FilmSheet';
 import { useIsDesktop } from '../lib/useIsDesktop';
 
 const GLOW = '#311C7E';
@@ -43,6 +44,7 @@ export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile
   const [showDrum, setShowDrum] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState(0); // 0 = all categories
   const [imgOk, setImgOk] = useState(true);
+  const [filmView, setFilmView] = useState(null); // tapped result → read-only film card, as in the profile
   // Roll animation: an animated WebP with a real transparent background. Unlike a
   // transparent WebM (which Safari shows on black) it works on iPhone too. It's
   // loaded once as a blob; every roll gets a fresh object URL so it starts from frame 1.
@@ -141,11 +143,11 @@ export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile
 
         {/* Cat button — img + video both stay mounted; we just toggle which is visible */}
         <button
-          onClick={poster ? undefined : start}
+          onClick={poster ? () => setFilmView(result) : start}
           disabled={phase === 'playing'}
           style={{
             position: 'relative', width: CAT, height: poster ? POSTER_H : CAT, background: 'none', border: 'none',
-            cursor: phase === 'playing' || poster ? 'default' : 'pointer', padding: 0,
+            cursor: phase === 'playing' ? 'default' : 'pointer', padding: 0,
             transition: 'transform 0.15s',
           }}
           onTouchStart={e => phase !== 'playing' && (e.currentTarget.style.transform = 'scale(0.96)')}
@@ -189,7 +191,7 @@ export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile
         {/* Result: film name, category, actions */}
         {phase === 'result' && result && (
           <div style={{ textAlign: 'center', animation: 'fadeIn 0.6s ease', marginTop: desktop ? 22 : -6, width: '100%', maxWidth: desktop ? 520 : 360, position: 'relative' }}>
-            <div style={{ fontSize: poster ? (desktop ? 40 : 28) : (desktop ? 52 : 38), fontWeight: 700, color: 'var(--text)', letterSpacing: '-1px', lineHeight: 1.15 }}>
+            <div onClick={() => setFilmView(result)} style={{ cursor: 'pointer', fontSize: poster ? (desktop ? 40 : 28) : (desktop ? 52 : 38), fontWeight: 700, color: 'var(--text)', letterSpacing: '-1px', lineHeight: 1.15 }}>
               {result.film.name}
             </div>
             <div style={{ color: 'var(--text-dim)', fontSize: 14, fontWeight: 700, marginTop: 6 }}>
@@ -218,6 +220,13 @@ export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile
           )}
         </div>
       </div>
+
+      {filmView && (
+        <FilmSheet key={filmView.film.id} film={filmView.film} categoryId={filmView.cat.id} readOnly
+          categoryName={filmView.cat.name}
+          onOpenCategory={() => { setFilmView(null); onOpenCategory?.(filmView.cat.id); }}
+          onClose={() => setFilmView(null)} />
+      )}
 
       {showDrum && (
         <CategoryDrum
