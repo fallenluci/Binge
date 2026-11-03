@@ -2,6 +2,7 @@ import { useState } from 'react';
 import ShareSheet, { LinkBlock, Switch } from './ShareSheet';
 import { usePublicProfiles, Person } from './FriendsSheet';
 import { categoryLink, sendCategory, setCategoryVisibility } from '../social';
+import { coverCrop } from '../lib/cover';
 
 /**
  * Category visibility & sharing, like a Spotify playlist:
@@ -43,7 +44,7 @@ export default function CategoryShareSheet({ cat, user, social, profile, onChang
       ) : (
         <>
           <LinkBlock url={categoryLink(user.uid, cat.id)} title={cat.name}
-            card={{ avatar: profile?.avatar, avatarPos: profile?.avatarPos, name: cat.name, caption: profile?.name ? `Категория · ${profile.name}` : 'Категория в Dori' }} />
+            card={{ cover: { image: cat.image, crop: coverCrop(cat), color: cat.color }, name: cat.name, caption: profile?.name ? `Категория · ${profile.name}` : 'Категория в Dori' }} />
           <button type="button" className="d-btn danger" style={{ marginTop: 8 }} onClick={() => setVis('private')}>Закрыть доступ</button>
         </>
       )}

@@ -258,7 +258,7 @@ function PublicCategory({ uid, catId, me, onOpen, onClose, onLogin, onSaved }) {
       </div>
 
       {share && <ShareSheet title="Категория" url={categoryLink(uid, catId)} onClose={() => setShare(false)}
-        card={{ avatar: owner?.avatar, avatarPos: owner?.avatarPos, name: cat.name, caption: owner?.name ? `Категория · ${owner.name}` : 'Категория в Dori' }} />}
+        card={{ cover: { image: cat.image, crop: coverCrop(cat), color: cat.color }, name: cat.name, caption: owner?.name ? `Категория · ${owner.name}` : 'Категория в Dori' }} />}
       {film && <FilmSheet key={film.id || film.name} film={film} readOnly onClose={() => setFilm(null)} />}
     </Frame>
   );

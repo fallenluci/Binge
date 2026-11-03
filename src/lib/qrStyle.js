@@ -123,3 +123,14 @@ export function svgToPng(svg, w, h) {
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
   });
 }
+
+// A category without a cover photo: its colour with the first letter, as a square image
+export function letterImage(color, text, size = 256) {
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  const g = c.getContext('2d');
+  g.fillStyle = color || '#351E88'; g.fillRect(0, 0, size, size);
+  g.fillStyle = '#fff'; g.font = `800 ${Math.round(size * 0.48)}px -apple-system, 'Helvetica Neue', Arial, sans-serif`;
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText((text || '?').trim().charAt(0).toUpperCase(), size / 2, size / 2 + size * 0.03);
+  return c.toDataURL('image/png');
+}

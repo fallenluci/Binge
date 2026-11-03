@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { fileToDataUrl, qrCardSvg, squareImage, styledQr, svgToPng } from '../lib/qrStyle';
+import { fileToDataUrl, letterImage, qrCardSvg, squareImage, styledQr, svgToPng } from '../lib/qrStyle';
 
 /**
  * Share a link: a Dori QR card (rounded modules, purple eyes, the person's avatar in
  * the middle — Dori when there is none), the link with "Скопировать", "Сохранить
  * картинку" (PNG of the card, e.g. for stories) and the system share sheet on phones.
- * card = { avatar, avatarPos, name, caption }
+ * card = { avatar, avatarPos, name, caption, cover? }
+ * cover = { image, crop, color } — a category: its photo (or colour + first letter) in the middle
  */
 export function LinkBlock({ url, title, card = {} }) {
   const [logo, setLogo] = useState(null);
@@ -14,12 +15,15 @@ export function LinkBlock({ url, title, card = {} }) {
   const [saving, setSaving] = useState(false);
   useEffect(() => {
     let alive = true;
-    (card.avatar ? squareImage(card.avatar, card.avatarPos) : Promise.resolve(null))
+    const cover = card.cover;
+    (cover
+      ? (cover.image ? squareImage(cover.image, cover.crop) : Promise.resolve(null)).then((c) => c || letterImage(cover.color, card.name))
+      : card.avatar ? squareImage(card.avatar, card.avatarPos) : Promise.resolve(null))
       .then((a) => a || fileToDataUrl('/dori-logo.png'))
       .then((l) => { if (alive) setLogo(l); }).catch(() => {});
     return () => { alive = false; };
-  }, [card.avatar]); // eslint-disable-line react-hooks/exhaustive-deps
-  const round = !!card.avatar;
+  }, [card.avatar, card.cover?.image, card.cover?.color]); // eslint-disable-line react-hooks/exhaustive-deps
+  const round = !!(card.avatar || card.cover);
   const svg = useMemo(() => styledQr(url, { style: 'liquid', logo, logoRound: round }), [url, logo, round]);
 
   const copy = async () => {
