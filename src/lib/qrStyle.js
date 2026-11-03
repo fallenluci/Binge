@@ -7,7 +7,8 @@ import QRCode from 'qrcode';
  *   style 'purple' — purple gradient dots, white eyes
  *   style 'liquid' — connected rounded modules, purple eyes
  */
-export function styledQr(text, { style = 'dots', logo = null, size = 300 } = {}) {
+// logoRound — the logo is a person's avatar: shown as a circle
+export function styledQr(text, { style = 'dots', logo = null, logoRound = false, size = 300 } = {}) {
   const qr = QRCode.create(text, { errorCorrectionLevel: 'H' });
   const n = qr.modules.size;
   const at = (x, y) => x >= 0 && y >= 0 && x < n && y < n && qr.modules.get(y, x);
@@ -47,8 +48,15 @@ export function styledQr(text, { style = 'dots', logo = null, size = 300 } = {})
 
   if (logo) {
     const L = hole * m, X = h0 * m, Y = h0 * m;
-    body += `<rect x="${X - m * 0.6}" y="${Y - m * 0.6}" width="${L + m * 1.2}" height="${L + m * 1.2}" rx="${m * 2.4}" fill="#171717"/>`
-      + `<image href="${logo}" x="${X}" y="${Y}" width="${L}" height="${L}" preserveAspectRatio="xMidYMid meet"/>`;
+    if (logoRound) {
+      const c = X + L / 2, r = L / 2;
+      body += `<circle cx="${c}" cy="${Y + L / 2}" r="${r + m * 0.7}" fill="#171717"/>`
+        + `<clipPath id="lc"><circle cx="${c}" cy="${Y + L / 2}" r="${r}"/></clipPath>`
+        + `<image href="${logo}" x="${X}" y="${Y}" width="${L}" height="${L}" preserveAspectRatio="xMidYMid slice" clip-path="url(#lc)"/>`;
+    } else {
+      body += `<rect x="${X - m * 0.6}" y="${Y - m * 0.6}" width="${L + m * 1.2}" height="${L + m * 1.2}" rx="${m * 2.4}" fill="#171717"/>`
+        + `<image href="${logo}" x="${X}" y="${Y}" width="${L}" height="${L}" preserveAspectRatio="xMidYMid meet"/>`;
+    }
   }
 
   const defs = '<defs><linearGradient id="dg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9B7BFF"/><stop offset="1" stop-color="#4B2DC0"/></linearGradient></defs>';
