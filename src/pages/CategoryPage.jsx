@@ -104,17 +104,9 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
 
   const accent = cat.color;
 
-  return (
-    <div
-      className="cat-page"
-    >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: desktop ? 'min(147px, 14.4dvh) 22px 0' : 'calc(60px + var(--top-shift)) 22px 0' }}>
-        {desktop ? <div /> : (
-          <button onClick={goBack} aria-label="Назад" className="glass" style={{ borderRadius: '50%', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-          </button>
-        )}
-        <div style={{ display: 'flex', gap: desktop ? 5 : 10 }}>
+  // Share / appearance / delete / add. Phone: in the top bar; desktop: on the title's row.
+  const actions = (
+    <div style={{ display: 'flex', gap: desktop ? 8 : 10, flexShrink: 0, marginLeft: desktop ? 'auto' : 0 }}>
           {socialEnabled && user && (
             <button onClick={() => setShowShare(true)} aria-label="Поделиться" className="glass" style={{ borderRadius: '50%', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: 'none' }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v13" /><path d="m7 8 5-5 5 5" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" /></svg>
@@ -129,11 +121,24 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
           <button aria-label="Добавить фильм" onClick={() => { setNewFilmName(''); setShowAddFilm(true); }}
             style={{ background: 'rgb(30,30,32)', border: 'none', borderRadius: '50%', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white', fontSize: 22, fontWeight: 300 }}>+</button>
         </div>
-      </div>
+  );
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: desktop ? '5px 24px 9px' : '26px 24px 20px' }}>
+  return (
+    <div
+      className="cat-page"
+    >
+      {!desktop && <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 'calc(60px + var(--top-shift)) 22px 0' }}>
+        {(
+          <button onClick={goBack} aria-label="Назад" className="glass" style={{ borderRadius: '50%', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          </button>
+        )}
+        {actions}
+      </div>}
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: desktop ? 'min(147px, 14.4dvh) 22px 9px 24px' : '26px 24px 20px' }}>
         {/* Desktop: the shared back button, beside the column at the title's level */}
-        {desktop && <div style={{ alignSelf: 'center', marginTop: -21, marginRight: -10 }}><DeskBack onClick={goBack} /></div>}
+        {desktop && <div style={{ alignSelf: 'center', position: 'relative', top: -21, marginRight: -10 }}><DeskBack onClick={goBack} /></div>}
         {editingName ? (
           <input autoFocus value={catName} onChange={e => setCatName(e.target.value)} maxLength={60}
             onKeyDown={e => { if (e.key === 'Enter') saveCatName(); if (e.key === 'Escape') { e.stopPropagation(); setEditingName(false); } }} onBlur={saveCatName}
@@ -151,6 +156,7 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
             )}
           </>
         )}
+        {desktop && actions}
       </div>
 
       <div className="cat-list" style={{ padding: desktop ? '0 20px 40px' : '0 28px 40px' }}>
