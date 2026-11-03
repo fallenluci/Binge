@@ -38,7 +38,7 @@ export function Person({ p, size = 44, sub, onClick, right }) {
 const small = { height: 34, borderRadius: 14, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 700, color: '#fff', padding: '0 14px', flexShrink: 0 };
 
 /** My friends: requests, friends, sent requests and categories friends sent me. */
-export default function FriendsSheet({ me, social, onOpenPublic, onClose }) {
+export default function FriendsSheet({ me, social, onOpenPublic, onOpenChat, onClose }) {
   const { friends, inbox } = social;
   const incoming = friends.filter((f) => f.status === 'incoming');
   const mutual = friends.filter((f) => f.status === 'friends');
@@ -88,7 +88,8 @@ export default function FriendsSheet({ me, social, onOpenPublic, onClose }) {
         {label(`Друзья · ${mutual.length}`)}
         {mutual.length === 0
           ? <div style={{ color: '#8E8E93', fontSize: 14, fontWeight: 600, lineHeight: '19px', padding: '6px 2px 4px' }}>Пока никого. Поделись ссылкой на свой профиль или QR-кодом — друг откроет его и нажмёт «Добавить в друзья».</div>
-          : mutual.map((f) => <Person key={f.uid} p={prof(f.uid)} onClick={() => open(f.uid)} />)}
+          : mutual.map((f) => <Person key={f.uid} p={prof(f.uid)} onClick={() => open(f.uid)}
+              right={onOpenChat && <button style={{ ...small, background: '#351E88' }} onClick={() => { onClose(); onOpenChat(f.uid); }}>Написать</button>} />)}
 
         {outgoing.length > 0 && (
           <>

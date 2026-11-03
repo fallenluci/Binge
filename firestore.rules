@@ -3,6 +3,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
     function me() { return request.auth.uid; }
+    function friends(a, b) {
+      return get(/databases/$(database)/documents/users/$(a)/friends/$(b)).data.status == 'friends';
+    }
 
     // Private data: users/{uid}/categories, users/{uid}/profile — only the owner.
     match /users/{uid}/{document=**} {
@@ -26,6 +29,20 @@ service cloud.firestore {
         && request.resource.data.from == me()
         && id.matches(me() + '_.*')
         && get(/databases/$(database)/documents/users/$(uid)/friends/$(me())).data.status == 'friends';
+    }
+
+    // Chat list: a friend updates their own entry in my list (last message, unread count).
+    match /users/{uid}/chats/{other} {
+      allow create, update: if signedIn() && me() == other && friends(uid, me());
+    }
+
+    // Messages between two friends: chats/{a_b} where a_b are the two uids sorted.
+    // Both can read; each writes only their own messages, and only while they're friends.
+    match /chats/{chatId}/messages/{msgId} {
+      allow read: if signedIn() && me() in chatId.split('_');
+      allow create: if signedIn() && request.resource.data.from == me()
+        && chatId.split('_').size() == 2 && me() in chatId.split('_')
+        && friends(me(), chatId.split('_')[0] == me() ? chatId.split('_')[1] : chatId.split('_')[0]);
     }
 
     // Public profile snapshot: anyone (even without an account) can read, only the owner writes.

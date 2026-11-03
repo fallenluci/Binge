@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ratingColor, updateFilm } from '../store';
 import { loadInfo, posterUrl } from '../lib/posters';
 
-const fmtRuntime = (min) => {
+export const fmtRuntime = (min) => {
   if (!min) return '';
   const h = Math.floor(min / 60), m = min % 60;
   return h ? `${h} ч${m ? ` ${m} мин` : ''}` : `${m} мин`;
@@ -15,7 +15,7 @@ const seasonsWord = (n) => (n % 10 === 1 && n % 100 !== 11 ? 'сезон' : n % 
  * Description & co. are loaded from TMDB once and kept on the film (`info`).
  */
 // readOnly — opened from a profile: just the info, no editing; onOpenCategory adds a link to its category
-export default function FilmSheet({ film, categoryId, onRate, onPoster, onRename, onDelete, onClose, onChanged, readOnly, onOpenCategory, categoryName }) {
+export default function FilmSheet({ film, categoryId, onRate, onPoster, onRename, onDelete, onClose, onChanged, readOnly, onOpenCategory, categoryName, onAdd }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(film.name);
   const [info, setInfo] = useState(film.info || null);
@@ -98,11 +98,15 @@ export default function FilmSheet({ film, categoryId, onRate, onPoster, onRename
         )}
 
         {readOnly ? (
-          onOpenCategory ? (
-            <button className="d-btn" onClick={onOpenCategory}>
-              {categoryName ? `Открыть категорию · ${categoryName}` : 'Открыть категорию'}
-            </button>
-          ) : null
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {/* A film a friend sent in the chat: add it to one of my categories */}
+            {onAdd && <button className="d-btn primary" onClick={onAdd}>Добавить себе</button>}
+            {onOpenCategory && (
+              <button className="d-btn" onClick={onOpenCategory}>
+                {categoryName ? `Открыть категорию · ${categoryName}` : 'Открыть категорию'}
+              </button>
+            )}
+          </div>
         ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <button className="d-btn primary" onClick={onRate}>

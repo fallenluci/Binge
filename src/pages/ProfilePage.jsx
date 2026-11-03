@@ -84,7 +84,7 @@ const PersonIcon = ({ size }) => (
   </svg>
 );
 
-export default function ProfilePage({ user, profile, onClose, onOpenCategory, refreshKey, social = { friends: [], inbox: [] }, onOpenPublic }) {
+export default function ProfilePage({ user, profile, onClose, onOpenCategory, refreshKey, social = { friends: [], inbox: [] }, onOpenPublic, onOpenChat }) {
   const [sheet, setSheet] = useState(null); // 'friends' | 'share'
   const [filmView, setFilmView] = useState(null); // film from top-5 / recent, shown read-only
   const friendsCount = social.friends.filter((f) => f.status === 'friends').length;
@@ -373,7 +373,7 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
           onOpenCategory={() => { setFilmView(null); onOpenCategory?.(filmView.cat.id); }}
           onClose={() => setFilmView(null)} />
       )}
-      {sheet === 'friends' && <FriendsSheet me={user.uid} social={social} onOpenPublic={onOpenPublic} onClose={() => setSheet(null)} />}
+      {sheet === 'friends' && <FriendsSheet me={user.uid} social={social} onOpenPublic={onOpenPublic} onOpenChat={onOpenChat} onClose={() => setSheet(null)} />}
       {sheet === 'share' && (
         <ShareSheet title="Мой профиль" url={profileLink(user.uid)} onClose={() => setSheet(null)}
           card={{ avatar: profile?.avatar, avatarPos: profile?.avatarPos, name, caption: 'Отсканируй, чтобы открыть профиль в Dori' }}

@@ -14,7 +14,8 @@ import { auth, firebaseEnabled } from './firebase';
 import { startSync, stopSync } from './sync';
 import { replaceDataFromRemote, onLocalSave } from './store';
 import PublicView from './pages/PublicView';
-import { schedulePublish, resetPublishCache, subscribeFriends, subscribeInbox } from './social';
+import { schedulePublish, resetPublishCache, subscribeChats, subscribeFriends, subscribeInbox } from './social';
+import ChatPage from './pages/ChatPage';
 import { fillMissingPosters } from './lib/posters';
 
 const SPLASH_MIN_MS = 1000;
@@ -74,13 +75,18 @@ export default function App() {
   }, [user]);
 
   // ---- friends, inbox, publishing what's public ----
-  const [social, setSocial] = useState({ friends: [], inbox: [] });
+  const [social, setSocial] = useState({ friends: [], inbox: [], chats: [] });
   useEffect(() => {
-    if (!user) { setSocial({ friends: [], inbox: [] }); resetPublishCache(); return; }
+    if (!user) { setSocial({ friends: [], inbox: [], chats: [] }); resetPublishCache(); setChatOpen(null); return; }
     const a = subscribeFriends(user.uid, (friends) => setSocial((s) => ({ ...s, friends })));
     const b = subscribeInbox(user.uid, (inbox) => setSocial((s) => ({ ...s, inbox })));
-    return () => { a(); b(); };
+    const c = subscribeChats(user.uid, (chats) => setSocial((s) => ({ ...s, chats })));
+    return () => { a(); b(); c(); };
   }, [user]);
+  // Chats: null — closed, { with: uid | null } — open (on a conversation or on the list)
+  const [chatOpen, setChatOpen] = useState(null);
+  const chatUnread = social.chats.reduce((n, c) => n + (c.unread || 0), 0);
+  const chat = firebaseEnabled ? { open: () => setChatOpen({ with: null }), unread: chatUnread } : null;
   const profileRef = useRef(profile);
   profileRef.current = profile;
   useEffect(() => {
@@ -164,15 +170,19 @@ export default function App() {
       {/* Both tabs stay mounted and are only shown/hidden: switching is instant,
           with no re-render of the list and no re-decoding of the mascot image */}
       <div style={{ display: page === 'home' ? 'block' : 'none' }}>
-        <HomePage onOpenCategory={(id, intent) => { setCatIntent(intent || null); setCatId(id); }} onProfile={openAccount} onRefresh={refresh} profile={profile} refreshKey={tick} badge={badge} />
+        <HomePage onOpenCategory={(id, intent) => { setCatIntent(intent || null); setCatId(id); }} onProfile={openAccount} onRefresh={refresh} profile={profile} refreshKey={tick} badge={badge} chat={chat} />
       </div>
       <div style={{ display: page === 'rand' ? 'block' : 'none' }}>
-        <RandPage onOpenCategory={id => setCatId(id)} onProfile={openAccount} onRefresh={refresh} profile={profile} refreshKey={tick} badge={badge} />
+        <RandPage onOpenCategory={id => setCatId(id)} onProfile={openAccount} onRefresh={refresh} profile={profile} refreshKey={tick} badge={badge} chat={chat} />
       </div>
       {catId && <CategoryPage key={catId} intent={catIntent} categoryId={catId} refreshKey={tick} onBack={() => setCatId(null)} onRefresh={refresh} user={user} profile={profile} social={social} />}
-      {showProfile && user && <ProfilePage user={user} profile={profile} refreshKey={tick} onClose={() => setShowProfile(false)} onOpenCategory={id => { setShowProfile(false); setCatId(id); }} social={social} onOpenPublic={openPublic} />}
+      {showProfile && user && <ProfilePage user={user} profile={profile} refreshKey={tick} onClose={() => setShowProfile(false)} onOpenCategory={id => { setShowProfile(false); setCatId(id); }} social={social} onOpenPublic={openPublic} onOpenChat={(uid) => setChatOpen({ with: uid })} />}
       {route && <PublicView uid={route.uid} catId={route.catId} me={user} onOpen={openPublic} onClose={closePublic} onLogin={goLogin} onSaved={refresh} />}
-      {!catId && !showProfile && !route && <Island activePage={page} onChangePage={setPage} onRefresh={refresh} />}
+      {chatOpen && user && (
+        <ChatPage me={user.uid} social={social} chats={social.chats} start={chatOpen.with} onClose={() => setChatOpen(null)}
+          onOpenPublic={(uid) => { setChatOpen(null); openPublic(uid); }} onChanged={refresh} />
+      )}
+      {!catId && !showProfile && !route && !chatOpen && <Island activePage={page} onChangePage={setPage} onRefresh={refresh} />}
       {showAccount && <AccountSheet user={user} syncStatus={syncStatus} onClose={() => setShowAccount(false)} />}
       {splashLayer}
     </div>

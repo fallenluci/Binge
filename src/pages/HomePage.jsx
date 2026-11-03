@@ -18,7 +18,7 @@ const PinIcon = ({ size = 14, color = '#fff' }) => (
  * a small menu: pin / rearrange / appearance. In rearrange mode tiles are dragged
  * with a finger or the mouse; pinned ones always stay on top.
  */
-export default function HomePage({ onOpenCategory, onProfile, onRefresh, profile, refreshKey, badge }) {
+export default function HomePage({ onOpenCategory, onProfile, onRefresh, profile, refreshKey, badge, chat }) {
   const [cats, setCats] = useState(getCategories); // no empty first frame
   const desktop = useIsDesktop();
   const [menu, setMenu] = useState(null);       // category the menu is open for
@@ -112,7 +112,7 @@ export default function HomePage({ onOpenCategory, onProfile, onRefresh, profile
 
   return (
     <div className="page dotted-bg" style={{ paddingBottom: 140 }}>
-      <TopBar onOpenCategory={onOpenCategory} onProfile={onProfile} onRefresh={onRefresh} profile={profile} badge={badge} />
+      <TopBar onOpenCategory={onOpenCategory} onProfile={onProfile} onRefresh={onRefresh} profile={profile} badge={badge} chat={chat} />
 
       {arranging && (
         <div style={{

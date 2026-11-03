@@ -16,7 +16,7 @@ const DUR = '0.42s';
  * floatingResults — render results as an overlay under the header instead of in
  * the page flow (Random has full-screen centered content that must not shift).
  */
-export default function TopBar({ onOpenCategory, onProfile, onRefresh, profile, badge = 0, floatingResults = false }) {
+export default function TopBar({ onOpenCategory, onProfile, onRefresh, profile, badge = 0, chat = null, floatingResults = false }) {
   const [searchMode, setSearchMode] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -105,6 +105,21 @@ export default function TopBar({ onOpenCategory, onProfile, onRefresh, profile, 
                 <path d="M12 20V5M5.5 11.5 12 5l6.5 6.5" />
               </svg>
             </button>
+          )}
+
+          {/* Chats with friends; the number is unread messages */}
+          {chat && (
+            <div style={{ position: 'relative', flexShrink: 0, marginRight: 10, opacity: searchMode ? 0 : 1, pointerEvents: searchMode ? 'none' : 'auto', transition: 'opacity 0.25s ease' }}>
+              <button onClick={() => chat.open()} aria-label="Чаты" className="glass" style={{
+                width: 42, height: 42, borderRadius: '50%', border: 'none', padding: 0, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 11.5a8.4 8.4 0 0 1-12.3 7.5L3 21l2-5.4A8.4 8.4 0 1 1 21 11.5z" />
+                </svg>
+              </button>
+              {chat.unread > 0 && <span style={{ position: 'absolute', top: -2, right: -2, minWidth: 18, height: 18, padding: '0 5px', borderRadius: 9, background: '#351E88', color: '#fff', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>{chat.unread}</span>}
+            </div>
           )}
 
           {/* Place of the search circle in the row (the real one is the overlay below) */}

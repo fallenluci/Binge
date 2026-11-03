@@ -34,7 +34,7 @@ const CatFace = ({ size = 220 }) => (
 const ANIM_URL = '/dori-roll.webp';
 const ANIM_MS = 7000; // length of the animation (plays once, 60 fps)
 
-export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile, refreshKey, badge }) {
+export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile, refreshKey, badge, chat }) {
   const desktop = useIsDesktop();
   // Figma desktop: 375px mascot, 52px result title; phone keeps 220 / 38
   const CAT = desktop ? 375 : 220;
@@ -122,7 +122,7 @@ export default function RandPage({ onOpenCategory, onProfile, onRefresh, profile
   return (
     <div className="rand-frame dotted-bg">
       {/* Same header as Home — identical icons, working search */}
-      <TopBar onOpenCategory={onOpenCategory} onProfile={onProfile} onRefresh={onRefresh} profile={profile} badge={badge} floatingResults />
+      <TopBar onOpenCategory={onOpenCategory} onProfile={onProfile} onRefresh={onRefresh} profile={profile} badge={badge} chat={chat} floatingResults />
 
       {/* Center content */}
       <div style={{

@@ -1,5 +1,5 @@
 import {
-  collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, setDoc, where, writeBatch,
+  collection, deleteDoc, doc, getDoc, getDocs, increment, limitToLast, onSnapshot, orderBy, query, setDoc, where, writeBatch,
 } from 'firebase/firestore';
 import { db, firebaseEnabled } from './firebase';
 import { getCategories, getData, saveData } from './store';
@@ -13,6 +13,8 @@ import { computeStats } from './components/ProfileStats';
  *   public/{uid}/categories/{id}      — published categories (visibility public | link)
  *   users/{uid}/friends/{otherUid}    — { status: outgoing | incoming | friends, at }
  *   users/{uid}/inbox/{id}            — categories friends sent to this user
+ *   users/{uid}/chats/{otherUid}      — my chat list: last message preview, unread count
+ *   chats/{a_b}/messages/{id}         — messages between two friends (a_b = the two uids, sorted)
  *
  * Category visibility lives on the private category: cat.visibility
  *   'private' (default) — only me;  'link' — anyone with the link;  'public' — also on my profile.
@@ -179,3 +181,37 @@ export function subscribeInbox(uid, cb) {
   return onSnapshot(collection(db, 'users', uid, 'inbox'), (s) => cb(s.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => b.at - a.at)), () => cb([]));
 }
 export const dismissInbox = (uid, id) => deleteDoc(doc(db, 'users', uid, 'inbox', id));
+
+// ---------- chat with friends ----------
+
+export const chatIdOf = (a, b) => [a, b].sort().join('_');
+const MSG_LIMIT = 300;
+
+/** My chats, newest first: [{ uid, lastAt, lastFrom, previewText, previewFilm, previewRating, unread }] */
+export function subscribeChats(uid, cb) {
+  return onSnapshot(collection(db, 'users', uid, 'chats'),
+    (s) => cb(s.docs.map((d) => ({ uid: d.id, ...d.data() })).sort((a, b) => (b.lastAt || 0) - (a.lastAt || 0))), () => cb([]));
+}
+
+export function subscribeMessages(me, other, cb) {
+  const q = query(collection(db, 'chats', chatIdOf(me, other), 'messages'), orderBy('at'), limitToLast(MSG_LIMIT));
+  return onSnapshot(q, (s) => cb(s.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => a.at - b.at)), () => cb([]));
+}
+
+// What goes into a film message: enough to show the card and add the film to your own list
+export const filmForChat = (f) => clean({
+  name: f.name, rating: f.rating ?? null, poster: f.poster || null,
+  tmdbId: f.tmdbId || null, tmdbType: f.tmdbType || null, info: f.info || null,
+});
+
+export async function sendMessage(me, other, { text, film }) {
+  const at = Date.now();
+  const id = `${at}-${Math.random().toString(36).slice(2, 8)}`;
+  const msg = clean({ from: me, at, text: text || null, film: film || null });
+  await setDoc(doc(db, 'chats', chatIdOf(me, other), 'messages', id), msg);
+  const preview = { lastAt: at, lastFrom: me, previewText: film ? null : text.slice(0, 120), previewFilm: film ? film.name : null, previewRating: film ? film.rating ?? null : null };
+  await setDoc(doc(db, 'users', me, 'chats', other), { ...preview, unread: 0 }, { merge: true });
+  await setDoc(doc(db, 'users', other, 'chats', me), { ...preview, unread: increment(1) }, { merge: true });
+}
+
+export const markChatRead = (me, other) => setDoc(doc(db, 'users', me, 'chats', other), { unread: 0 }, { merge: true });
