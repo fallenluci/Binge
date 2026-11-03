@@ -42,6 +42,11 @@ export default function PublicView({ uid, catId, me, onOpen, onClose, onLogin, o
     : <PublicProfile uid={uid} me={me} onOpen={onOpen} onClose={onClose} onLogin={onLogin} />;
 }
 
+const smallBtn = (bg) => ({
+  height: 36, borderRadius: 14, border: 'none', background: bg, color: '#fff', padding: '0 14px', flexShrink: 0, marginLeft: 'auto',
+  display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
+});
+
 function Frame({ children }) {
   return (
     <div className="page" style={{ position: 'absolute', inset: 0, zIndex: 45, background: '#000' }}>
@@ -230,17 +235,18 @@ function PublicCategory({ uid, catId, me, onOpen, onClose, onLogin, onSaved }) {
               </div>
             </div>
           )}
-        </div>
-
-        {(!me || me.uid !== uid) && (
-          <div style={{ padding: desktop ? '16px 0 0' : '16px 22px 0' }}>
-            {!me
-              ? <button type="button" className="d-btn primary" onClick={onLogin}>Войти, чтобы сохранить себе</button>
+          {/* Compact "save" next to the owner instead of a full-width button */}
+          {(!me || me.uid !== uid) && (
+            !me
+              ? <button type="button" style={smallBtn('#351E88')} onClick={onLogin}>Войти и сохранить</button>
               : saved
-                ? <div className="d-btn" style={{ cursor: 'default', color: '#30D158' }}>✓ Сохранено в твои категории</div>
-                : <button type="button" className="d-btn primary" onClick={save}>Сохранить себе</button>}
-          </div>
-        )}
+                ? <div style={{ ...smallBtn('#2C2C2C'), color: '#30D158', cursor: 'default', animation: 'fadeIn 0.25s ease' }}>✓ Сохранено</div>
+                : <button type="button" style={smallBtn('#351E88')} onClick={save}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+                    Сохранить
+                  </button>
+          )}
+        </div>
 
         <div style={{ padding: desktop ? '18px 0 0' : '18px 22px 0', display: 'flex', flexDirection: 'column', gap: 4 }}>
           {films.length === 0 && <div className="d-label" style={{ textAlign: 'center', padding: '30px 0' }}>Пока пусто</div>}
