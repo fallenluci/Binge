@@ -26,12 +26,12 @@ import { useIsDesktop } from '../lib/useIsDesktop';
 // All coordinates below are taken 1:1 from the Figma mockup (390 × 844 frame).
 const PURPLE = '#351E88';
 const GREY = '#515151';
-const FRAME_H = 844;
+const FRAME_H = 844 + 110; // phone layout is 110px taller than the mockup (bigger banner)
 
 // Banner fades into black between 235pt and 320pt (sampled from the mockup)
-// Phone banner: 360px tall (was 320 in the mockup), the photo is visible 40px lower
-const BANNER_H = 360;
-const BANNER_FADE = 'linear-gradient(to bottom, rgba(0,0,0,0.23) 0px, rgba(0,0,0,0) 26px, rgba(0,0,0,0) 275px, rgba(0,0,0,0.045) 280px, rgba(0,0,0,0.14) 290px, rgba(0,0,0,0.26) 300px, rgba(0,0,0,0.43) 310px, rgba(0,0,0,0.63) 320px, rgba(0,0,0,0.8) 330px, rgba(0,0,0,0.913) 340px, rgba(0,0,0,0.976) 350px, #000 360px)';
+// Phone banner: 470px tall (320 in the mockup, then 360); everything below it sits 110px lower than in the mockup
+const BANNER_H = 470;
+const BANNER_FADE = 'linear-gradient(to bottom, rgba(0,0,0,0.23) 0px, rgba(0,0,0,0) 26px, rgba(0,0,0,0) 385px, rgba(0,0,0,0.045) 390px, rgba(0,0,0,0.14) 400px, rgba(0,0,0,0.26) 410px, rgba(0,0,0,0.43) 420px, rgba(0,0,0,0.63) 430px, rgba(0,0,0,0.8) 440px, rgba(0,0,0,0.913) 450px, rgba(0,0,0,0.976) 460px, #000 470px)';
 const EDIT_DIM = 'rgba(0,0,0,0.53)';
 
 // Desktop (Figma 1440 × 1024 frame): a 710px column with a rounded 198px banner.
@@ -253,7 +253,7 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
         >
           {editing && <div style={{ position: 'absolute', inset: 0, background: EDIT_DIM }} />}
           <div style={{ position: 'absolute', inset: 0, background: desktop ? DESK_BANNER_FADE : BANNER_FADE, pointerEvents: 'none' }} />
-          {editing && <Pencil top={desktop ? DESK_BANNER_H / 2 : 173} />}
+          {editing && <Pencil top={desktop ? DESK_BANNER_H / 2 : 228} />}
         </CroppedImage>
 
         {/* Avatar — on desktop its centre sits on the banner's bottom edge */}
@@ -266,7 +266,7 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
             borderRadius: '50%', background: '#2C2C2C', cursor: editing ? 'pointer' : 'default',
             ...(desktop
               ? { top: at(DESK_BANNER_H - DESK_AVATAR / 2), width: DESK_AVATAR, height: DESK_AVATAR }
-              : { top: 237.9, width: 155, height: 155 }),
+              : { top: 237.9 + 110, width: 155, height: 155 }),
           }}
         >
           {!view.avatar && <PersonIcon size={desktop ? 59 : 72} />}
@@ -290,7 +290,7 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
           <div style={{ position: 'absolute', top: 'calc(60px + var(--top-shift))', right: 22, display: 'flex', gap: 10, zIndex: 2 }}>
             <button type="button" aria-label="Друзья" onClick={() => setSheet('friends')} className="glass" style={roundBtn}>
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-              {pending > 0 && <span style={{ position: 'absolute', top: -3, right: -3, minWidth: 18, height: 18, padding: '0 5px', borderRadius: 9, background: '#FF3B30', color: '#fff', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 2px #000' }}>{pending}</span>}
+              {pending > 0 && <span style={{ position: 'absolute', top: -3, right: -3, minWidth: 18, height: 18, padding: '0 5px', borderRadius: 9, background: '#FF3B30', color: '#fff', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{pending}</span>}
             </button>
             <button type="button" aria-label="Поделиться профилем" onClick={() => setSheet('share')} className="glass" style={roundBtn}>
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v13" /><path d="m7 8 5-5 5 5" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" /></svg>
@@ -300,17 +300,22 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
 
         {!editing && (
           <>
-            <div style={text(t(402.7, 'name'), 36, '#fff', 800)}>{name}</div>
+            {/* Name with a small pencil next to it — opens editing */}
+            <div style={{ position: 'absolute', top: 402.7 + 110, left: 0, right: 0, padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+              <span style={{ fontSize: 36, lineHeight: '36px', fontWeight: 800, color: '#fff', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+              <button type="button" aria-label="Редактировать профиль" onClick={startEdit} style={{ width: 34, height: 34, borderRadius: '50%', border: 'none', background: '#1C1C1E', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></svg>
+              </button>
+            </div>
             {/* Statistics, then the buttons; on a tall list the page scrolls */}
             <div style={desktop
               ? { position: 'absolute', top: at(340), left: 0, right: 0, display: 'flex', flexDirection: 'column', minHeight: `calc(max(var(--app-h), ${B} + 787px) - ${B} - 340px)`, paddingBottom: 130 }
-              : { position: 'absolute', top: 466, left: 0, right: 0, padding: '0 24px 26.2px', display: 'flex', flexDirection: 'column', minHeight: `calc(max(var(--app-h), ${FRAME_H}px) - 466px)` }}>
+              : { position: 'absolute', top: 466 + 110, left: 0, right: 0, padding: '0 24px 26.2px', display: 'flex', flexDirection: 'column', minHeight: `calc(max(var(--app-h), ${FRAME_H}px) - 576px)` }}>
               {profile?.bio && (
                 <div style={{ color: '#8E8E93', fontSize: 15, lineHeight: '20px', fontWeight: 600, textAlign: 'center', margin: '-6px 4px 16px', overflowWrap: 'anywhere', whiteSpace: 'pre-line' }}>{profile.bio}</div>
               )}
               <ProfileStats desktop={desktop} onOpenCategory={onOpenCategory} onOpenFilm={setFilmView} refreshKey={refreshKey} />
               <div style={{ marginTop: 'auto', paddingTop: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14.8 }}>
-                <button style={{ ...purpleBtn({}), position: 'static', transform: 'none' }} onClick={startEdit}>Редактировать профиль</button>
                 <button onClick={logout} disabled={busy} style={{
                   background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit',
                   fontSize: 16, lineHeight: '16px', fontWeight: 700, color: '#C40000',
@@ -322,34 +327,34 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
 
         {editing && (
           <form onSubmit={(e) => { e.preventDefault(); save(); }}>
-            <div style={text(t(408.1, 'nameLabel'), 14, GREY)}>Отображаемое имя</div>
+            <div style={text(t(408.1 + 110, 'nameLabel'), 14, GREY)}>Отображаемое имя</div>
             <input
-              style={bareInput(t(437.7, 'nameInput'), 36)} className="profile-input" maxLength={30}
+              style={bareInput(t(437.7 + 110, 'nameInput'), 36)} className="profile-input" maxLength={30}
               value={draft.name} placeholder={displayNameOf(null, user)}
               onChange={(e) => setDraft({ ...draft, name: e.target.value })}
             />
-            <div style={text(t(491.1, 'emailLabel'), 14, GREY)}>Сменить почту</div>
+            <div style={text(t(491.1 + 110, 'emailLabel'), 14, GREY)}>Сменить почту</div>
             <input
-              style={bareInput(t(518.7, 'emailInput'), 16)} className="profile-input" type="email" inputMode="email"
+              style={bareInput(t(518.7 + 110, 'emailInput'), 16)} className="profile-input" type="email" inputMode="email"
               autoCapitalize="none" autoCorrect="off" autoComplete="email"
               value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })}
             />
-            <div style={text(t(555.1, 'pwLabel'), 14, GREY)}>Сменить пароль</div>
+            <div style={text(t(555.1 + 110, 'pwLabel'), 14, GREY)}>Сменить пароль</div>
             <input
-              style={bareInput(t(590.1, 'pwInput'), 16)} className="profile-input profile-password" type="password" autoComplete="new-password"
+              style={bareInput(t(590.1 + 110, 'pwInput'), 16)} className="profile-input profile-password" type="password" autoComplete="new-password"
               placeholder="**********" value={draft.password}
               onChange={(e) => setDraft({ ...draft, password: e.target.value })}
             />
-            <div style={text(633.1, 14, GREY)}>О себе</div>
+            <div style={text(633.1 + 110, 14, GREY)}>О себе</div>
             <textarea
               className="profile-input" maxLength={150} rows={3} placeholder="Пара слов о тебе и твоём кино"
               value={draft.bio} onChange={(e) => setDraft({ ...draft, bio: e.target.value.replace(/\n{2,}/g, '\n') })}
               style={{
-                position: 'absolute', top: 655, left: 24, right: 24, height: 82, resize: 'none', border: 'none', outline: 'none', background: '#171717',
+                position: 'absolute', top: 655 + 110, left: 24, right: 24, height: 82, resize: 'none', border: 'none', outline: 'none', background: '#171717',
                 borderRadius: 16, padding: '9px 12px', color: '#fff', caretColor: '#fff', fontFamily: 'inherit', fontSize: 15, lineHeight: '20px', fontWeight: 600, textAlign: 'center',
               }}
             />
-            <div style={{ ...text(635, 11, GREY), textAlign: 'right', padding: '0 30px' }}>{(draft.bio || '').length}/150</div>
+            <div style={{ ...text(635 + 110, 11, GREY), textAlign: 'right', padding: '0 30px' }}>{(draft.bio || '').length}/150</div>
             {error && <div style={{
               ...text(null, 13, '#FF453A', 500), whiteSpace: 'normal', lineHeight: '17px',
               ...(desktop ? { top: at(DK.saveBtn - 40) } : { top: 'auto', bottom: 10 }),
@@ -379,7 +384,7 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
           title={photoMenu === 'avatar' ? 'Аватар' : 'Баннер'}
           preview={photoMenu === 'avatar'
             ? <CroppedImage src={draft.avatar} pos={draft.avatarPos} style={{ width: 96, height: 96, borderRadius: '50%' }} />
-            : <CroppedImage src={draft.banner} pos={draft.bannerPos} style={{ width: desktop ? 240 : 150, aspectRatio: desktop ? DESK_BANNER_RATIO : '390 / 360', borderRadius: 18 }} />}
+            : <CroppedImage src={draft.banner} pos={draft.bannerPos} style={{ width: desktop ? 240 : 150, aspectRatio: desktop ? DESK_BANNER_RATIO : '390 / 470', borderRadius: 18 }} />}
           onAdjust={() => { const k = photoMenu; setPhotoMenu(null); setCropper({ kind: k, src: draft[k], pos: draft[`${k}Pos`] }); }}
           onReplace={() => { const k = photoMenu; setPhotoMenu(null); pickFile(k); }}
           onRemove={() => { const k = photoMenu; setPhotoMenu(null); setDraft((d) => ({ ...d, [k]: null, [`${k}Pos`]: DEFAULT_POS })); }}

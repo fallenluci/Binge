@@ -97,7 +97,7 @@ function PublicProfile({ uid, me, onOpen, onClose, onLogin }) {
         <div style={desktop
           ? { display: 'flex', alignItems: 'flex-end', gap: 24, marginTop: -80, padding: '0 36px', position: 'relative' }
           : { display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: -90, position: 'relative', padding: '0 24px' }}>
-          <CroppedImage src={p.avatar} pos={p.avatarPos} style={{ width: desktop ? 150 : 140, height: desktop ? 150 : 140, borderRadius: '50%', flexShrink: 0, background: '#2C2C2C', boxShadow: '0 0 0 6px #000' }}>
+          <CroppedImage src={p.avatar} pos={p.avatarPos} style={{ width: desktop ? 150 : 140, height: desktop ? 150 : 140, borderRadius: '50%', flexShrink: 0, background: '#2C2C2C', boxShadow: desktop ? '0 0 0 6px #000' : 'none' }}>
             {!p.avatar && <PersonIcon size={desktop ? 70 : 64} />}
           </CroppedImage>
           <div style={{ flex: 1, minWidth: 0, textAlign: desktop ? 'left' : 'center', paddingBottom: desktop ? 10 : 0, marginTop: desktop ? 0 : 12 }}>

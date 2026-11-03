@@ -127,7 +127,7 @@ export default function TopBar({ onOpenCategory, onProfile, onRefresh, profile, 
           )}
         </button>
           {/* Friend requests / categories sent to me */}
-          {badge > 0 && !searchMode && <span style={{ position: 'absolute', top: -2, right: -2, minWidth: 18, height: 18, padding: '0 5px', borderRadius: 9, background: '#FF3B30', color: '#fff', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 2px #000', pointerEvents: 'none' }}>{badge}</span>}
+          {badge > 0 && !searchMode && <span style={{ position: 'absolute', top: -2, right: -2, minWidth: 18, height: 18, padding: '0 5px', borderRadius: 9, background: '#FF3B30', color: '#fff', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>{badge}</span>}
           </div>
 
           {/* Search: one full-width bar, clipped to the 42px circle while closed */}
