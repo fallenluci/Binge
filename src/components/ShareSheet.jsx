@@ -9,6 +9,8 @@ import { fileToDataUrl, letterImage, qrCardSvg, squareImage, styledQr, svgToPng 
  * card = { avatar, avatarPos, name, caption, cover? }
  * cover = { image, crop, color } — a category: its photo (or colour + first letter) in the middle
  */
+const rowBtn = { flex: 1, minWidth: 0, whiteSpace: 'nowrap' };
+
 export function LinkBlock({ url, title, card = {} }) {
   const [logo, setLogo] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -67,13 +69,13 @@ export function LinkBlock({ url, title, card = {} }) {
         </button>
       </div>
       <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-        <button type="button" className="d-btn" onClick={saveImage} disabled={saving || !logo} style={{ opacity: saving ? 0.6 : 1 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></svg>
-          {saving ? 'Готовлю…' : 'Сохранить картинку'}
+        <button type="button" className="d-btn" onClick={saveImage} disabled={saving || !logo} style={{ ...rowBtn, opacity: saving ? 0.6 : 1 }}>
+          <svg style={{ flexShrink: 0 }} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></svg>
+          {saving ? 'Готовлю…' : canShare ? 'Сохранить' : 'Сохранить картинку'}
         </button>
         {canShare && (
-          <button type="button" className="d-btn" onClick={() => navigator.share({ title, url }).catch(() => {})}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v13" /><path d="m7 8 5-5 5 5" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" /></svg>
+          <button type="button" className="d-btn" style={rowBtn} onClick={() => navigator.share({ title, url }).catch(() => {})}>
+            <svg style={{ flexShrink: 0 }} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v13" /><path d="m7 8 5-5 5 5" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" /></svg>
             Отправить…
           </button>
         )}
