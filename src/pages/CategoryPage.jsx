@@ -133,10 +133,9 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
             style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: 36, fontWeight: 700, color: 'var(--text)', letterSpacing: '-1px', width: '100%', fontFamily: 'inherit' }} />
         ) : (
           <>
-            {/* Tap the name to rename the category (dashed underline hints that it's editable) */}
+            {/* Tap the name to rename the category */}
             <span onClick={() => { setEditingName(true); setCatName(cat.name); }} title="Нажми, чтобы переименовать" style={{
               fontSize: 36, fontWeight: 700, color: 'var(--text)', letterSpacing: '-1px', cursor: 'text', minWidth: 0, overflowWrap: 'anywhere',
-              textDecoration: 'underline dashed #3A3A3C', textDecorationThickness: 2, textUnderlineOffset: 7,
             }}>{cat.name}</span>
             {socialEnabled && cat.visibility && cat.visibility !== 'private' && (
               <span onClick={() => setShowShare(true)} style={{ cursor: 'pointer', fontSize: 12, fontWeight: 800, color: cat.visibility === 'public' ? '#30D158' : '#8E8E93', background: '#1C1C1E', borderRadius: 999, padding: '4px 10px', whiteSpace: 'nowrap' }}>
