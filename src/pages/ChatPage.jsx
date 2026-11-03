@@ -578,6 +578,7 @@ function MessageRow({ m, me, desktop, gap, anim, readAt, leaving, selecting, sel
 
   const openMenu = () => {
     if (m.status) { if (m.status === 'failed') onRetry(); return; }
+    window.getSelection?.()?.removeAllRanges(); // a long press may have started selecting text
     const r = bubbleRef.current.getBoundingClientRect();
     navigator.vibrate?.(8);
     onMenu({ left: r.left, top: r.top, width: r.width, height: r.height });
@@ -648,6 +649,13 @@ function MessageMenu({ menu, me, pinnedId, canWrite, nameOf, readAt, onClose, on
   // Releasing the long press fires a click right where the menu now is — only clicks
   // that started inside the open menu count
   const armed = useRef(false);
+  // While the menu is open nothing on the page may get selected
+  useEffect(() => {
+    const clear = () => { const sel = window.getSelection?.(); if (sel && !sel.isCollapsed) sel.removeAllRanges(); };
+    clear();
+    document.addEventListener('selectionchange', clear);
+    return () => document.removeEventListener('selectionchange', clear);
+  }, []);
   const guard = (e) => { if (!armed.current) { e.stopPropagation(); e.preventDefault(); } };
 
   return createPortal(

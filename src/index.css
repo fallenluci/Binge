@@ -258,3 +258,11 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
 @media (prefers-reduced-motion: reduce) {
   .screen, .tab-from-right, .tab-from-left, .rise-in { animation: none !important; }
 }
+
+/* Long press in the chat: iOS keeps the finger's gesture going after the menu opens and
+   starts selecting whatever text is under it (menu items). No selection / callout there. */
+.chat-menu, .chat-menu * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+@media (pointer: coarse) {
+  .chat-page { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  .chat-page input, .chat-page textarea { -webkit-user-select: text; user-select: text; }
+}
