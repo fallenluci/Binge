@@ -79,6 +79,9 @@ function PublicProfile({ uid, me, onOpen, onClose, onLogin }) {
 
   const stats = { ...p.stats, top: p.top || [], topFresh: p.topFresh, recent: p.recent || [], favorite: p.favorite || null };
   const openCat = (id) => onOpen(uid, id);
+  // Top / recent / favourite may come from hidden categories — those can't be opened
+  const sharedIds = new Set([...(p.categories || []).map((c) => c.id), ...[...stats.top, ...stats.recent, stats.favorite].filter(Boolean).map((x) => x.cat).filter((c) => c?.shared).map((c) => c.id)]);
+  const openShared = (id) => { if (sharedIds.has(id)) openCat(id); };
   const W = desktop ? 'min(1100px, calc(100% - 80px))' : '100%';
 
   return (
@@ -111,7 +114,7 @@ function PublicProfile({ uid, me, onOpen, onClose, onLogin }) {
         </div>
 
         <div style={{ padding: desktop ? '34px 0 0' : '8px 24px 0' }}>
-          <ProfileStats desktop={desktop} data={stats} onOpenCategory={openCat} onOpenFilm={setFilm} emptyText="Пока ни одного фильма" />
+          <ProfileStats desktop={desktop} data={stats} onOpenCategory={openShared} onOpenFilm={setFilm} emptyText="Пока ни одного фильма" />
 
           {cats.length > 0 && (
             <>
@@ -128,7 +131,7 @@ function PublicProfile({ uid, me, onOpen, onClose, onLogin }) {
         card={{ avatar: p.avatar, avatarPos: p.avatarPos, name: p.name, caption: 'Отсканируй, чтобы открыть профиль в Dori' }} />}
       {film && (
         <FilmSheet key={film.id} film={film} readOnly categoryName={film.cat?.name}
-          onOpenCategory={() => { setFilm(null); openCat(film.cat.id); }} onClose={() => setFilm(null)} />
+          onOpenCategory={sharedIds.has(film.cat?.id) ? () => { setFilm(null); openCat(film.cat.id); } : undefined} onClose={() => setFilm(null)} />
       )}
     </Frame>
   );

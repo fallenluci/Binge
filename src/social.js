@@ -31,24 +31,26 @@ const shownFilm = (f) => ({
   tmdbId: f.tmdbId || null, tmdbType: f.tmdbType || null, info: f.info || null,
 });
 const shownCat = (c) => ({ id: c.id, name: c.name, color: c.color });
+// shared — the category itself can be opened by others (public or by link)
+const shownCatRef = (c) => ({ ...shownCat(c), shared: c.visibility === 'public' || c.visibility === 'link' });
 
 function snapshotOf(profile, user) {
   const cats = getCategories();
   const open = cats.filter((c) => c.visibility === 'public');
-  // Numbers count everything; film titles only come from categories made public
+  // Numbers, top 5, recently watched and the favourite come from all categories;
+  // the categories themselves are listed / openable only when made public
   const all = computeStats(cats);
-  const pub = computeStats(open);
-  const asItem = (f) => ({ ...shownFilm(f), cat: shownCat(f.cat) });
+  const asItem = (f) => ({ ...shownFilm(f), cat: shownCatRef(f.cat) });
   return clean({
     name: profile?.name || user?.displayName || (user?.email || '').split('@')[0] || 'Без имени',
     bio: profile?.bio || null,
     avatar: profile?.avatar || null, avatarPos: profile?.avatarPos || null,
     banner: profile?.banner || null, bannerPos: profile?.bannerPos || null,
     stats: { total: all.total, rated: all.rated, avg: all.avg },
-    top: pub.top.map(asItem),
-    topFresh: pub.topFresh,
-    recent: pub.recent.map(asItem),
-    favorite: pub.favorite ? { cat: shownCat(pub.favorite.cat), count: pub.favorite.count, avg: pub.favorite.avg } : null,
+    top: all.top.map(asItem),
+    topFresh: all.topFresh,
+    recent: all.recent.map(asItem),
+    favorite: all.favorite ? { cat: shownCatRef(all.favorite.cat), count: all.favorite.count, avg: all.favorite.avg } : null,
     categories: open.map((c) => ({ ...shownCat(c), count: c.films.length })),
     updatedAt: Date.now(),
   });
