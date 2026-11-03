@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ratingColor, updateFilm } from '../store';
 import { loadInfo, posterUrl } from '../lib/posters';
+import { useIsDesktop } from '../lib/useIsDesktop';
 
 export const fmtRuntime = (min) => {
   if (!min) return '';
@@ -16,6 +17,7 @@ const seasonsWord = (n) => (n % 10 === 1 && n % 100 !== 11 ? 'сезон' : n % 
  */
 // readOnly — opened from a profile: just the info, no editing; onOpenCategory adds a link to its category
 export default function FilmSheet({ film, categoryId, onRate, onPoster, onRename, onDelete, onClose, onChanged, readOnly, onOpenCategory, categoryName, onAdd }) {
+  const desktop = useIsDesktop(); // desktop: a bigger window with a bigger poster
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(film.name);
   const [info, setInfo] = useState(film.info || null);
@@ -52,16 +54,16 @@ export default function FilmSheet({ film, categoryId, onRate, onPoster, onRename
   return (
     <>
       <div className="sheet-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 300 }} onClick={onClose} />
-      <div className="glass sheet-panel" style={{
+      <div className="glass sheet-panel film-sheet" style={{
         position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 430, borderRadius: '28px 28px 0 0',
         padding: '14px 22px 34px', zIndex: 301, animation: 'slideUp 0.32s cubic-bezier(0.34,1.26,0.64,1)', maxHeight: '88dvh', overflowY: 'auto',
       }}>
         <div className="sheet-handle" style={{ width: 36, height: 4, borderRadius: 2, margin: '0 auto 18px' }} />
 
-        <div style={{ display: 'flex', gap: 16 }}>
+        <div style={{ display: 'flex', gap: desktop ? 22 : 16 }}>
           {film.poster && (
             <div onClick={readOnly ? undefined : onPoster} style={{ position: 'relative', flexShrink: 0, cursor: readOnly ? 'default' : 'pointer' }}>
-              <img src={posterUrl(film.poster, 'w185')} alt="" style={{ width: 96, height: 144, borderRadius: 12, objectFit: 'cover', display: 'block', background: '#2C2C2C' }} />
+              <img src={posterUrl(film.poster, desktop ? 'w342' : 'w185')} alt="" style={{ width: desktop ? 170 : 96, height: desktop ? 255 : 144, borderRadius: desktop ? 16 : 12, objectFit: 'cover', display: 'block', background: '#2C2C2C' }} />
               {/* Tap the poster to pick another one */}
               {!readOnly && <div style={{ position: 'absolute', right: 5, bottom: 5, width: 26, height: 26, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon(posterPath, 14)}</div>}
             </div>
@@ -70,25 +72,25 @@ export default function FilmSheet({ film, categoryId, onRate, onPoster, onRename
             {editing ? (
               <input autoFocus className="d-field" value={name} onChange={(e) => setName(e.target.value)} maxLength={120}
                 onKeyDown={(e) => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') { e.stopPropagation(); setName(film.name); setEditing(false); } }}
-                onBlur={saveName} style={{ fontSize: 20, fontWeight: 800 }} />
+                onBlur={saveName} style={{ fontSize: desktop ? 24 : 20, fontWeight: 800 }} />
             ) : (
               // My own film: tap the title to rename it right here
               <div onClick={readOnly || !onRename ? undefined : () => { setName(film.name); setEditing(true); }}
                 title={readOnly ? undefined : 'Нажми, чтобы переименовать'} style={{
-                  color: '#fff', fontSize: 24, lineHeight: '30px', fontWeight: 800, letterSpacing: '-0.3px', overflowWrap: 'anywhere',
+                  color: '#fff', fontSize: desktop ? 32 : 24, lineHeight: desktop ? '38px' : '30px', fontWeight: 800, letterSpacing: '-0.3px', overflowWrap: 'anywhere',
                   cursor: readOnly ? 'default' : 'text',
                   ...(readOnly ? {} : { textDecoration: 'underline dashed #3A3A3C', textDecorationThickness: 1.5, textUnderlineOffset: 5 }),
                 }}>{film.name}</div>
             )}
             {info?.original && info.original.toLowerCase() !== film.name.toLowerCase() && (
-              <div style={{ color: '#515151', fontSize: 13, fontWeight: 700, marginTop: 3 }}>{info.original}</div>
+              <div style={{ color: '#515151', fontSize: desktop ? 15 : 13, fontWeight: 700, marginTop: 3 }}>{info.original}</div>
             )}
-            {meta1 && <div style={{ color: '#8E8E93', fontSize: 14, fontWeight: 700, marginTop: 8 }}>{meta1}</div>}
-            {genres && <div style={{ color: '#8E8E93', fontSize: 14, fontWeight: 700, marginTop: 2 }}>{genres}</div>}
+            {meta1 && <div style={{ color: '#8E8E93', fontSize: desktop ? 16 : 14, fontWeight: 700, marginTop: desktop ? 12 : 8 }}>{meta1}</div>}
+            {genres && <div style={{ color: '#8E8E93', fontSize: desktop ? 16 : 14, fontWeight: 700, marginTop: 2 }}>{genres}</div>}
             {(rc || info?.vote) && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12 }}>
                 {rc && <span className="rating-pill" style={{ fontSize: 13, minWidth: 30, height: 24, padding: '0 9px', color: rc, background: `${rc}20` }}>{film.rating}</span>}
-                {info?.vote && <span style={{ color: '#8E8E93', fontSize: 13, fontWeight: 700 }}><span style={{ color: '#F5C451' }}>★</span> {String(info.vote).replace('.', ',')} TMDB</span>}
+                {info?.vote && <span style={{ color: '#8E8E93', fontSize: desktop ? 15 : 13, fontWeight: 700 }}><span style={{ color: '#F5C451' }}>★</span> {String(info.vote).replace('.', ',')} TMDB</span>}
               </div>
             )}
           </div>
@@ -100,7 +102,7 @@ export default function FilmSheet({ film, categoryId, onRate, onPoster, onRename
             {[100, 94, 70].map((w) => <div key={w} style={{ height: 12, width: `${w}%`, borderRadius: 6, background: '#232323' }} />)}
           </div>
         ) : info?.overview ? (
-          <div style={{ margin: '18px 0 22px', color: '#DCDCE0', fontSize: 16, lineHeight: '24px', fontWeight: 500 }}>{info.overview}</div>
+          <div style={{ margin: desktop ? '24px 0 26px' : '18px 0 22px', color: '#DCDCE0', fontSize: desktop ? 17 : 16, lineHeight: desktop ? '26px' : '24px', fontWeight: 500 }}>{info.overview}</div>
         ) : (
           <div style={{ height: 20 }} />
         )}
