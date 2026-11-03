@@ -175,7 +175,8 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
               <span style={{ fontSize: desktop ? fluid(19, 21) : 15, fontWeight: desktop ? 600 : 500, color: 'var(--text-dim)', minWidth: desktop ? 22 : 20, flexShrink: 0 }}>{idx + 1}</span>
               {/* Desktop has room for a small poster next to each film */}
               {desktop && (
-                <div style={{ width: fluid(34, 40), aspectRatio: '2 / 3', borderRadius: 7, overflow: 'hidden', flexShrink: 0, background: '#1C1C1E' }}>
+                // Click the poster to open the film's info window
+                <div onClick={() => setMenuFilm(film)} title="Подробнее" className="row-poster" style={{ width: fluid(34, 40), aspectRatio: '2 / 3', borderRadius: 7, overflow: 'hidden', flexShrink: 0, background: '#1C1C1E', cursor: 'pointer' }}>
                   {film.poster && <img src={posterUrl(film.poster, 'w92')} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
                 </div>
               )}

@@ -289,3 +289,5 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
 @media (min-width: 900px) {
   .sheet-panel.film-sheet { width: min(640px, calc(100vw - 48px)) !important; padding: 30px 32px 30px !important; }
 }
+.row-poster { transition: transform 0.18s ease, box-shadow 0.18s ease; }
+.row-poster:hover { transform: scale(1.08); box-shadow: 0 6px 18px rgba(0,0,0,0.5); }
