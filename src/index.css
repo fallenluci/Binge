@@ -266,3 +266,10 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
   .chat-page { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   .chat-page input, .chat-page textarea { -webkit-user-select: text; user-select: text; }
 }
+
+/* Phones: an app, not a web page — long presses don't select text or pop the iOS callout
+   (inputs still work as usual). Desktop keeps normal text selection. */
+@media (pointer: coarse) {
+  body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
+}

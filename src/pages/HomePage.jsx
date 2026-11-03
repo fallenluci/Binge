@@ -42,6 +42,7 @@ export default function HomePage({ onOpenCategory, onProfile, onRefresh, profile
     press.current = { x, y, t: setTimeout(() => {
       press.current = null;
       navigator.vibrate?.(10);
+      window.getSelection?.()?.removeAllRanges(); // a long press may have started selecting text
       // The finger lifting after a long press still produces a click — swallow that one,
       // otherwise it would hit the tile (opening it) or a button of the menu under the finger.
       const swallow = (ev) => { ev.preventDefault(); ev.stopPropagation(); window.removeEventListener('click', swallow, true); };

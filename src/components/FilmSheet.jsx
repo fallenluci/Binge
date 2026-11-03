@@ -20,7 +20,6 @@ export default function FilmSheet({ film, categoryId, onRate, onPoster, onRename
   const [name, setName] = useState(film.name);
   const [info, setInfo] = useState(film.info || null);
   const [loading, setLoading] = useState(!film.info);
-  const [more, setMore] = useState(false);
 
   useEffect(() => {
     if (film.info) return;
@@ -46,7 +45,9 @@ export default function FilmSheet({ film, categoryId, onRate, onPoster, onRename
   const rc = film.rating != null ? ratingColor(film.rating) : null;
   const meta1 = info && [info.year, info.runtime ? (info.seasons ? `серии по ${fmtRuntime(info.runtime)}` : fmtRuntime(info.runtime)) : '', info.seasons ? `${info.seasons} ${seasonsWord(info.seasons)}` : ''].filter(Boolean).join(' · ');
   const genres = info?.genres?.slice(0, 3).join(', ');
-  const icon = (d) => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">{d}</svg>;
+  const icon = (d, size = 18, color = '#fff') => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">{d}</svg>;
+  const posterPath = <><rect x="4" y="2" width="16" height="20" rx="3" /><path d="m4 16 4.5-4.5a2 2 0 0 1 2.8 0L18 18" /><circle cx="15" cy="7.5" r="1.5" /></>;
+  const roundIcon = { width: 46, height: 46, flexShrink: 0, padding: 0, borderRadius: '50%' };
 
   return (
     <>
@@ -59,15 +60,25 @@ export default function FilmSheet({ film, categoryId, onRate, onPoster, onRename
 
         <div style={{ display: 'flex', gap: 16 }}>
           {film.poster && (
-            <img src={posterUrl(film.poster, 'w185')} alt="" style={{ width: 96, height: 144, borderRadius: 12, objectFit: 'cover', flexShrink: 0, background: '#2C2C2C' }} />
+            <div onClick={readOnly ? undefined : onPoster} style={{ position: 'relative', flexShrink: 0, cursor: readOnly ? 'default' : 'pointer' }}>
+              <img src={posterUrl(film.poster, 'w185')} alt="" style={{ width: 96, height: 144, borderRadius: 12, objectFit: 'cover', display: 'block', background: '#2C2C2C' }} />
+              {/* Tap the poster to pick another one */}
+              {!readOnly && <div style={{ position: 'absolute', right: 5, bottom: 5, width: 26, height: 26, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon(posterPath, 14)}</div>}
+            </div>
           )}
           <div style={{ flex: 1, minWidth: 0, paddingTop: film.poster ? 4 : 0 }}>
             {editing ? (
-              <input autoFocus className="d-field" value={name} onChange={(e) => setName(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') { setName(film.name); setEditing(false); } }}
-                onBlur={saveName} />
+              <input autoFocus className="d-field" value={name} onChange={(e) => setName(e.target.value)} maxLength={120}
+                onKeyDown={(e) => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') { e.stopPropagation(); setName(film.name); setEditing(false); } }}
+                onBlur={saveName} style={{ fontSize: 20, fontWeight: 800 }} />
             ) : (
-              <div style={{ color: '#fff', fontSize: 24, lineHeight: '28px', fontWeight: 800, letterSpacing: '-0.3px', overflowWrap: 'anywhere' }}>{film.name}</div>
+              // My own film: tap the title to rename it right here
+              <div onClick={readOnly || !onRename ? undefined : () => { setName(film.name); setEditing(true); }}
+                title={readOnly ? undefined : 'Нажми, чтобы переименовать'} style={{
+                  color: '#fff', fontSize: 24, lineHeight: '30px', fontWeight: 800, letterSpacing: '-0.3px', overflowWrap: 'anywhere',
+                  cursor: readOnly ? 'default' : 'text',
+                  ...(readOnly ? {} : { textDecoration: 'underline dashed #3A3A3C', textDecorationThickness: 1.5, textUnderlineOffset: 5 }),
+                }}>{film.name}</div>
             )}
             {info?.original && info.original.toLowerCase() !== film.name.toLowerCase() && (
               <div style={{ color: '#515151', fontSize: 13, fontWeight: 700, marginTop: 3 }}>{info.original}</div>
@@ -89,10 +100,7 @@ export default function FilmSheet({ film, categoryId, onRate, onPoster, onRename
             {[100, 94, 70].map((w) => <div key={w} style={{ height: 12, width: `${w}%`, borderRadius: 6, background: '#232323' }} />)}
           </div>
         ) : info?.overview ? (
-          <div onClick={() => setMore(!more)} style={{
-            margin: '18px 0 20px', color: '#C7C7CC', fontSize: 15, lineHeight: '21px', fontWeight: 500, cursor: 'pointer',
-            ...(more ? {} : { display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', overflow: 'hidden' }),
-          }}>{info.overview}</div>
+          <div style={{ margin: '18px 0 22px', color: '#DCDCE0', fontSize: 16, lineHeight: '24px', fontWeight: 500 }}>{info.overview}</div>
         ) : (
           <div style={{ height: 20 }} />
         )}
@@ -108,22 +116,15 @@ export default function FilmSheet({ film, categoryId, onRate, onPoster, onRename
             )}
           </div>
         ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <button className="d-btn primary" onClick={onRate}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button className="d-btn primary" onClick={onRate} style={{ flex: 1, minWidth: 0, borderRadius: 23 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
-            {film.rating != null ? `Изменить оценку · ${film.rating}` : 'Оценить'}
+            {film.rating != null ? 'Изменить оценку' : 'Оценить'}
           </button>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button className="d-btn" onClick={onPoster}>
-              {icon(<><rect x="4" y="2" width="16" height="20" rx="3" /><path d="m4 16 4.5-4.5a2 2 0 0 1 2.8 0L18 18" /><circle cx="15" cy="7.5" r="1.5" /></>)}
-              Постер
-            </button>
-            <button className="d-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => { setName(film.name); setEditing(true); }}>
-              {icon(<><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></>)}
-              Переименовать
-            </button>
-          </div>
-          <button className="d-btn danger" onClick={onDelete}>Удалить фильм</button>
+          <button type="button" aria-label="Постер" title="Постер" className="d-btn" onClick={onPoster} style={roundIcon}>{icon(posterPath)}</button>
+          <button type="button" aria-label="Удалить фильм" title="Удалить фильм" className="d-btn danger" onClick={onDelete} style={roundIcon}>
+            {icon(<><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /></>, 20, '#FF453A')}
+          </button>
         </div>
         )}
       </div>
