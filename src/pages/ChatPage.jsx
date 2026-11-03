@@ -7,6 +7,10 @@ import { addFilm, getCategories, ratingColor, updateFilm } from '../store';
 import { posterUrl } from '../lib/posters';
 import { useIsDesktop } from '../lib/useIsDesktop';
 import { useSwipeBack } from '../lib/screen';
+import { fluid } from '../lib/fluid';
+
+// Desktop: the conversation is a centred column, so lines don't stretch across a wide monitor
+const SIDE = 'max(24px, calc((100% - 920px) / 2))';
 import {
   deleteMessagesForAll, editMessage, filmForChat, hideMessages, markChatRead, messageSummary, newMessage,
   pinMessage, postMessage, reactToMessage, subscribeMessages,
@@ -143,8 +147,8 @@ export default function ChatPage({ me, meName, social, chats, start, hidden, onC
   if (desktop) {
     return (
       <div className="chat-page" onAnimationEnd={once} style={{ position: 'absolute', inset: 0, zIndex: 50, background: '#000', display: 'flex', ...hide, alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.2s ease' }}>
-        <div style={{ width: 'min(1100px, calc(100% - 80px))', height: 'min(820px, calc(100dvh - 80px))', display: 'flex', background: '#0b0b0b', borderRadius: 32, overflow: 'hidden' }}>
-          <div style={{ width: 330, flexShrink: 0, borderRight: '1px solid #1c1c1c', display: 'flex', flexDirection: 'column' }}>{list}</div>
+        <div style={{ width: 'calc(100% - 80px)', maxWidth: 1760, height: 'calc(100dvh - 80px)', display: 'flex', background: '#0b0b0b', borderRadius: 32, overflow: 'hidden' }}>
+          <div style={{ width: fluid(330, 400), flexShrink: 0, borderRight: '1px solid #1c1c1c', display: 'flex', flexDirection: 'column' }}>{list}</div>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
             {convo || <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: GREY, fontSize: 16, fontWeight: 700 }}>Выбери, кому написать</div>}
           </div>
@@ -352,18 +356,18 @@ function Conversation({ me, meName, other, p, prof, desktop, friendIds, entry, o
           <div style={{ width: 64 }} />
         </div>
       ) : (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: desktop ? '18px 22px 14px' : 'calc(52px + var(--top-shift)) 18px 12px', borderBottom: desktop ? '1px solid #1c1c1c' : 'none' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: desktop ? '18px 26px 14px' : 'calc(52px + var(--top-shift)) 18px 12px', borderBottom: desktop ? '1px solid #1c1c1c' : 'none' }}>
           {onBack && <button type="button" aria-label="Назад" className="glass" style={roundBtn} onClick={onBack}>{I.back}</button>}
           <div onClick={onOpenProfile} style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, cursor: 'pointer' }}>
-            <Avatar p={p} size={desktop ? 40 : 38} />
-            <div style={{ color: '#fff', fontSize: 18, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p?.name || '…'}</div>
+            <Avatar p={p} size={desktop ? 44 : 38} />
+            <div style={{ color: '#fff', fontSize: desktop ? fluid(18, 20) : 18, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p?.name || '…'}</div>
           </div>
         </div>
       )}
 
       {/* Pinned message */}
       {entry.pinned && !selecting && (
-        <div onClick={() => scrollTo(entry.pinned.id)} style={{ margin: desktop ? '10px 22px 0' : '0 14px', background: CARD, borderRadius: 16, padding: '8px 10px 8px 12px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', animation: 'fadeIn 0.25s ease' }}>
+        <div onClick={() => scrollTo(entry.pinned.id)} style={{ margin: desktop ? `10px ${SIDE} 0` : '0 14px', background: CARD, borderRadius: 16, padding: '8px 10px 8px 12px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', animation: 'fadeIn 0.25s ease' }}>
           <div style={{ width: 3, alignSelf: 'stretch', borderRadius: 2, background: '#7B61FF' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ color: LILAC, fontSize: 12, fontWeight: 800 }}>Закреплено</div>
@@ -374,7 +378,7 @@ function Conversation({ me, meName, other, p, prof, desktop, friendIds, entry, o
       )}
 
       {/* Messages */}
-      <div ref={scroller} onScroll={onScroll} className="page" style={{ flex: 1, height: 'auto', minHeight: 0, padding: desktop ? '16px 24px' : '8px 14px', display: 'flex', flexDirection: 'column', gap: 4, overflowX: 'hidden' }}>
+      <div ref={scroller} onScroll={onScroll} className="page" style={{ flex: 1, height: 'auto', minHeight: 0, padding: desktop ? `16px ${SIDE}` : '8px 14px', display: 'flex', flexDirection: 'column', gap: 4, overflowX: 'hidden' }}>
         <div style={{ flex: 1 }} />
         {msgs && msgs.length === 0 && (
           <div style={{ textAlign: 'center', color: GREY, fontSize: 15, fontWeight: 700, padding: '30px 20px', lineHeight: '20px' }}>
@@ -397,13 +401,13 @@ function Conversation({ me, meName, other, p, prof, desktop, friendIds, entry, o
 
       {/* Bottom: selection actions, or reply/edit bar + input */}
       {selecting ? (
-        <div style={{ display: 'flex', gap: 8, padding: desktop ? '10px 22px 20px' : '8px 12px calc(14px + env(safe-area-inset-bottom, 0px))', animation: 'fadeIn 0.2s ease' }}>
+        <div style={{ display: 'flex', gap: 8, padding: desktop ? `10px ${SIDE} 22px` : '8px 12px calc(14px + env(safe-area-inset-bottom, 0px))', animation: 'fadeIn 0.2s ease' }}>
           <button type="button" className="d-btn" style={{ ...selBtn, opacity: selected.size ? 1 : 0.5 }} onClick={() => selected.size && (copy(selMsgs), endSelect())}>{I.copy}Копировать</button>
           <button type="button" className="d-btn" style={{ ...selBtn, opacity: selected.size ? 1 : 0.5 }} onClick={() => selected.size && setForward(selMsgs)}>{I.forward}Переслать</button>
           <button type="button" className="d-btn danger" aria-label="Удалить" style={{ ...selBtn, flex: '0 0 64px', opacity: selected.size ? 1 : 0.5 }} onClick={() => selected.size && setConfirmDel(selMsgs)}>{I.trash}</button>
         </div>
       ) : canWrite ? (
-        <div style={{ padding: desktop ? '6px 22px 20px' : '4px 12px calc(14px + env(safe-area-inset-bottom, 0px))' }}>
+        <div style={{ padding: desktop ? `6px ${SIDE} 22px` : '4px 12px calc(14px + env(safe-area-inset-bottom, 0px))' }}>
           {(replyTo || editing) && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '0 0 6px 54px', background: CARD, borderRadius: 16, padding: '7px 8px 7px 12px', animation: 'msg-in 0.3s cubic-bezier(0.2,0.9,0.25,1.1)' }}>
               <div style={{ color: LILAC, display: 'flex' }}>{editing ? I.edit : I.reply}</div>
@@ -415,11 +419,11 @@ function Conversation({ me, meName, other, p, prof, desktop, friendIds, entry, o
             </div>
           )}
           <form onSubmit={submit} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button type="button" aria-label="Отправить фильм" onClick={() => setPicker(true)} style={{ ...roundBtn, width: 46, height: 46, background: FIELD }}>{I.film()}</button>
+            <button type="button" aria-label="Отправить фильм" onClick={() => setPicker(true)} style={{ ...roundBtn, width: desktop ? fluid(46, 52) : 46, height: desktop ? fluid(46, 52) : 46, background: FIELD }}>{I.film()}</button>
             <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
               <input ref={inputRef} value={text} onChange={(e) => setText(e.target.value)} placeholder={editing?.film ? 'Подпись' : 'Сообщение'} enterKeyHint="send" maxLength={2000}
                 onKeyDown={(e) => e.key === 'Escape' && (editing || replyTo) && (e.stopPropagation(), setEditing(null), setReplyTo(null), editing && setText(''))}
-                style={{ width: '100%', height: 46, borderRadius: 23, border: 'none', outline: 'none', background: FIELD, color: '#fff', fontFamily: 'inherit', fontSize: 16, fontWeight: 700, padding: '0 52px 0 18px' }} />
+                style={{ width: '100%', height: desktop ? fluid(46, 52) : 46, borderRadius: 26, border: 'none', outline: 'none', background: FIELD, color: '#fff', fontFamily: 'inherit', fontSize: desktop ? fluid(16, 17) : 16, fontWeight: 700, padding: '0 52px 0 18px', display: 'block' }} />
               <SendBtn on={!!text.trim() || (editing?.film && editing.text)} check={!!editing} />
             </div>
           </form>
@@ -432,7 +436,7 @@ function Conversation({ me, meName, other, p, prof, desktop, friendIds, entry, o
         <div style={{ position: 'absolute', left: '50%', bottom: 90, transform: 'translateX(-50%)', background: FIELD, color: '#fff', fontSize: 14, fontWeight: 700, padding: '10px 16px', borderRadius: 16, whiteSpace: 'nowrap', animation: 'fadeIn 0.2s ease', zIndex: 5 }}>{toast}</div>
       )}
 
-      {menu && <MessageMenu menu={menu} me={me} pinnedId={entry.pinned?.id} canWrite={canWrite} nameOf={nameOf} readAt={readAt}
+      {menu && <MessageMenu menu={menu} me={me} desktop={desktop} pinnedId={entry.pinned?.id} canWrite={canWrite} nameOf={nameOf} readAt={readAt}
         onClose={() => setMenu(null)} onAction={action} onReact={(e) => { react(menu.msg, e); setMenu(null); }} />}
       {picker && <FilmPicker onClose={() => setPicker(false)} onSend={(f, caption) => { setPicker(false); send({ film: filmForChat(f), text: caption }); }} />}
       {open && !adding && (
@@ -452,7 +456,7 @@ function Conversation({ me, meName, other, p, prof, desktop, friendIds, entry, o
 function SendBtn({ on, check }) {
   return (
     <button type="submit" aria-label={check ? 'Сохранить' : 'Отправить'} tabIndex={on ? 0 : -1} style={{
-      position: 'absolute', right: 4, top: 4, width: 38, height: 38, borderRadius: '50%', border: 'none', padding: 0, cursor: 'pointer',
+      position: 'absolute', right: 4, top: 'calc(50% - 19px)', width: 38, height: 38, borderRadius: '50%', border: 'none', padding: 0, cursor: 'pointer',
       background: PURPLE, display: 'flex', alignItems: 'center', justifyContent: 'center',
       opacity: on ? 1 : 0, transform: on ? 'scale(1)' : 'scale(0.6)', pointerEvents: on ? 'auto' : 'none',
       transition: 'opacity 0.2s ease, transform 0.25s cubic-bezier(0.2,0.9,0.25,1.3)',
@@ -527,20 +531,20 @@ function Bubble({ m, me, readAt, nameOf, onOpenFilm, onQuote, onReact, desktop, 
     const i = m.film.info;
     const meta = i && [i.year, i.runtime && !i.seasons ? fmtRuntime(i.runtime) : '', i.seasons ? `${i.seasons} сез.` : ''].filter(Boolean).join(' · ');
     return (
-      <div className="bubble" style={{ background: mine ? PURPLE : FIELD, borderRadius: radius, padding: 7, width: desktop ? 280 : 250, maxWidth: '100%' }}>
+      <div className="bubble" style={{ background: mine ? PURPLE : FIELD, borderRadius: radius, padding: 7, width: desktop ? fluid(280, 320) : 250, maxWidth: '100%' }}>
         <div style={{ padding: m.replyTo || m.forwardedFrom ? '2px 4px 0' : 0 }}>{head}</div>
         <div onClick={menuCopy ? undefined : onOpenFilm} style={{ display: 'flex', gap: 11, cursor: 'pointer' }}>
-          <div style={{ width: 58, height: 86, borderRadius: 12, overflow: 'hidden', flexShrink: 0, background: mine ? 'rgba(0,0,0,0.25)' : '#1f1f1f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: desktop ? fluid(58, 66) : 58, aspectRatio: '58 / 86', borderRadius: 12, overflow: 'hidden', flexShrink: 0, background: mine ? 'rgba(0,0,0,0.25)' : '#1f1f1f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {m.film.poster ? <img src={posterUrl(m.film.poster, 'w185')} alt="" draggable="false" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : I.film(22, 'rgba(255,255,255,0.4)')}
           </div>
           <div style={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', paddingTop: 3 }}>
-            <div style={{ color: '#fff', fontSize: 15, fontWeight: 800, lineHeight: '18px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{m.film.name}</div>
+            <div style={{ color: '#fff', fontSize: desktop ? fluid(15, 17) : 15, fontWeight: 800, lineHeight: 1.2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{m.film.name}</div>
             {meta && <div style={{ color: sub, fontSize: 12, fontWeight: 700, marginTop: 3 }}>{meta}</div>}
             <div style={{ flex: 1 }} />
             {m.film.rating != null && <div style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(0,0,0,0.3)', borderRadius: 9, padding: '3px 8px', color: ratingColor(m.film.rating), fontSize: 13, fontWeight: 800 }}>{I.star}{m.film.rating}</div>}
           </div>
         </div>
-        <div style={{ padding: '6px 5px 1px', display: 'flow-root', color: '#fff', fontSize: 15, fontWeight: 600, lineHeight: '20px', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+        <div style={{ padding: '6px 5px 1px', display: 'flow-root', color: '#fff', fontSize: desktop ? fluid(15, 17) : 15, fontWeight: 600, lineHeight: 1.35, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
           {m.text}
           <Footer m={m} me={me} readAt={readAt} onReact={onReact} />
         </div>
@@ -548,7 +552,7 @@ function Bubble({ m, me, readAt, nameOf, onOpenFilm, onQuote, onReact, desktop, 
     );
   }
   return (
-    <div className="bubble" style={{ background: mine ? PURPLE : FIELD, color: '#fff', borderRadius: radius, padding: '9px 13px 7px', display: 'flow-root', fontSize: 15, fontWeight: 600, lineHeight: '20px', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+    <div className="bubble" style={{ background: mine ? PURPLE : FIELD, color: '#fff', borderRadius: radius, padding: desktop ? '10px 15px 8px' : '9px 13px 7px', display: 'flow-root', fontSize: desktop ? fluid(15, 17) : 15, fontWeight: 600, lineHeight: 1.35, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
       {head}
       {m.text}
       <Footer m={m} me={me} readAt={readAt} onReact={onReact} />
@@ -621,7 +625,7 @@ function MessageRow({ m, me, desktop, gap, anim, readAt, leaving, selecting, sel
 }
 
 // Long press menu: blurred backdrop, the message lifted in place, reactions above, actions below
-function MessageMenu({ menu, me, pinnedId, canWrite, nameOf, readAt, onClose, onAction, onReact }) {
+function MessageMenu({ menu, me, pinnedId, canWrite, nameOf, readAt, desktop, onClose, onAction, onReact }) {
   const { msg: m, rect } = menu;
   const mine = m.from === me;
   const [all, setAll] = useState(false);
@@ -677,7 +681,7 @@ function MessageMenu({ menu, me, pinnedId, canWrite, nameOf, readAt, onClose, on
       </div>
       {/* The message, lifted */}
       <div style={{ position: 'absolute', top: bubbleTop, ...(mine ? { right: Math.max(10, right) } : { left: Math.max(10, rect.left) }), width: rect.width, maxHeight: bubbleH, overflow: 'hidden', animation: 'lift 0.3s cubic-bezier(0.2,0.9,0.25,1.3) forwards', transformOrigin: mine ? '100% 50%' : '0 50%', pointerEvents: 'none' }}>
-        <Bubble m={m} me={me} readAt={readAt} nameOf={nameOf} menuCopy onReact={() => {}} />
+        <Bubble m={m} me={me} readAt={readAt} nameOf={nameOf} menuCopy desktop={desktop} onReact={() => {}} />
       </div>
       {/* Actions */}
       <div style={{ position: 'absolute', top: bubbleTop + bubbleH + gap, ...side, width: 230, background: CARD, borderRadius: 22, padding: '6px 0', animation: 'pop-in 0.32s cubic-bezier(0.2,0.9,0.25,1.2)', transformOrigin: mine ? '100% 0' : '0 0' }}>

@@ -8,6 +8,8 @@ import CategoryShareSheet from '../components/CategoryShareSheet';
 import { socialEnabled } from '../social';
 import { coverCrop } from '../lib/cover';
 import { useIsDesktop } from '../lib/useIsDesktop';
+import { fluid } from '../lib/fluid';
+import { posterUrl } from '../lib/posters';
 
 export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh, user, profile, social = { friends: [], inbox: [] }, intent }) {
   const [showShare, setShowShare] = useState(false);
@@ -130,12 +132,12 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
         {editingName ? (
           <input autoFocus value={catName} onChange={e => setCatName(e.target.value)} maxLength={60}
             onKeyDown={e => { if (e.key === 'Enter') saveCatName(); if (e.key === 'Escape') { e.stopPropagation(); setEditingName(false); } }} onBlur={saveCatName}
-            style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: 36, fontWeight: 700, color: 'var(--text)', letterSpacing: '-1px', width: '100%', fontFamily: 'inherit' }} />
+            style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: desktop ? fluid(36, 44) : 36, fontWeight: 700, color: 'var(--text)', letterSpacing: '-1px', width: '100%', fontFamily: 'inherit' }} />
         ) : (
           <>
             {/* Tap the name to rename the category */}
             <span onClick={() => { setEditingName(true); setCatName(cat.name); }} title="Нажми, чтобы переименовать" style={{
-              fontSize: 36, fontWeight: 700, color: 'var(--text)', letterSpacing: '-1px', cursor: 'text', minWidth: 0, overflowWrap: 'anywhere',
+              fontSize: desktop ? fluid(36, 44) : 36, fontWeight: 700, color: 'var(--text)', letterSpacing: '-1px', cursor: 'text', minWidth: 0, overflowWrap: 'anywhere',
             }}>{cat.name}</span>
             {socialEnabled && cat.visibility && cat.visibility !== 'private' && (
               <span onClick={() => setShowShare(true)} style={{ cursor: 'pointer', fontSize: 12, fontWeight: 800, color: cat.visibility === 'public' ? '#30D158' : '#8E8E93', background: '#1C1C1E', borderRadius: 999, padding: '4px 10px', whiteSpace: 'nowrap' }}>
@@ -156,18 +158,24 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
             <div key={film.id} className="rise-in" style={{
               animationDelay: `${120 + Math.min(idx, 14) * 28}ms`,
               display: 'flex', alignItems: 'center', gap: desktop ? 12 : 14,
-              padding: '13px 0',
+              padding: desktop ? '10px 0' : '13px 0',
               borderBottom: 'none',
             }}>
-              <span style={{ fontSize: desktop ? 19 : 15, fontWeight: desktop ? 600 : 500, color: 'var(--text-dim)', minWidth: desktop ? 0 : 20, flexShrink: 0 }}>{idx + 1}</span>
+              <span style={{ fontSize: desktop ? fluid(19, 21) : 15, fontWeight: desktop ? 600 : 500, color: 'var(--text-dim)', minWidth: desktop ? 22 : 20, flexShrink: 0 }}>{idx + 1}</span>
+              {/* Desktop has room for a small poster next to each film */}
+              {desktop && (
+                <div style={{ width: fluid(34, 40), aspectRatio: '2 / 3', borderRadius: 7, overflow: 'hidden', flexShrink: 0, background: '#1C1C1E' }}>
+                  {film.poster && <img src={posterUrl(film.poster, 'w92')} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
+                </div>
+              )}
               {/* Tap a film's name to rename it right in the list */}
               {renaming?.id === film.id ? (
                 <input autoFocus value={renaming.name} maxLength={120} onChange={(e) => setRenaming({ id: film.id, name: e.target.value })}
                   onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); if (e.key === 'Escape') { e.stopPropagation(); setRenaming(null); } }}
                   onBlur={() => { const n = renaming.name.trim(); if (n && n !== film.name) updateFilm(categoryId, film.id, { name: n }); setRenaming(null); refresh(); }}
-                  style={{ fontSize: desktop ? 19 : 17, fontWeight: desktop ? 700 : 500, color: 'var(--text)', flex: 1, minWidth: 0, background: '#1C1C1E', border: 'none', outline: 'none', borderRadius: 10, padding: '4px 8px', margin: '-4px 0 -4px -8px', fontFamily: 'inherit', animation: 'fadeIn 0.15s ease' }} />
+                  style={{ fontSize: desktop ? fluid(19, 22) : 17, fontWeight: desktop ? 700 : 500, color: 'var(--text)', flex: 1, minWidth: 0, background: '#1C1C1E', border: 'none', outline: 'none', borderRadius: 10, padding: '4px 8px', margin: '-4px 0 -4px -8px', fontFamily: 'inherit', animation: 'fadeIn 0.15s ease' }} />
               ) : (
-                <span onClick={() => setRenaming({ id: film.id, name: film.name })} style={{ fontSize: desktop ? 19 : 17, fontWeight: desktop ? 700 : 500, color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text' }}>{film.name}</span>
+                <span onClick={() => setRenaming({ id: film.id, name: film.name })} style={{ fontSize: desktop ? fluid(19, 22) : 17, fontWeight: desktop ? 700 : 500, color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text' }}>{film.name}</span>
               )}
               {rc && (
                 <span onClick={() => setShowRating(film)} className="rating-pill" style={{

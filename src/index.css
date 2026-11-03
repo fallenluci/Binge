@@ -152,7 +152,13 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
 @media (min-width: 900px) {
   .app { max-width: none; }
   /* Category page: black full-screen backdrop, content in an 816px column */
-  .cat-page { max-width: none; left: 0; padding: 0 max(0px, calc(50% - 408px)); }
+  /* Wider on big monitors: the column grows from its 1440px-frame size up to a cap */
+  :root {
+    --dk-col: clamp(769px, calc(769px + (100vw - 1440px) * 0.9), 1200px);
+    --cat-col: clamp(816px, calc(816px + (100vw - 1440px) * 0.6), 1100px);
+    --dk-tiles: 2;
+  }
+  .cat-page { max-width: none; left: 0; padding: 0 max(0px, calc(50% - var(--cat-col) / 2)); }
 }
 
 /* Sheets are 430px wide inline — never wider than the screen (iPhones are 375–393px) */
@@ -273,3 +279,6 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
   body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   input, textarea, [contenteditable="true"] { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
 }
+
+/* Wide monitors: three category tiles per row */
+@media (min-width: 1680px) { :root { --dk-tiles: 3; } }

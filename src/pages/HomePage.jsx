@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getCategories, setCategoryOrder, togglePin } from '../store';
 import TopBar from '../components/TopBar';
+import { fluid } from '../lib/fluid';
 import CroppedImage from '../components/CroppedImage';
 import { coverCrop } from '../lib/cover';
 import { useIsDesktop } from '../lib/useIsDesktop';
@@ -118,7 +119,7 @@ export default function HomePage({ onOpenCategory, onProfile, onRefresh, profile
       {arranging && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: 12, padding: desktop ? '18px 0 0' : '16px 16px 0',
-          maxWidth: desktop ? 769 : 'none', margin: '0 auto', position: 'sticky', top: 0, zIndex: 20,
+          maxWidth: desktop ? 'var(--dk-col)' : 'none', margin: '0 auto', position: 'sticky', top: 0, zIndex: 20,
         }}>
           <div style={{ flex: 1, color: '#8E8E93', fontSize: 14, fontWeight: 700, lineHeight: '18px', paddingLeft: 4 }}>Перетаскивай плитки, чтобы поменять порядок</div>
           <button type="button" className="d-btn primary" onClick={finishArrange} style={{ width: 'auto', padding: '0 22px', flexShrink: 0, boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>Готово</button>
@@ -127,7 +128,7 @@ export default function HomePage({ onOpenCategory, onProfile, onRefresh, profile
 
       {/* Phone: one column of wide tiles. Desktop: 2-column grid of 375×200 tiles (Figma desktop). */}
       <div style={desktop
-        ? { maxWidth: 769, margin: '0 auto', paddingTop: arranging ? 16 : 32, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }
+        ? { maxWidth: 'var(--dk-col)', margin: '0 auto', paddingTop: arranging ? 16 : 32, display: 'grid', gridTemplateColumns: 'repeat(var(--dk-tiles), 1fr)', gap: 20 }
         : { padding: '20px 16px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {cats.length === 0 && (
           <div className="glass" style={{ borderRadius: 28, padding: '60px 24px', textAlign: 'center', gridColumn: '1 / -1' }}>
@@ -154,7 +155,7 @@ export default function HomePage({ onOpenCategory, onProfile, onRefresh, profile
               style={{
                 animationDelay: `${Math.min(index, 10) * 45}ms`,
                 cursor: arranging ? (dragging ? 'grabbing' : 'grab') : 'pointer',
-                height: desktop ? 200 : 160,
+                height: desktop ? fluid(200, 230) : 160,
                 borderRadius: desktop ? 37.5 : 28,
                 overflow: 'hidden',
                 display: 'flex',

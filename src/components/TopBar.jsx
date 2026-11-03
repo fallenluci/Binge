@@ -80,7 +80,7 @@ export default function TopBar({ onOpenCategory, onProfile, onRefresh, profile, 
 
   return (
     // Desktop (Figma 1440 frame): 769px column, buttons 147px from the top, larger logo
-    <div style={{ position: 'relative', zIndex: 5, ...(desktop && { maxWidth: 769, margin: '0 auto' }) }}>
+    <div style={{ position: 'relative', zIndex: 5, ...(desktop && { maxWidth: 'var(--dk-col)', margin: '0 auto' }) }}>
       {/* Top bar. The row itself never changes size — only opacity and a clip-path
           animate (both cheap for the browser), so opening search is smooth: the
           search circle grows into the full bar over the faded logo and buttons. */}
