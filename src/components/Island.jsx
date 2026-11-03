@@ -151,6 +151,7 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
           <div className="sheet-backdrop" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 399 }} onClick={() => setShowAddCat(false)} />
           <div
             className="glass sheet-panel"
+            data-noswipe
             style={{
               position: 'fixed', bottom: 0, left: '50%',
               transform: `translateX(-50%) translateY(${addCatDragY}px)`,
