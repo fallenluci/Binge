@@ -9,7 +9,7 @@ import { socialEnabled } from '../social';
 import { coverCrop } from '../lib/cover';
 import { useIsDesktop } from '../lib/useIsDesktop';
 
-export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh, user, social = { friends: [], inbox: [] }, intent }) {
+export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh, user, profile, social = { friends: [], inbox: [] }, intent }) {
   const [showShare, setShowShare] = useState(false);
   // Read synchronously: with an empty first render the screen underneath flashed for a frame
   const [cat, setCat] = useState(() => getCategories().find(c => c.id === categoryId) || null);
@@ -236,7 +236,7 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
       )}
 
       {showShare && user && (
-        <CategoryShareSheet cat={cat} user={user} social={social} onChanged={() => { refresh(); onRefresh(); }} onClose={() => setShowShare(false)} />
+        <CategoryShareSheet cat={cat} user={user} profile={profile} social={social} onChanged={() => { refresh(); onRefresh(); }} onClose={() => setShowShare(false)} />
       )}
 
       {posterFor && (

@@ -124,7 +124,8 @@ function PublicProfile({ uid, me, onOpen, onClose, onLogin }) {
         </div>
       </div>
 
-      {share && <ShareSheet title="Профиль" subtitle={p.name} url={profileLink(uid)} onClose={() => setShare(false)} />}
+      {share && <ShareSheet title="Профиль" url={profileLink(uid)} onClose={() => setShare(false)}
+        card={{ avatar: p.avatar, avatarPos: p.avatarPos, name: p.name, caption: 'Отсканируй, чтобы открыть профиль в Dori' }} />}
       {film && (
         <FilmSheet key={film.id} film={film} readOnly categoryName={film.cat?.name}
           onOpenCategory={() => { setFilm(null); openCat(film.cat.id); }} onClose={() => setFilm(null)} />
@@ -256,7 +257,8 @@ function PublicCategory({ uid, catId, me, onOpen, onClose, onLogin, onSaved }) {
         </div>
       </div>
 
-      {share && <ShareSheet title="Категория" subtitle={cat.name} url={categoryLink(uid, catId)} onClose={() => setShare(false)} />}
+      {share && <ShareSheet title="Категория" url={categoryLink(uid, catId)} onClose={() => setShare(false)}
+        card={{ avatar: owner?.avatar, avatarPos: owner?.avatarPos, name: cat.name, caption: owner?.name ? `Категория · ${owner.name}` : 'Категория в Dori' }} />}
       {film && <FilmSheet key={film.id || film.name} film={film} readOnly onClose={() => setFilm(null)} />}
     </Frame>
   );

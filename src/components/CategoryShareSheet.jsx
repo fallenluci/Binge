@@ -9,7 +9,7 @@ import { categoryLink, sendCategory, setCategoryVisibility } from '../social';
  *   link — anyone with the link (QR / copy / send), not listed
  *   send to a friend — appears in their «Поделились с тобой»
  */
-export default function CategoryShareSheet({ cat, user, social, onChanged, onClose }) {
+export default function CategoryShareSheet({ cat, user, social, profile, onChanged, onClose }) {
   const vis = cat.visibility || 'private';
   const [sent, setSent] = useState({});
   const friends = social.friends.filter((f) => f.status === 'friends');
@@ -42,7 +42,8 @@ export default function CategoryShareSheet({ cat, user, social, onChanged, onClo
         </>
       ) : (
         <>
-          <LinkBlock url={categoryLink(user.uid, cat.id)} title={cat.name} />
+          <LinkBlock url={categoryLink(user.uid, cat.id)} title={cat.name}
+            card={{ avatar: profile?.avatar, avatarPos: profile?.avatarPos, name: cat.name, caption: profile?.name ? `Категория · ${profile.name}` : 'Категория в Dori' }} />
           <button type="button" className="d-btn danger" style={{ marginTop: 8 }} onClick={() => setVis('private')}>Закрыть доступ</button>
         </>
       )}

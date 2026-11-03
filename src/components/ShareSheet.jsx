@@ -1,18 +1,27 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import QRCode from 'qrcode';
+import { fileToDataUrl, qrCardSvg, squareImage, styledQr, svgToPng } from '../lib/qrStyle';
 
 /**
- * Share a link: QR code, the link with "Скопировать" and the system share sheet
- * (on phones). `children` go above the link (e.g. visibility switches).
+ * Share a link: a Dori QR card (rounded modules, purple eyes, the person's avatar in
+ * the middle — Dori when there is none), the link with "Скопировать", "Сохранить
+ * картинку" (PNG of the card, e.g. for stories) and the system share sheet on phones.
+ * card = { avatar, avatarPos, name, caption }
  */
-export function LinkBlock({ url, title }) {
-  const [svg, setSvg] = useState('');
+export function LinkBlock({ url, title, card = {} }) {
+  const [logo, setLogo] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [saving, setSaving] = useState(false);
   useEffect(() => {
-    QRCode.toString(url, { type: 'svg', margin: 0, errorCorrectionLevel: 'M', color: { dark: '#ffffff', light: '#00000000' } })
-      .then(setSvg).catch(() => setSvg(''));
-  }, [url]);
+    let alive = true;
+    (card.avatar ? squareImage(card.avatar, card.avatarPos) : Promise.resolve(null))
+      .then((a) => a || fileToDataUrl('/dori-logo.png'))
+      .then((l) => { if (alive) setLogo(l); }).catch(() => {});
+    return () => { alive = false; };
+  }, [card.avatar]); // eslint-disable-line react-hooks/exhaustive-deps
+  const round = !!card.avatar;
+  const svg = useMemo(() => styledQr(url, { style: 'liquid', logo, logoRound: round }), [url, logo, round]);
+
   const copy = async () => {
     try { await navigator.clipboard.writeText(url); } catch {
       const t = document.createElement('textarea'); t.value = url; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove();
@@ -20,11 +29,30 @@ export function LinkBlock({ url, title }) {
     setCopied(true); setTimeout(() => setCopied(false), 1800);
   };
   const canShare = typeof navigator !== 'undefined' && !!navigator.share;
+
+  const saveImage = async () => {
+    setSaving(true);
+    try {
+      const png = await svgToPng(qrCardSvg({ url, logo, logoRound: round, title: card.name || title, caption: card.caption || '' }), 1080, 1350);
+      const name = `dori-${(card.name || title || 'qr').replace(/[^\p{L}\p{N}]+/gu, '-').toLowerCase()}.png`;
+      const file = new File([png], name, { type: 'image/png' });
+      // Phones: the share sheet has "Сохранить изображение"; elsewhere — a normal download
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file] }).catch(() => {});
+      } else {
+        const a = document.createElement('a'); a.href = URL.createObjectURL(png); a.download = name;
+        document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      }
+    } catch (e) { console.error(e); }
+    setSaving(false);
+  };
+
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0 18px' }}>
-        <div style={{ width: 196, height: 196, padding: 18, borderRadius: 28, background: '#000', boxShadow: '0 0 0 1px #2C2C2C' }}
-          dangerouslySetInnerHTML={{ __html: svg }} />
+      <div style={{ margin: '4px 0 16px', padding: '22px 22px 18px', borderRadius: 30, textAlign: 'center', background: 'radial-gradient(circle at 50% 38%, #2a1a66 0%, #111 66%)' }}>
+        <div style={{ width: 'min(230px, 62vw)', aspectRatio: '1 / 1', margin: '0 auto' }} dangerouslySetInnerHTML={{ __html: svg }} />
+        {card.name && <div style={{ color: '#fff', fontSize: 20, fontWeight: 800, marginTop: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{card.name}</div>}
+        {card.caption && <div style={{ color: '#8E8E93', fontSize: 12, fontWeight: 700, marginTop: 4 }}>{card.caption}</div>}
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
         <div className="d-field" style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', color: '#8E8E93', fontSize: 14, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', userSelect: 'all' }}>
@@ -34,17 +62,23 @@ export function LinkBlock({ url, title }) {
           {copied ? 'Готово ✓' : 'Скопировать'}
         </button>
       </div>
-      {canShare && (
-        <button type="button" className="d-btn" style={{ marginTop: 8 }} onClick={() => navigator.share({ title, url }).catch(() => {})}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v13" /><path d="m7 8 5-5 5 5" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" /></svg>
-          Отправить…
+      <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+        <button type="button" className="d-btn" onClick={saveImage} disabled={saving || !logo} style={{ opacity: saving ? 0.6 : 1 }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></svg>
+          {saving ? 'Готовлю…' : 'Сохранить картинку'}
         </button>
-      )}
+        {canShare && (
+          <button type="button" className="d-btn" onClick={() => navigator.share({ title, url }).catch(() => {})}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v13" /><path d="m7 8 5-5 5 5" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" /></svg>
+            Отправить…
+          </button>
+        )}
+      </div>
     </div>
   );
 }
 
-export default function ShareSheet({ title, subtitle, url, onClose, children }) {
+export default function ShareSheet({ title, subtitle, url, card, onClose, children }) {
   const stop = (e) => e.stopPropagation();
   return createPortal(
     <div onTouchStart={stop} onTouchMove={stop} onTouchEnd={stop} onClick={stop}>
@@ -59,7 +93,7 @@ export default function ShareSheet({ title, subtitle, url, onClose, children }) 
         {subtitle && <div className="d-label" style={{ textAlign: 'center', marginTop: 6, lineHeight: '18px' }}>{subtitle}</div>}
         <div style={{ marginTop: 18 }}>
           {children}
-          {url && <LinkBlock url={url} title={title} />}
+          {url && <LinkBlock url={url} title={title} card={card} />}
         </div>
         <button type="button" className="d-btn ghost" style={{ marginTop: 10 }} onClick={onClose}>Закрыть</button>
       </div>

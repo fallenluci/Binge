@@ -376,6 +376,7 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
       {sheet === 'friends' && <FriendsSheet me={user.uid} social={social} onOpenPublic={onOpenPublic} onClose={() => setSheet(null)} />}
       {sheet === 'share' && (
         <ShareSheet title="Мой профиль" url={profileLink(user.uid)} onClose={() => setSheet(null)}
+          card={{ avatar: profile?.avatar, avatarPos: profile?.avatarPos, name, caption: 'Отсканируй, чтобы открыть профиль в Dori' }}
           subtitle="По ссылке видно имя, фото, статистику и категории, которые ты сделал публичными" />
       )}
 

@@ -169,7 +169,7 @@ export default function App() {
       <div style={{ display: page === 'rand' ? 'block' : 'none' }}>
         <RandPage onOpenCategory={id => setCatId(id)} onProfile={openAccount} onRefresh={refresh} profile={profile} refreshKey={tick} badge={badge} />
       </div>
-      {catId && <CategoryPage key={catId} intent={catIntent} categoryId={catId} refreshKey={tick} onBack={() => setCatId(null)} onRefresh={refresh} user={user} social={social} />}
+      {catId && <CategoryPage key={catId} intent={catIntent} categoryId={catId} refreshKey={tick} onBack={() => setCatId(null)} onRefresh={refresh} user={user} profile={profile} social={social} />}
       {showProfile && user && <ProfilePage user={user} profile={profile} refreshKey={tick} onClose={() => setShowProfile(false)} onOpenCategory={id => { setShowProfile(false); setCatId(id); }} social={social} onOpenPublic={openPublic} />}
       {route && <PublicView uid={route.uid} catId={route.catId} me={user} onOpen={openPublic} onClose={closePublic} onLogin={goLogin} onSaved={refresh} />}
       {!catId && !showProfile && !route && <Island activePage={page} onChangePage={setPage} onRefresh={refresh} />}
