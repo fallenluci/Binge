@@ -282,3 +282,6 @@ body { font-family: var(--font); background: var(--bg); overscroll-behavior: non
 
 /* Wide monitors: three category tiles per row */
 @media (min-width: 1680px) { :root { --dk-tiles: 3; } }
+.desk-back { transition: background 0.2s, transform 0.15s; }
+.desk-back:hover { background: #2C2C2C !important; }
+.desk-back:active { transform: scale(0.94); }

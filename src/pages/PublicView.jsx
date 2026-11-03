@@ -1,3 +1,4 @@
+import DeskBack from '../components/DeskBack';
 import { useEffect, useState } from 'react';
 import CroppedImage from '../components/CroppedImage';
 import ProfileStats from '../components/ProfileStats';
@@ -91,15 +92,16 @@ function PublicProfile({ uid, me, onOpen, onClose, onLogin }) {
 
   return (
     <Frame>
-      <div style={{ width: W, margin: '0 auto', paddingBottom: 140 }}>
+      <div style={{ width: W, margin: '0 auto', padding: desktop ? '86px 0 140px' : '0 0 140px' }}>
+        {desktop && <DeskBack onClick={onClose} />}
         {/* Header: banner, avatar, name, actions */}
-        <div style={{ position: 'relative', paddingTop: desktop ? 86 : 0 }}>
+        <div style={{ position: 'relative' }}>
           <CroppedImage src={p.banner} pos={p.bannerPos} style={desktop
             ? { width: '100%', aspectRatio: '1100 / 280', maxHeight: 280, borderRadius: '37.5px 37.5px 0 0', background: p.banner ? '#000' : '#171717' }
             : { width: '100%', height: 300, background: p.banner ? '#000' : '#171717' }}>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 45%, rgba(0,0,0,0.6) 80%, #000 100%)' }} />
           </CroppedImage>
-          <div style={{ position: 'absolute', top: desktop ? 40 : 'calc(60px + var(--top-shift))', left: desktop ? 0 : 22 }}><BackBtn onClick={onClose} /></div>
+          {!desktop && <div style={{ position: 'absolute', top: 'calc(60px + var(--top-shift))', left: 22 }}><BackBtn onClick={onClose} /></div>}
         </div>
 
         <div style={desktop
@@ -212,14 +214,15 @@ function PublicCategory({ uid, catId, me, onOpen, onClose, onLogin, onSaved }) {
   return (
     <Frame>
       <div style={{ width: W, margin: '0 auto', padding: desktop ? '40px 0 140px' : 'calc(60px + var(--top-shift)) 0 140px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: desktop ? 0 : '0 22px' }}>
-          <BackBtn onClick={onClose} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: desktop ? 0 : '0 22px', marginBottom: desktop ? 22 : 0 }}>
+          {!desktop && <BackBtn onClick={onClose} />}
           <div style={{ flex: 1 }} />
           <button type="button" className="d-btn" style={{ width: 42, height: 42, borderRadius: '50%', padding: 0 }} aria-label="Поделиться" onClick={() => setShare(true)}><ShareIcon /></button>
         </div>
 
         {/* Cover */}
-        <div style={{ margin: desktop ? '22px 0 0' : '20px 16px 0', height: desktop ? 200 : 150, borderRadius: desktop ? 37.5 : 28, position: 'relative', overflow: 'hidden', background: cat.color, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 20px' }}>
+        {desktop && <DeskBack onClick={onClose} />}
+        <div style={{ margin: desktop ? 0 : '20px 16px 0', height: desktop ? 200 : 150, borderRadius: desktop ? 37.5 : 28, position: 'relative', overflow: 'hidden', background: cat.color, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 20px' }}>
           {cat.image && <CroppedImage src={cat.image} pos={coverCrop(cat)} style={{ position: 'absolute', inset: 0 }} />}
           <div style={{ position: 'absolute', inset: 0, background: cat.image ? 'rgba(0,0,0,0.4)' : 'linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.25))' }} />
           <div style={{ position: 'relative', color: '#fff', fontWeight: 700, fontSize: desktop ? 40 : 30, letterSpacing: '-0.5px', textShadow: '0 2px 12px rgba(0,0,0,0.4)' }}>{cat.name}</div>

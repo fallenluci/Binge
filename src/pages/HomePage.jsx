@@ -62,32 +62,48 @@ export default function HomePage({ onOpenCategory, onProfile, onRefresh, profile
   };
 
   // ---- rearrange ----
-  const startArrange = () => { setMenu(null); setOrder(cats.map((c) => c.id)); setArranging(true); };
-  const finishArrange = () => { if (order) setCategoryOrder(order); setArranging(false); setOrder(null); setDrag(null); setCats(getCategories()); onRefresh?.(); };
+  // Phone: menu → «Поменять порядок» → drag tiles, «Готово».
+  // Desktop: also just grab a tile with the mouse and drop it elsewhere — saved on drop.
+  const orderRef = useRef(null);
+  const setOrderBoth = (next) => { orderRef.current = next; setOrder(next); };
+  const pageRef = useRef(null);
+  const quick = useRef(false); // a direct mouse drag (no «Готово» needed)
 
-  const onDragStart = (e, cat) => {
-    if (!arranging) return;
+  const startArrange = () => { setMenu(null); setOrderBoth(cats.map((c) => c.id)); setArranging(true); };
+  const finishArrange = () => {
+    const o = orderRef.current;
+    if (o) setCategoryOrder(o);
+    setArranging(false); setOrderBoth(null); setDrag(null); setCats(getCategories()); onRefresh?.();
+  };
+
+  // Slots are kept in page coordinates (viewport + scroll) so the list can scroll while dragging
+  const scrollTop = () => pageRef.current?.scrollTop || 0;
+  const onDragStart = (e, cat, ids = orderRef.current) => {
+    if (!ids) return;
     e.preventDefault();
-    const ids = order;
-    // Slot rectangles stay fixed while dragging (all tiles are the same size)
-    const slots = ids.map((id) => tileRefs.current.get(id).getBoundingClientRect());
+    const s0 = scrollTop();
+    const slots = ids.map((id) => { const r = tileRefs.current.get(id).getBoundingClientRect(); return { left: r.left, top: r.top + s0, width: r.width, height: r.height }; });
     const from = ids.indexOf(cat.id);
     const pinned = !!cat.pinned;
     const lo = pinned ? 0 : pinnedCount, hi = pinned ? pinnedCount - 1 : ids.length - 1;
-    dragInfo.current = { id: cat.id, x0: e.clientX, y0: e.clientY, slots, start: slots[from], lo, hi };
+    dragInfo.current = { id: cat.id, x0: e.clientX, y0: e.clientY + s0, slots, start: slots[from], lo, hi, px: e.clientX, py: e.clientY };
     setDrag({ id: cat.id, dx: 0, dy: 0 });
     // Follow the pointer on the window: React moves tile nodes while reordering,
     // which would drop a pointer capture set on the tile itself.
-    const move = (ev) => onDragMove(ev);
-    const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up); onDragEnd(); };
+    const move = (ev) => { const d = dragInfo.current; if (d) { d.px = ev.clientX; d.py = ev.clientY; } onDragMove(); };
+    const up = () => {
+      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up);
+      onDragEnd();
+    };
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
     window.addEventListener('pointercancel', up);
+    autoScroll();
   };
-  const onDragMove = (e) => {
+  const onDragMove = () => {
     const d = dragInfo.current;
     if (!d) return;
-    const px = e.clientX, py = e.clientY;
+    const px = d.px, py = d.py + scrollTop();
     // which slot is the pointer over (nearest centre), kept inside the tile's group
     let best = 0, bestDist = Infinity;
     d.slots.forEach((r, i) => {
@@ -95,16 +111,54 @@ export default function HomePage({ onOpenCategory, onProfile, onRefresh, profile
       if (dist < bestDist) { bestDist = dist; best = i; }
     });
     best = Math.max(d.lo, Math.min(d.hi, best));
-    setOrder((ids) => {
-      const cur = ids.indexOf(d.id);
-      if (cur === best) return ids;
+    const ids = orderRef.current;
+    const cur = ids.indexOf(d.id);
+    if (cur !== best) {
       const next = ids.filter((id) => id !== d.id);
       next.splice(best, 0, d.id);
-      return next;
-    });
+      setOrderBoth(next);
+    }
     setDrag({ id: d.id, x: d.start.left + (px - d.x0), y: d.start.top + (py - d.y0) });
   };
-  const onDragEnd = () => { dragInfo.current = null; setDrag(null); };
+  // Holding a tile near the top or bottom edge scrolls the list, faster the closer to the edge
+  const autoScroll = () => {
+    const d = dragInfo.current, el = pageRef.current;
+    if (!d || !el) return;
+    const zone = 110, h = window.innerHeight;
+    const v = d.py < zone ? -(zone - d.py) / zone : d.py > h - zone ? (d.py - (h - zone)) / zone : 0;
+    if (v) {
+      const before = el.scrollTop;
+      el.scrollTop += Math.sign(v) * Math.min(1, Math.abs(v)) * 18;
+      if (el.scrollTop !== before) onDragMove();
+    }
+    requestAnimationFrame(autoScroll);
+  };
+  const onDragEnd = () => {
+    dragInfo.current = null; setDrag(null);
+    if (quick.current) { quick.current = false; finishArrange(); }
+  };
+
+  // Desktop: press a tile and move the mouse a little — that's a drag, not a click
+  const mouseDown = (e, cat) => {
+    if (e.pointerType !== 'mouse' || e.button !== 0 || arranging) return;
+    const x = e.clientX, y = e.clientY;
+    const move = (ev) => {
+      if (Math.hypot(ev.clientX - x, ev.clientY - y) < 6) return;
+      cleanup();
+      const ids = cats.map((c) => c.id);
+      quick.current = true;
+      setOrderBoth(ids); setArranging(true);
+      // the click that ends the drag must not open the category
+      const swallow = (ce) => { ce.preventDefault(); ce.stopPropagation(); window.removeEventListener('click', swallow, true); };
+      window.addEventListener('click', swallow, true);
+      setTimeout(() => window.removeEventListener('click', swallow, true), 600);
+      onDragStart({ preventDefault() {}, clientX: x, clientY: y }, cat, ids);
+      const d = dragInfo.current; if (d) { d.px = ev.clientX; d.py = ev.clientY; } onDragMove();
+    };
+    const cleanup = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', cleanup); };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', cleanup);
+  };
 
   const offsetFor = (cat, index) => {
     if (!drag || drag.id !== cat.id || drag.x == null) return null;
@@ -113,10 +167,10 @@ export default function HomePage({ onOpenCategory, onProfile, onRefresh, profile
   };
 
   return (
-    <div className="page dotted-bg" style={{ paddingBottom: 140 }}>
+    <div ref={pageRef} className="page dotted-bg" style={{ paddingBottom: 140 }}>
       <TopBar onOpenCategory={onOpenCategory} onProfile={onProfile} onRefresh={onRefresh} profile={profile} badge={badge} chat={chat} />
 
-      {arranging && (
+      {arranging && !quick.current && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: 12, padding: desktop ? '18px 0 0' : '16px 16px 0',
           maxWidth: desktop ? 'var(--dk-col)' : 'none', margin: '0 auto', position: 'sticky', top: 0, zIndex: 20,
@@ -128,7 +182,7 @@ export default function HomePage({ onOpenCategory, onProfile, onRefresh, profile
 
       {/* Phone: one column of wide tiles. Desktop: 2-column grid of 375×200 tiles (Figma desktop). */}
       <div style={desktop
-        ? { maxWidth: 'var(--dk-col)', margin: '0 auto', paddingTop: arranging ? 16 : 32, display: 'grid', gridTemplateColumns: 'repeat(var(--dk-tiles), 1fr)', gap: 20 }
+        ? { maxWidth: 'var(--dk-col)', margin: '0 auto', paddingTop: arranging && !quick.current ? 16 : 32, display: 'grid', gridTemplateColumns: 'repeat(var(--dk-tiles), 1fr)', gap: 20 }
         : { padding: '20px 16px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {cats.length === 0 && (
           <div className="glass" style={{ borderRadius: 28, padding: '60px 24px', textAlign: 'center', gridColumn: '1 / -1' }}>
@@ -147,14 +201,14 @@ export default function HomePage({ onOpenCategory, onProfile, onRefresh, profile
               ref={(el) => { if (el) tileRefs.current.set(cat.id, el); else tileRefs.current.delete(cat.id); }}
               onClick={() => onTileClick(cat)}
               onContextMenu={(e) => { e.preventDefault(); if (!arranging) setMenu(cat); }}
-              onPointerDown={(e) => (arranging ? onDragStart(e, cat) : startPress(e, cat))}
+              onPointerDown={(e) => (arranging ? (!quick.current && onDragStart(e, cat)) : (mouseDown(e, cat), startPress(e, cat)))}
               onPointerMove={(e) => { if (!arranging) movePress(e); }}
               onPointerUp={() => { if (!arranging) endPress(); }}
               onPointerCancel={() => { if (!arranging) endPress(); }}
               className="tile rise-in"
               style={{
                 animationDelay: `${Math.min(index, 10) * 45}ms`,
-                cursor: arranging ? (dragging ? 'grabbing' : 'grab') : 'pointer',
+                cursor: arranging ? (dragging ? 'grabbing' : 'grab') : 'pointer', userSelect: 'none',
                 height: desktop ? fluid(200, 230) : 160,
                 borderRadius: desktop ? 37.5 : 28,
                 overflow: 'hidden',

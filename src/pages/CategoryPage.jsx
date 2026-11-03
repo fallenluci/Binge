@@ -4,6 +4,7 @@ import RatingPicker from '../components/RatingPicker';
 import CoverPicker from '../components/CoverPicker';
 import PosterPicker from '../components/PosterPicker';
 import FilmSheet from '../components/FilmSheet';
+import DeskBack from '../components/DeskBack';
 import CategoryShareSheet from '../components/CategoryShareSheet';
 import { socialEnabled } from '../social';
 import { coverCrop } from '../lib/cover';
@@ -108,9 +109,11 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
       className="cat-page"
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: desktop ? 'min(147px, 14.4dvh) 22px 0' : 'calc(60px + var(--top-shift)) 22px 0' }}>
-        <button onClick={goBack} className="glass" style={{ borderRadius: '50%', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-        </button>
+        {desktop ? <div /> : (
+          <button onClick={goBack} aria-label="Назад" className="glass" style={{ borderRadius: '50%', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          </button>
+        )}
         <div style={{ display: 'flex', gap: desktop ? 5 : 10 }}>
           {socialEnabled && user && (
             <button onClick={() => setShowShare(true)} aria-label="Поделиться" className="glass" style={{ borderRadius: '50%', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: 'none' }}>
@@ -129,6 +132,8 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: desktop ? '5px 24px 9px' : '26px 24px 20px' }}>
+        {/* Desktop: the shared back button, beside the column at the title's level */}
+        {desktop && <div style={{ alignSelf: 'center', marginTop: -21, marginRight: -10 }}><DeskBack onClick={goBack} /></div>}
         {editingName ? (
           <input autoFocus value={catName} onChange={e => setCatName(e.target.value)} maxLength={60}
             onKeyDown={e => { if (e.key === 'Enter') saveCatName(); if (e.key === 'Escape') { e.stopPropagation(); setEditingName(false); } }} onBlur={saveCatName}
