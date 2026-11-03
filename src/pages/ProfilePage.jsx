@@ -131,7 +131,8 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
   const swipe = useRef(null);
   const onTouchStart = (e) => { swipe.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; };
   const onTouchEnd = (e) => {
-    if (!swipe.current || cropper || confirmPw || photoMenu) return;
+    // Out of edit mode the screen itself follows the finger back (see Screen)
+    if (!swipe.current || !editing || cropper || confirmPw || photoMenu) return;
     const dx = e.changedTouches[0].clientX - swipe.current.x;
     const dy = Math.abs(e.changedTouches[0].clientY - swipe.current.y);
     swipe.current = null;
@@ -227,7 +228,7 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
 
   return (
     <div className="page profile-page" style={{ position: 'absolute', inset: 0, zIndex: 30, background: '#000' }}
-      onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      data-noswipe={editing ? '' : undefined} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       {desktop ? (
         <ProfileDesktop
           user={user} name={name} view={view} editing={editing} draft={draft} setDraft={setDraft}

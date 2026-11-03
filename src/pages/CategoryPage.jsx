@@ -24,8 +24,6 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
   const appearanceStartY = useRef(0);
   const [tempColor, setTempColor] = useState('');
   const [tempCover, setTempCover] = useState({ image: null, crop: null });
-  const touchStartX = useRef(0);
-  const touchStartY = useRef(0);
 
   const refresh = () => setCat(getCategories().find(c => c.id === categoryId));
   useEffect(() => { refresh(); }, [categoryId]);
@@ -37,12 +35,6 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
     else onBack(); // the category was deleted on another device
   }, [refreshKey]);
   const goBack = () => { onBack(); onRefresh(); };
-  const handleTouchStart = e => { touchStartX.current = e.touches[0].clientX; touchStartY.current = e.touches[0].clientY; };
-  const handleTouchEnd = e => {
-    const dx = e.changedTouches[0].clientX - touchStartX.current;
-    const dy = Math.abs(e.changedTouches[0].clientY - touchStartY.current);
-    if (dx > 80 && dy < 60) goBack();
-  };
   const handleRate = (filmId, rating) => { updateFilm(categoryId, filmId, { rating }); setShowRating(null); refresh(); };
   const handleDelete = (filmId) => { deleteFilm(categoryId, filmId); setMenuFilm(null); refresh(); };
   const saveCatName = () => { if (catName.trim()) updateCategory(categoryId, { name: catName.trim() }); setEditingName(false); refresh(); };
@@ -111,7 +103,6 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
   return (
     <div
       className="cat-page"
-      onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: desktop ? 'min(147px, 14.4dvh) 22px 0' : 'calc(60px + var(--top-shift)) 22px 0' }}>
         <button onClick={goBack} className="glass" style={{ borderRadius: '50%', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
@@ -161,7 +152,8 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
         {cat.films.map((film, idx) => {
           const rc = film.rating !== null ? ratingColor(film.rating) : null;
           return (
-            <div key={film.id} style={{
+            <div key={film.id} className="rise-in" style={{
+              animationDelay: `${120 + Math.min(idx, 14) * 28}ms`,
               display: 'flex', alignItems: 'center', gap: desktop ? 12 : 14,
               padding: '13px 0',
               borderBottom: 'none',

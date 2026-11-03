@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { getCategories, addFilm, addCategory, CATEGORY_COLORS } from '../store';
 import CoverPicker from './CoverPicker';
 
-export default function Island({ activePage, onChangePage, onRefresh }) {
+export default function Island({ activePage, onChangePage, onRefresh, hidden = false }) {
   const [plusOpen, setPlusOpen] = useState(false);
   // The same dock on every screen size
   const dockBottom = '30px';
@@ -81,7 +81,13 @@ export default function Island({ activePage, onChangePage, onRefresh }) {
 
       {/* Bottom nav: main dock (Home/Rand) + separate "+" island */}
       {/* absolute in .app: sits 30px above the real bottom of the app screen */}
-      <div style={{ position: 'absolute', bottom: dockBottom, left: '50%', transform: 'translateX(-50%)', zIndex: 100, display: 'flex', alignItems: 'center', gap: 10 }}>
+      {/* Over a page (category, profile…) the dock sinks down and fades out */}
+      <div style={{
+        position: 'absolute', bottom: dockBottom, left: '50%', transform: `translateX(-50%) translateY(${hidden ? 24 : 0}px) scale(${hidden ? 0.92 : 1})`,
+        zIndex: 100, display: 'flex', alignItems: 'center', gap: 10,
+        opacity: hidden ? 0 : 1, pointerEvents: hidden ? 'none' : 'auto',
+        transition: 'opacity 0.25s ease, transform 0.35s cubic-bezier(0.2,0.8,0.2,1)',
+      }}>
         <div className="nav-solid" style={{ height: 62, padding: 6, display: 'flex', alignItems: 'stretch', gap: 4, position: 'relative' }}>
           {/* Sliding active indicator — glides between Home/Rand like iOS segmented control */}
           <div style={{

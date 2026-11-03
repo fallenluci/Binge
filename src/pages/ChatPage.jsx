@@ -6,6 +6,7 @@ import { usePublicProfiles } from '../components/FriendsSheet';
 import { addFilm, getCategories, ratingColor, updateFilm } from '../store';
 import { posterUrl } from '../lib/posters';
 import { useIsDesktop } from '../lib/useIsDesktop';
+import { useSwipeBack } from '../lib/screen';
 import {
   deleteMessagesForAll, editMessage, filmForChat, hideMessages, markChatRead, messageSummary, newMessage,
   pinMessage, postMessage, reactToMessage, subscribeMessages,
@@ -67,56 +68,6 @@ function Avatar({ p, size }) {
   return <CroppedImage src={p?.avatar} pos={p?.avatarPos} style={{ width: size, height: size, borderRadius: '50%', background: '#383838', flexShrink: 0 }} />;
 }
 
-// Phone: drag a screen to the right to go back (like in Telegram). Moves the element directly, no re-renders.
-function useSwipeBack(ref, onBack, enabled) {
-  const cb = useRef(onBack);
-  cb.current = onBack;
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || !enabled) return;
-    let s = null;
-    const start = (e) => {
-      if (e.touches.length !== 1 || e.target.closest('input, textarea, [data-noswipe]')) { s = null; return; }
-      s = { x: e.touches[0].clientX, y: e.touches[0].clientY, t: e.timeStamp, dx: 0, v: 0, mode: null };
-    };
-    const move = (e) => {
-      if (!s) return;
-      const dx = e.touches[0].clientX - s.x, dy = e.touches[0].clientY - s.y;
-      if (!s.mode) {
-        if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
-        s.mode = dx > 0 && dx > Math.abs(dy) * 1.2 ? 'drag' : 'skip';
-        if (s.mode === 'drag') { el.style.transition = 'none'; el.style.animation = 'none'; }
-      }
-      if (s.mode !== 'drag') return;
-      e.preventDefault();
-      const d = Math.max(0, dx);
-      s.v = (d - s.dx) / Math.max(1, e.timeStamp - s.t); s.t = e.timeStamp; s.dx = d;
-      el.style.transform = `translateX(${d}px)`;
-    };
-    const end = () => {
-      if (!s || s.mode !== 'drag') { s = null; return; }
-      const { dx, v } = s; s = null;
-      const w = el.offsetWidth;
-      if (dx > w * 0.33 || v > 0.5) {
-        el.style.transition = 'transform 0.25s cubic-bezier(0.2,0.8,0.2,1)';
-        el.style.transform = `translateX(${w}px)`;
-        setTimeout(() => cb.current(), 230);
-      } else {
-        el.style.transition = 'transform 0.3s cubic-bezier(0.2,0.8,0.2,1)';
-        el.style.transform = 'translateX(0)';
-      }
-    };
-    el.addEventListener('touchstart', start, { passive: true });
-    el.addEventListener('touchmove', move, { passive: false });
-    el.addEventListener('touchend', end, { passive: true });
-    el.addEventListener('touchcancel', end, { passive: true });
-    return () => {
-      el.removeEventListener('touchstart', start); el.removeEventListener('touchmove', move);
-      el.removeEventListener('touchend', end); el.removeEventListener('touchcancel', end);
-    };
-  }, [ref, enabled]);
-}
-
 export default function ChatPage({ me, meName, social, chats, start, hidden, onClose, onOpenPublic, onChanged }) {
   const desktop = useIsDesktop();
   const [current, setCurrent] = useState(start || null);
@@ -173,7 +124,7 @@ export default function ChatPage({ me, meName, social, chats, start, hidden, onC
             Пока не с кем переписываться. Добавь друзей — поделись ссылкой на свой профиль, и друг нажмёт «Добавить в друзья».
           </div>
         )}
-        {shown.map((r) => <ChatRow key={r.uid} r={r} p={prof(r.uid)} me={me} active={desktop && current === r.uid} onClick={() => setCurrent(r.uid)} />)}
+        {shown.map((r, i) => <ChatRow key={r.uid} i={i} r={r} p={prof(r.uid)} me={me} active={desktop && current === r.uid} onClick={() => setCurrent(r.uid)} />)}
       </div>
     </div>
   );
@@ -211,7 +162,7 @@ export default function ChatPage({ me, meName, social, chats, start, hidden, onC
   );
 }
 
-function ChatRow({ r, p, me, active, onClick }) {
+function ChatRow({ r, p, me, active, onClick, i = 0 }) {
   const preview = r.previewFilm != null
     ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
         {r.lastFrom === me && 'Ты: '}{I.film(13, '#8E8E93')}
@@ -219,7 +170,7 @@ function ChatRow({ r, p, me, active, onClick }) {
       </span>
     : r.previewText ? `${r.lastFrom === me ? 'Ты: ' : ''}${r.previewText}` : r.lastAt ? 'Сообщение удалено' : 'Напиши первым';
   return (
-    <div onClick={onClick} style={{ background: active ? FIELD : CARD, borderRadius: 20, padding: 10, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', transition: 'background 0.2s' }}>
+    <div onClick={onClick} className="rise-in" style={{ animationDelay: `${80 + Math.min(i, 10) * 35}ms`, background: active ? FIELD : CARD, borderRadius: 20, padding: 10, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', transition: 'background 0.2s' }}>
       <Avatar p={p} size={48} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>

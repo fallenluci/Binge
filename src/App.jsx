@@ -16,6 +16,7 @@ import { replaceDataFromRemote, onLocalSave } from './store';
 import PublicView from './pages/PublicView';
 import { schedulePublish, resetPublishCache, subscribeChats, subscribeFriends, subscribeInbox } from './social';
 import ChatPage from './pages/ChatPage';
+import { Screen } from './lib/screen';
 import { fillMissingPosters } from './lib/posters';
 
 const SPLASH_MIN_MS = 1000;
@@ -30,7 +31,10 @@ const parseRoute = () => {
 };
 
 export default function App() {
-  const [page, setPage] = useState('home');
+  const [page, setPageRaw] = useState('home');
+  // Switching tabs: the new one slides in from its side (Home is on the left, Random on the right)
+  const [tabAnim, setTabAnim] = useState('');
+  const setPage = (p) => { if (p !== page) { setTabAnim(p === 'rand' ? 'tab-from-right' : 'tab-from-left'); setPageRaw(p); } };
   const [catId, setCatId] = useState(null);
   const [catIntent, setCatIntent] = useState(null); // 'appearance' — open the category with its editor
   const [tick, setTick] = useState(0);
@@ -169,21 +173,27 @@ export default function App() {
     <div className="app">
       {/* Both tabs stay mounted and are only shown/hidden: switching is instant,
           with no re-render of the list and no re-decoding of the mascot image */}
-      <div style={{ display: page === 'home' ? 'block' : 'none' }}>
+      <div className={page === 'home' ? tabAnim : ''} style={{ display: page === 'home' ? 'block' : 'none' }}>
         <HomePage onOpenCategory={(id, intent) => { setCatIntent(intent || null); setCatId(id); }} onProfile={openAccount} onRefresh={refresh} profile={profile} refreshKey={tick} badge={badge} chat={chat} />
       </div>
-      <div style={{ display: page === 'rand' ? 'block' : 'none' }}>
+      <div className={page === 'rand' ? tabAnim : ''} style={{ display: page === 'rand' ? 'block' : 'none' }}>
         <RandPage onOpenCategory={id => setCatId(id)} onProfile={openAccount} onRefresh={refresh} profile={profile} refreshKey={tick} badge={badge} chat={chat} />
       </div>
-      {catId && <CategoryPage key={catId} intent={catIntent} categoryId={catId} refreshKey={tick} onBack={() => setCatId(null)} onRefresh={refresh} user={user} profile={profile} social={social} />}
+      <Screen show={!!catId} z={20} onBack={() => { setCatId(null); refresh(); }}>
+        {catId && <CategoryPage key={catId} intent={catIntent} categoryId={catId} refreshKey={tick} onBack={() => setCatId(null)} onRefresh={refresh} user={user} profile={profile} social={social} />}
+      </Screen>
+      <Screen show={showProfile && !!user} z={30} onBack={() => setShowProfile(false)}>
       {showProfile && user && <ProfilePage user={user} profile={profile} refreshKey={tick} onClose={() => setShowProfile(false)} onOpenCategory={id => { setShowProfile(false); setCatId(id); }} social={social} onOpenPublic={openPublic} onOpenChat={(uid) => setChatOpen({ with: uid })} />}
-      {route && <PublicView uid={route.uid} catId={route.catId} me={user} onOpen={openPublic} onClose={closePublic} onLogin={goLogin} onSaved={refresh} />}
+      </Screen>
+      <Screen show={!!route} z={45} background="#000" onBack={closePublic} contentKey={route ? `${route.uid}/${route.catId || ''}` : ''}>
+        {route && <PublicView uid={route.uid} catId={route.catId} me={user} onOpen={openPublic} onClose={closePublic} onLogin={goLogin} onSaved={refresh} />}
+      </Screen>
       {chatOpen && user && (
         // A friend's profile opens over the chat; "back" returns to the same conversation
         <ChatPage me={user.uid} meName={profile?.name || user.displayName || (user.email || '').split('@')[0]} social={social} chats={social.chats}
           start={chatOpen.with} hidden={!!route} onClose={() => setChatOpen(null)} onOpenPublic={openPublic} onChanged={refresh} />
       )}
-      {!catId && !showProfile && !route && !chatOpen && <Island activePage={page} onChangePage={setPage} onRefresh={refresh} />}
+      <Island activePage={page} onChangePage={setPage} onRefresh={refresh} hidden={!!(catId || showProfile || route || chatOpen)} />
       {showAccount && <AccountSheet user={user} syncStatus={syncStatus} onClose={() => setShowAccount(false)} />}
       {splashLayer}
     </div>

@@ -62,9 +62,28 @@ export function installSheetSwipe() {
       panel.style.transition = 'transform 0.22s ease-in';
       panel.style.transform = `${base} translateY(${panel.offsetHeight + 40}px)`;
       backdrop.style.transition = 'opacity 0.22s ease'; backdrop.style.opacity = '0';
-      setTimeout(() => backdrop.click(), 200);
+      setTimeout(() => { backdrop.dataset.closing = '1'; backdrop.click(); }, 200);
     } else reset(panel, base, backdrop);
   };
   document.addEventListener('touchend', end, { passive: true, capture: true });
+
+  // Tapping outside a sheet: it slides down (a centred window on desktop fades out) before it closes.
+  // The click is held back, the panel animates, then the backdrop is clicked again for real.
+  document.addEventListener('click', (e) => {
+    const bd = e.target;
+    if (!bd.classList?.contains('sheet-backdrop') || bd.dataset.closing) return;
+    let panel = bd.nextElementSibling;
+    while (panel && !panel.classList.contains('sheet-panel')) panel = panel.nextElementSibling;
+    if (!panel) return;
+    e.stopPropagation(); e.preventDefault();
+    bd.dataset.closing = '1';
+    const desk = window.matchMedia(DESKTOP_QUERY).matches;
+    panel.style.animation = 'none';
+    panel.style.transition = desk ? 'opacity 0.18s ease, scale 0.18s ease' : 'translate 0.24s cubic-bezier(0.4,0,1,1)';
+    if (desk) { panel.style.opacity = '0'; panel.style.scale = '0.96'; }
+    else panel.style.translate = `0 ${panel.offsetHeight + 40}px`;
+    bd.style.transition = 'opacity 0.22s ease'; bd.style.opacity = '0';
+    setTimeout(() => { if (bd.isConnected) bd.click(); }, desk ? 170 : 220);
+  }, true);
   document.addEventListener('touchcancel', end, { passive: true, capture: true });
 }

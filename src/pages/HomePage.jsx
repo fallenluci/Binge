@@ -149,8 +149,9 @@ export default function HomePage({ onOpenCategory, onProfile, onRefresh, profile
               onPointerMove={(e) => { if (!arranging) movePress(e); }}
               onPointerUp={() => { if (!arranging) endPress(); }}
               onPointerCancel={() => { if (!arranging) endPress(); }}
-              className="tile"
+              className="tile rise-in"
               style={{
+                animationDelay: `${Math.min(index, 10) * 45}ms`,
                 cursor: arranging ? (dragging ? 'grabbing' : 'grab') : 'pointer',
                 height: desktop ? 200 : 160,
                 borderRadius: desktop ? 37.5 : 28,
