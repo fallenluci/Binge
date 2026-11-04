@@ -137,6 +137,8 @@ export function updateFilm(categoryId, filmId, updates) {
     const next = { ...f, ...updates };
     // When the film was (re)rated — drives "Недавно посмотрел" and the recent top-5
     if ('rating' in updates && updates.rating !== f.rating) next.ratedAt = updates.rating == null ? null : Date.now();
+    // A short review shown on the profile; empty = no review
+    if ('review' in updates) { next.review = (updates.review || '').trim() || null; next.reviewedAt = next.review ? Date.now() : null; }
     return next;
   });
   saveData(data);

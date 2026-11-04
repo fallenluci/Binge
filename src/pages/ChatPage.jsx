@@ -756,7 +756,7 @@ function FilmPicker({ onClose, onSend }) {
         {shown.map((f) => {
           const on = sel?.key === f.key;
           return (
-            <div key={f.key} onClick={() => setSel(on ? null : f)} style={{ cursor: 'pointer', minWidth: 0 }}>
+            <div key={f.key} onClick={() => { setSel(on ? null : f); if (!on) setCaption(f.review || ''); }} style={{ cursor: 'pointer', minWidth: 0 }}>
               <div style={{ position: 'relative', aspectRatio: '2 / 3', borderRadius: 14, overflow: 'hidden', background: FIELD, boxShadow: on ? '0 0 0 3px #7B61FF' : 'none', transform: on ? 'scale(0.95)' : 'none', transition: 'box-shadow 0.2s, transform 0.25s cubic-bezier(0.2,0.9,0.25,1.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {f.poster ? <img src={posterUrl(f.poster, 'w185')} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} /> : I.film(24, '#515151')}
                 {f.rating != null && <div style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,0.65)', color: ratingColor(f.rating), borderRadius: 8, padding: '1px 7px', fontSize: 12, fontWeight: 800 }}>{f.rating}</div>}

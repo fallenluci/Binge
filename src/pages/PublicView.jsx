@@ -83,7 +83,7 @@ function PublicProfile({ uid, me, onOpen, onClose, onLogin }) {
     </Frame>
   );
 
-  const stats = { ...p.stats, top: p.top || [], topFresh: p.topFresh, recent: p.recent || [], favorite: p.favorite || null };
+  const stats = { ...p.stats, top: p.top || [], topFresh: p.topFresh, recent: p.recent || [], reviews: p.reviews || [], favorite: p.favorite || null };
   const openCat = (id) => onOpen(uid, id);
   // Top / recent / favourite may come from hidden categories — those can't be opened
   const sharedIds = new Set([...(p.categories || []).map((c) => c.id), ...[...stats.top, ...stats.recent, stats.favorite].filter(Boolean).map((x) => x.cat).filter((c) => c?.shared).map((c) => c.id)]);
@@ -137,7 +137,7 @@ function PublicProfile({ uid, me, onOpen, onClose, onLogin }) {
       {share && <ShareSheet title="Профиль" url={profileLink(uid)} onClose={() => setShare(false)}
         card={{ avatar: p.avatar, avatarPos: p.avatarPos, name: p.name, caption: 'Отсканируй, чтобы открыть профиль в Dori' }} />}
       {film && (
-        <FilmSheet key={film.id} film={film} readOnly categoryName={film.cat?.name}
+        <FilmSheet key={film.id} film={film} readOnly reviewBy={p.name} categoryName={film.cat?.name}
           onOpenCategory={sharedIds.has(film.cat?.id) ? () => { setFilm(null); openCat(film.cat.id); } : undefined} onClose={() => setFilm(null)} />
       )}
     </Frame>
@@ -271,7 +271,7 @@ function PublicCategory({ uid, catId, me, onOpen, onClose, onLogin, onSaved }) {
 
       {share && <ShareSheet title="Категория" url={categoryLink(uid, catId)} onClose={() => setShare(false)}
         card={{ cover: { image: cat.image, crop: coverCrop(cat), color: cat.color }, name: cat.name, caption: owner?.name ? `Категория · ${owner.name}` : 'Категория в Dori' }} />}
-      {film && <FilmSheet key={film.id || film.name} film={film} readOnly onClose={() => setFilm(null)} />}
+      {film && <FilmSheet key={film.id || film.name} film={film} readOnly reviewBy={owner?.name} onClose={() => setFilm(null)} />}
     </Frame>
   );
 }

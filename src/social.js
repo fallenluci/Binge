@@ -31,6 +31,7 @@ export const categoryLink = (uid, catId) => `${location.origin}/u/${uid}/c/${cat
 const shownFilm = (f) => ({
   id: f.id, name: f.name, rating: f.rating ?? null, poster: f.poster || null, ratedAt: f.ratedAt || null,
   tmdbId: f.tmdbId || null, tmdbType: f.tmdbType || null, info: f.info || null,
+  review: f.review || null, reviewedAt: f.reviewedAt || null,
 });
 const shownCat = (c) => ({ id: c.id, name: c.name, color: c.color });
 // shared — the category itself can be opened by others (public or by link)
@@ -52,6 +53,7 @@ function snapshotOf(profile, user) {
     top: all.top.map(asItem),
     topFresh: all.topFresh,
     recent: all.recent.map(asItem),
+    reviews: all.reviews.map(asItem),
     favorite: all.favorite ? { cat: shownCatRef(all.favorite.cat), count: all.favorite.count, avg: all.favorite.avg } : null,
     categories: open.map((c) => ({ ...shownCat(c), count: c.films.length })),
     updatedAt: Date.now(),

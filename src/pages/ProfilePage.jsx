@@ -369,7 +369,7 @@ export default function ProfilePage({ user, profile, onClose, onOpenCategory, re
       <input ref={fileRef} type="file" accept="image/*" hidden onChange={onFile} />
 
       {filmView && (
-        <FilmSheet key={filmView.id} film={filmView} categoryId={filmView.cat.id} readOnly
+        <FilmSheet key={filmView.id} film={filmView} categoryId={filmView.cat.id} readOnly reviewBy=""
           categoryName={filmView.cat.name}
           onOpenCategory={() => { setFilmView(null); onOpenCategory?.(filmView.cat.id); }}
           onClose={() => setFilmView(null)} />

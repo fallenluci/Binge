@@ -3,6 +3,14 @@ import { ratingColor, updateFilm } from '../store';
 import { loadInfo, posterUrl } from '../lib/posters';
 import { useIsDesktop } from '../lib/useIsDesktop';
 
+const whenShort = (t) => {
+  const d0 = new Date(); d0.setHours(0, 0, 0, 0);
+  const days = Math.floor((d0.getTime() - new Date(t).setHours(0, 0, 0, 0)) / 86400000);
+  if (days <= 0) return 'сегодня';
+  if (days === 1) return 'вчера';
+  return new Date(t).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }).replace('.', '');
+};
+
 export const fmtRuntime = (min) => {
   if (!min) return '';
   const h = Math.floor(min / 60), m = min % 60;
@@ -16,9 +24,10 @@ const seasonsWord = (n) => (n % 10 === 1 && n % 100 !== 11 ? 'сезон' : n % 
  * Description & co. are loaded from TMDB once and kept on the film (`info`).
  */
 // readOnly — opened from a profile: just the info, no editing; onOpenCategory adds a link to its category
-export default function FilmSheet({ film, categoryId, onRate, onPoster, onRename, onDelete, onClose, onChanged, readOnly, onOpenCategory, categoryName, onAdd }) {
+export default function FilmSheet({ film, categoryId, onRate, onPoster, onRename, onDelete, onClose, onChanged, readOnly, onOpenCategory, categoryName, onAdd, onReview, reviewBy }) {
   const desktop = useIsDesktop(); // desktop: a bigger window with a bigger poster
   const [editing, setEditing] = useState(false);
+  const [reviewEdit, setReviewEdit] = useState(null); // text while editing my review
   const [name, setName] = useState(film.name);
   const [info, setInfo] = useState(film.info || null);
   const [loading, setLoading] = useState(!film.info);
@@ -95,6 +104,34 @@ export default function FilmSheet({ film, categoryId, onRate, onPoster, onRename
             )}
           </div>
         </div>
+
+        {/* Review: mine (tap to edit) or the profile owner's */}
+        {(film.review || reviewEdit != null) && (
+          reviewEdit != null ? (
+            <div style={{ marginTop: desktop ? 20 : 16 }}>
+              <textarea autoFocus value={reviewEdit} maxLength={280} rows={3} onChange={(e) => setReviewEdit(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); setReviewEdit(null); } if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); e.currentTarget.blur(); } }}
+                onBlur={() => { const t = reviewEdit.trim(); if (t !== (film.review || '')) onReview?.(t); setReviewEdit(null); }}
+                placeholder="Пара слов о фильме" style={{
+                  width: '100%', resize: 'none', border: 'none', outline: 'none', borderRadius: 16, background: '#2C2C2C', color: '#fff',
+                  fontFamily: 'inherit', fontSize: desktop ? 16 : 15, lineHeight: '22px', fontWeight: 600, padding: '11px 13px', display: 'block',
+                }} />
+              <div style={{ color: '#515151', fontSize: 11, fontWeight: 700, padding: '5px 4px 0', display: 'flex', justifyContent: 'space-between' }}>
+                <span>Сотри текст, чтобы удалить отзыв</span><span>{reviewEdit.length}/280</span>
+              </div>
+            </div>
+          ) : (
+            <div onClick={!readOnly && onReview ? () => setReviewEdit(film.review || '') : undefined} style={{
+              marginTop: desktop ? 20 : 16, background: '#2C2C2C', borderRadius: 16, padding: '10px 13px 12px', cursor: !readOnly && onReview ? 'text' : 'default',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#8E8E93', fontSize: 12, fontWeight: 700, marginBottom: 4 }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.3 7.5L3 21l2-5.4A8.4 8.4 0 1 1 21 11.5z" /></svg>
+                {reviewBy ? `Отзыв ${reviewBy}` : 'Твой отзыв'}{film.reviewedAt ? ` · ${whenShort(film.reviewedAt)}` : ''}
+              </div>
+              <div style={{ color: '#fff', fontSize: desktop ? 16 : 15, lineHeight: desktop ? '23px' : '21px', fontWeight: 600, overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }}>{film.review}</div>
+            </div>
+          )
+        )}
 
         {/* Description */}
         {loading ? (

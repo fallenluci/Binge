@@ -5,6 +5,7 @@ import CoverPicker from '../components/CoverPicker';
 import PosterPicker from '../components/PosterPicker';
 import FilmSheet from '../components/FilmSheet';
 import DeskBack from '../components/DeskBack';
+import ReviewPrompt from '../components/ReviewPrompt';
 import CategoryShareSheet from '../components/CategoryShareSheet';
 import { socialEnabled } from '../social';
 import { coverCrop } from '../lib/cover';
@@ -39,7 +40,13 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
     else onBack(); // the category was deleted on another device
   }, [refreshKey]);
   const goBack = () => { onBack(); onRefresh(); };
-  const handleRate = (filmId, rating) => { updateFilm(categoryId, filmId, { rating }); setShowRating(null); refresh(); };
+  const [reviewFor, setReviewFor] = useState(null); // { film, rating } — "a few words?" after rating
+  const handleRate = (filmId, rating) => {
+    const film = cat?.films.find((f) => f.id === filmId);
+    updateFilm(categoryId, filmId, { rating }); setShowRating(null); refresh();
+    if (film && rating != null) setReviewFor({ film, rating });
+  };
+  const saveReview = (filmId, review) => { updateFilm(categoryId, filmId, { review }); refresh(); };
   const handleDelete = (filmId) => { deleteFilm(categoryId, filmId); setMenuFilm(null); refresh(); };
   const saveCatName = () => { if (catName.trim()) updateCategory(categoryId, { name: catName.trim() }); setEditingName(false); refresh(); };
 
@@ -211,6 +218,7 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
           categoryId={categoryId}
           onClose={() => setMenuFilm(null)}
           onRate={() => { setShowRating(menuFilm); setMenuFilm(null); }}
+          onReview={(text) => { saveReview(menuFilm.id, text); setMenuFilm((f) => f && { ...f, review: text || null }); }}
           onPoster={() => { setPosterFor(menuFilm); setMenuFilm(null); }}
           onDelete={() => handleDelete(menuFilm.id)}
           onRename={(name) => {
@@ -305,6 +313,10 @@ export default function CategoryPage({ categoryId, refreshKey, onBack, onRefresh
         </>
       )}
 
+      {reviewFor && (
+        <ReviewPrompt key={reviewFor.film.id + reviewFor.rating} film={reviewFor.film} rating={reviewFor.rating}
+          onSave={(text) => saveReview(reviewFor.film.id, text)} onClose={() => setReviewFor(null)} />
+      )}
       {showRating && (
         <RatingPicker film={showRating} onRate={r => handleRate(showRating.id, r)} onClose={() => setShowRating(null)} />
       )}

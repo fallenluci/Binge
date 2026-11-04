@@ -40,7 +40,10 @@ export function computeStats(cats) {
   const ranked = perCat.filter((p) => p.rated >= minRated).sort((a, b) => b.avg - a.avg || b.rated - a.rated);
   const favorite = ranked[0] || [...perCat].sort((a, b) => b.count - a.count).find((p) => p.count > 0) || null;
 
-  return { total: films.length, rated: rated.length, avg, top, topFresh, recent, favorite };
+  // Latest short reviews, newest first
+  const reviews = rated.filter((f) => f.review).sort((a, b) => (b.reviewedAt || b.ratedAt || 0) - (a.reviewedAt || a.ratedAt || 0)).slice(0, 6);
+
+  return { total: films.length, rated: rated.length, avg, top, topFresh, recent, reviews, favorite };
 }
 
 function Tile({ cat, size }) {
@@ -111,6 +114,7 @@ export default function ProfileStats({ desktop, onOpenCategory, onOpenFilm, refr
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ color: '#fff', fontSize: 16, lineHeight: '19px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
               </div>
+              {f.review && <ReviewMark size={20} />}
               <span className="rating-pill" style={{ fontSize: 13, minWidth: 30, height: 24, padding: '0 9px', color: rc, background: `${rc}20`, flexShrink: 0 }}>{f.rating}</span>
             </div>
           );
@@ -133,13 +137,10 @@ export default function ProfileStats({ desktop, onOpenCategory, onOpenFilm, refr
   return (
     <div>
       {statRow}
+      {top}
+      <Reviews items={s.reviews || []} label={label} openFilm={openFilm} />
       <Recent films={s.recent} label={label} openFilm={openFilm} />
-      {(
-        <>
-          {fav}
-          {top}
-        </>
-      )}
+      {fav}
     </div>
   );
 }
@@ -160,18 +161,6 @@ function Wide({ s, statRow, label, onOpenCategory, openFilm, isPublic }) {
   return (
     <div>
       {statRow}
-
-      {/* Top-5 across the whole width: the big numbers need the room */}
-      {!(isPublic && s.top.length === 0) && <div style={label}>{s.topFresh ? 'Топ-5 за месяц' : 'Топ-5 за всё время'}</div>}
-      {isPublic && s.top.length === 0 ? null : s.top.length === 0 ? (
-        <div style={{ height: 120, borderRadius: 26, background: CARD, display: 'flex', alignItems: 'center', justifyContent: 'center', color: GREY, fontSize: 15, fontWeight: 700 }}>
-          Оцени пару фильмов — здесь появится твой топ
-        </div>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14 }}>
-          {s.top.map((f, i) => <TopCard key={`${f.cat.id}-${f.id}`} f={f} rank={i + 1} onClick={() => openFilm(f)} />)}
-        </div>
-      )}
 
       {/* Favourite category (3 columns) + the last 5 watched films, in one row of 8 */}
       {(fav || s.recent.length > 0) && (
@@ -195,6 +184,21 @@ function Wide({ s, statRow, label, onOpenCategory, openFilm, isPublic }) {
           <Recent films={s.recent} label={null} openFilm={openFilm} desktop inline />
         </div>
       )}
+
+      {/* Top-5 across the whole width: the big numbers need the room */}
+      {!(isPublic && s.top.length === 0) && <div style={label}>{s.topFresh ? 'Топ-5 за месяц' : 'Топ-5 за всё время'}</div>}
+      {isPublic && s.top.length === 0 ? null : s.top.length === 0 ? (
+        <div style={{ height: 120, borderRadius: 26, background: CARD, display: 'flex', alignItems: 'center', justifyContent: 'center', color: GREY, fontSize: 15, fontWeight: 700 }}>
+          Оцени пару фильмов — здесь появится твой топ
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14 }}>
+          {s.top.map((f, i) => <TopCard key={`${f.cat.id}-${f.id}`} f={f} rank={i + 1} onClick={() => openFilm(f)} />)}
+        </div>
+      )}
+
+
+      <Reviews items={s.reviews || []} label={label} openFilm={openFilm} desktop />
     </div>
   );
 }
@@ -220,6 +224,7 @@ function TopCard({ f, rank, onClick }) {
         <div style={{ position: 'relative', color: '#fff', fontSize: 16, lineHeight: '19px', fontWeight: 800, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textShadow: has ? '0 1px 8px rgba(0,0,0,0.6)' : 'none' }}>{f.name}</div>
         <div style={{ position: 'relative', color: has ? 'rgba(255,255,255,0.65)' : GREY, fontSize: 12, fontWeight: 700, margin: '3px 0 8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.cat.name}</div>
         <span className="rating-pill" style={{ position: 'relative', alignSelf: 'flex-start', fontSize: 13, minWidth: 30, height: 24, padding: '0 9px', color: rc, background: has ? 'rgba(0,0,0,0.6)' : `${rc}20` }}>{f.rating}</span>
+        {f.review && <div style={{ position: 'absolute', right: 10, bottom: 12 }}><ReviewMark size={24} /></div>}
       </div>
     </div>
   );
@@ -259,9 +264,46 @@ function Recent({ films, label, openFilm, desktop, inline }) {
                   ? <img src={posterUrl(f.poster, 'w185')} alt="" loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
                   : <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 8, textAlign: 'center', color: GREY, fontSize: 13, fontWeight: 800, lineHeight: '16px' }}>{f.name}</div>}
                 <span className="rating-pill" style={{ position: 'absolute', left: 6, bottom: 6, fontSize: 12, minWidth: 26, height: 22, padding: '0 8px', color: rc, background: 'rgba(0,0,0,0.7)' }}>{f.rating}</span>
+                {f.review && <div style={{ position: 'absolute', right: 6, bottom: 6 }}><ReviewMark size={22} /></div>}
               </div>
               <div style={{ color: '#fff', fontSize: 13, fontWeight: 700, lineHeight: '16px', marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
               <div style={{ color: GREY, fontSize: 11, fontWeight: 700 }}>{when(f.ratedAt)}</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// 💬 — this film has a short review
+function ReviewMark({ size = 22 }) {
+  return (
+    <span title="Есть отзыв" style={{ width: size, height: size, borderRadius: '50%', background: '#7B61FF', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <svg width={size * 0.55} height={size * 0.55} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.3 7.5L3 21l2-5.4A8.4 8.4 0 1 1 21 11.5z" /></svg>
+    </span>
+  );
+}
+
+// "Последние отзывы": poster, title, rating and the review text. Phone: one column; desktop: two.
+function Reviews({ items, label, openFilm, desktop }) {
+  if (!items.length) return null;
+  return (
+    <div>
+      <div style={label}>Последние отзывы</div>
+      <div style={{ display: 'grid', gridTemplateColumns: desktop ? '1fr 1fr' : '1fr', gap: desktop ? 12 : 8 }}>
+        {items.slice(0, desktop ? 6 : 3).map((f) => {
+          const rc = ratingColor(f.rating);
+          return (
+            <div key={`${f.cat.id}-${f.id}`} onClick={() => openFilm(f)} style={{ background: CARD, borderRadius: 20, padding: 10, display: 'flex', gap: 12, cursor: 'pointer', minWidth: 0 }}>
+              <Poster path={f.poster} w={desktop ? 52 : 44} />
+              <div style={{ flex: 1, minWidth: 0, paddingTop: 2 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ flex: 1, minWidth: 0, color: '#fff', fontSize: desktop ? 16 : 15, fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
+                  <span className="rating-pill" style={{ fontSize: 12, minWidth: 26, height: 22, padding: '0 8px', color: rc, background: `${rc}20`, flexShrink: 0 }}>{f.rating}</span>
+                </div>
+                <div style={{ color: '#C7C7CC', fontSize: desktop ? 15 : 14, lineHeight: desktop ? '21px' : '19px', fontWeight: 600, marginTop: 4, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', overflowWrap: 'anywhere' }}>{f.review}</div>
+              </div>
             </div>
           );
         })}
