@@ -137,10 +137,10 @@ export default function ProfileStats({ desktop, onOpenCategory, onOpenFilm, refr
   return (
     <div>
       {statRow}
-      {top}
-      <Reviews items={s.reviews || []} label={label} openFilm={openFilm} />
       <Recent films={s.recent} label={label} openFilm={openFilm} />
       {fav}
+      {top}
+      <Reviews items={s.reviews || []} label={label} openFilm={openFilm} />
     </div>
   );
 }
