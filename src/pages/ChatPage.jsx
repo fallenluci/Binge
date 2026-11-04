@@ -72,9 +72,9 @@ function Avatar({ p, size }) {
   return <CroppedImage src={p?.avatar} pos={p?.avatarPos} style={{ width: size, height: size, borderRadius: '50%', background: '#383838', flexShrink: 0 }} />;
 }
 
-export default function ChatPage({ me, meName, social, chats, start, hidden, onClose, onOpenPublic, onChanged }) {
+// current — the open conversation (from the address /chats/{uid}); onSelect / onLeaveChat change the address
+export default function ChatPage({ me, meName, social, chats, current = null, hidden, onClose, onOpenPublic, onChanged, onSelect, onLeaveChat }) {
   const desktop = useIsDesktop();
-  const [current, setCurrent] = useState(start || null);
   const [q, setQ] = useState('');
   const rootRef = useRef(null);
   const convoRef = useRef(null);
@@ -91,10 +91,10 @@ export default function ChatPage({ me, meName, social, chats, start, hidden, onC
   // Leaving a conversation on the phone: it slides away to the right, the list stays under it
   const closeConvo = () => {
     const el = convoRef.current;
-    if (!el || desktop) { setCurrent(null); return; }
+    if (!el || desktop) { onLeaveChat(); return; }
     el.style.transition = 'transform 0.28s cubic-bezier(0.2,0.8,0.2,1)';
     el.style.transform = `translateX(${el.offsetWidth}px)`;
-    setTimeout(() => setCurrent(null), 260);
+    setTimeout(onLeaveChat, 260);
   };
   const closeAll = () => {
     const el = rootRef.current;
@@ -103,7 +103,7 @@ export default function ChatPage({ me, meName, social, chats, start, hidden, onC
     el.style.transform = `translateX(${el.offsetWidth}px)`;
     setTimeout(onClose, 260);
   };
-  useSwipeBack(convoRef, () => setCurrent(null), !desktop && !!current);
+  useSwipeBack(convoRef, () => onLeaveChat(), !desktop && !!current);
   useSwipeBack(rootRef, onClose, !desktop && !current);
 
   useEffect(() => {
@@ -128,7 +128,7 @@ export default function ChatPage({ me, meName, social, chats, start, hidden, onC
             Пока не с кем переписываться. Добавь друзей — поделись ссылкой на свой профиль, и друг нажмёт «Добавить в друзья».
           </div>
         )}
-        {shown.map((r, i) => <ChatRow key={r.uid} i={i} r={r} p={prof(r.uid)} me={me} active={desktop && current === r.uid} onClick={() => setCurrent(r.uid)} />)}
+        {shown.map((r, i) => <ChatRow key={r.uid} i={i} r={r} p={prof(r.uid)} me={me} active={desktop && current === r.uid} onClick={() => onSelect(r.uid, desktop)} />)}
       </div>
     </div>
   );
